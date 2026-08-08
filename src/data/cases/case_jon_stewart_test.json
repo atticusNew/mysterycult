@@ -1,0 +1,317 @@
+{
+  "id": "case_jon_stewart_test",
+  "version": 1,
+  "title": "Case #001",
+  "question": "Who are we looking for?",
+  "answer": {
+    "primary": "Jon Stewart",
+    "aliases": ["jon stewart", "john stewart", "jonathan stewart", "jon stewart daily show"]
+  },
+  "type": "person",
+  "category": "television",
+  "entityId": "jon_stewart",
+  "entity": {
+    "id": "jon_stewart",
+    "name": "Jon Stewart",
+    "type": "person",
+    "recognition": "broad",
+    "longevity": "high",
+    "connectionDensity": "high",
+    "eras": ["1990s", "2000s", "2010s", "2020s"],
+    "domains": ["television", "comedy", "film", "politics", "news"]
+  },
+  "clues": [
+    {
+      "id": "clue_kilborn",
+      "type": "text",
+      "prompt": "A former SportsCenter anchor, he played Mark — the smug, cheating boyfriend — in a 2003 fraternity comedy.",
+      "answer": {
+        "primary": "Craig Kilborn",
+        "aliases": ["kilborn", "craig kilbourne", "craig kilborne"]
+      },
+      "evidenceId": "ev_old_school",
+      "stage": "opening",
+      "authorNotes": {
+        "whyFair": "Kilborn's SportsCenter run and his Old School role are both well documented; either angle solves it.",
+        "connection": "Kilborn matters not for the movie but for the desk he once occupied: he was the original Daily Show host, Jon Stewart's predecessor."
+      }
+    },
+    {
+      "id": "clue_mccarthy",
+      "type": "text",
+      "prompt": "She was an original co-host of the 1995 dating show Singled Out.",
+      "answer": {
+        "primary": "Jenny McCarthy",
+        "aliases": ["mccarthy", "jenny mccarthy wahlberg"]
+      },
+      "evidenceId": "ev_mtv",
+      "stage": "opening",
+      "authorNotes": {
+        "whyFair": "Singled Out is broadly remembered 90s culture; McCarthy was its original co-host with Chris Hardwick.",
+        "connection": "The evidence is the network, not the person: MTV is where Stewart's talk career began (You Wrote It, You Watch It in 1992; The Jon Stewart Show in 1993, MTV's first talk show)."
+      }
+    },
+    {
+      "id": "clue_noah",
+      "type": "text",
+      "prompt": "This South African comedian inherited a famous American news desk in 2015.",
+      "answer": {
+        "primary": "Trevor Noah",
+        "aliases": ["noah"]
+      },
+      "evidenceId": "ev_daily_show",
+      "stage": "middle",
+      "authorNotes": {
+        "whyFair": "Broad, recent, cross-generational entry point.",
+        "connection": "Names the shared territory: The Daily Show. Noah inherited the same desk Stewart made famous — and Stewart inherited it from Kilborn."
+      }
+    },
+    {
+      "id": "clue_latelate",
+      "type": "text",
+      "prompt": "Craig Kilborn left his fake-news desk to take over this CBS late-late-night show.",
+      "answer": {
+        "primary": "The Late Late Show",
+        "aliases": ["late late show", "the late late show with craig kilborn"]
+      },
+      "evidenceId": "ev_1999",
+      "stage": "middle",
+      "authorNotes": {
+        "whyFair": "Builds on the already-solved Kilborn clue; also independently solvable from late-night history (he succeeded Tom Snyder).",
+        "connection": "The evidence is the year of the handover: Kilborn left and Jon Stewart took the Daily Show chair in January 1999."
+      }
+    },
+    {
+      "id": "clue_bigdaddy",
+      "type": "text",
+      "prompt": "In this Adam Sandler comedy, Sonny Koufax adopts a five-year-old to win back his girlfriend.",
+      "answer": {
+        "primary": "Big Daddy",
+        "aliases": ["big daddy (1999)"]
+      },
+      "evidenceId": "ev_roommate",
+      "stage": "late",
+      "authorNotes": {
+        "whyFair": "One of Sandler's most widely seen films; the plot description is unambiguous.",
+        "connection": "Jon Stewart played Kevin Gerrity — Sonny's roommate — in Big Daddy (1999, the same year as the Daily Show handover). The evidence points at the roommate, not the star."
+      }
+    },
+    {
+      "id": "clue_colbert",
+      "type": "text",
+      "prompt": "A Daily Show correspondent for eight years, his own late-night 'Report' then ran for nine more.",
+      "answer": {
+        "primary": "Stephen Colbert",
+        "aliases": ["colbert", "steven colbert"]
+      },
+      "evidenceId": "ev_zen",
+      "stage": "final",
+      "authorNotes": {
+        "whyFair": "By the final stage the Daily Show territory is established; Colbert is broadly recognizable.",
+        "connection": "Colbert rose from Stewart's correspondent bench. The unlocked evidence is Stewart's nightly sign-off — the conclusive piece."
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev_old_school",
+      "type": "text",
+      "content": "OLD SCHOOL",
+      "caption": null,
+      "diagnosticity": "low",
+      "relatedEntities": ["craig_kilborn", "the_daily_show", "jon_stewart"],
+      "authorNotes": {
+        "meaning": "Deliberately ambiguous opener. The film itself is a dead end; its purpose is to hand the player Craig Kilborn and make them ask why he matters. He was the original Daily Show host — Stewart's predecessor."
+      }
+    },
+    {
+      "id": "ev_mtv",
+      "type": "text",
+      "content": "MTV",
+      "caption": null,
+      "diagnosticity": "low",
+      "relatedEntities": ["mtv", "jenny_mccarthy", "jon_stewart"],
+      "authorNotes": {
+        "meaning": "Could point to hundreds of 90s figures. It's actually where Stewart's television career began: You Wrote It, You Watch It (1992) and The Jon Stewart Show (1993), MTV's first talk show."
+      }
+    },
+    {
+      "id": "ev_daily_show",
+      "type": "text",
+      "content": "THE DAILY SHOW",
+      "caption": null,
+      "diagnosticity": "medium",
+      "relatedEntities": ["the_daily_show", "craig_kilborn", "trevor_noah", "jon_stewart"],
+      "authorNotes": {
+        "meaning": "Establishes the shared territory. Kilborn, Noah and the answer all sat at this desk — the player now has a succession to reason about, but multiple hosts still fit."
+      }
+    },
+    {
+      "id": "ev_1999",
+      "type": "number",
+      "content": "1999",
+      "caption": null,
+      "diagnosticity": "high",
+      "relatedEntities": ["the_daily_show", "craig_kilborn", "jon_stewart", "big_daddy"],
+      "authorNotes": {
+        "meaning": "The handover year: Kilborn left The Daily Show in December 1998 and Stewart took the chair in January 1999. Doubles as the year of Big Daddy. Combined with the Daily Show evidence this strongly narrows to Stewart."
+      }
+    },
+    {
+      "id": "ev_roommate",
+      "type": "text",
+      "content": "SONNY'S ROOMMATE",
+      "caption": null,
+      "diagnosticity": "high",
+      "relatedEntities": ["big_daddy", "jon_stewart"],
+      "authorNotes": {
+        "meaning": "Directs the player to look at who else was in the room, not the star: Jon Stewart played Kevin Gerrity, Sonny's roommate, in Big Daddy. An investigative lookup rather than trivia recall."
+      }
+    },
+    {
+      "id": "ev_zen",
+      "type": "quote",
+      "content": "And here it is … your Moment of Zen.",
+      "caption": null,
+      "diagnosticity": "conclusive",
+      "relatedEntities": ["the_daily_show", "jon_stewart", "stephen_colbert"],
+      "authorNotes": {
+        "meaning": "Stewart's nightly Daily Show sign-off. For anyone who watched, this is undeniable; for everyone else it is a searchable, conclusive confirmation."
+      }
+    }
+  ],
+  "investigationPaths": [
+    {
+      "id": "path_succession",
+      "name": "The Kilborn succession route",
+      "startingPoint": "Old School / SportsCenter-era Craig Kilborn",
+      "nodes": ["clue_kilborn", "ev_old_school", "clue_latelate", "ev_1999"],
+      "target": "Jon Stewart"
+    },
+    {
+      "id": "path_mtv",
+      "name": "The 90s MTV route",
+      "startingPoint": "Singled Out / 1990s MTV culture",
+      "nodes": ["clue_mccarthy", "ev_mtv"],
+      "target": "Jon Stewart"
+    },
+    {
+      "id": "path_modern_tv",
+      "name": "The modern late-night route",
+      "startingPoint": "Trevor Noah and Stephen Colbert",
+      "nodes": ["clue_noah", "ev_daily_show", "clue_colbert", "ev_zen"],
+      "target": "Jon Stewart"
+    },
+    {
+      "id": "path_film",
+      "name": "The comedy-film route",
+      "startingPoint": "Adam Sandler's Big Daddy",
+      "nodes": ["clue_bigdaddy", "ev_roommate", "ev_1999"],
+      "target": "Jon Stewart"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint_1",
+      "text": "Two of the people you've identified sat behind the same desk — at different times."
+    },
+    {
+      "id": "hint_2",
+      "text": "The year isn't just a year. Something changed hands that year."
+    },
+    {
+      "id": "hint_3",
+      "text": "One piece of evidence is asking you to look at who else was in the room — not the star."
+    }
+  ],
+  "reveal": {
+    "summary": "Jon Stewart. Craig Kilborn — Old School's smug boyfriend — was the original Daily Show host, and Stewart took over his desk in January 1999. But Stewart's television story starts earlier, on MTV, home of the network's first talk show: The Jon Stewart Show. The same year he inherited The Daily Show, he played Sonny's roommate in Big Daddy. Trevor Noah later inherited the same desk; Stephen Colbert rose from Stewart's correspondent bench; and every episode ended the same way — with your Moment of Zen.",
+    "clueExplanations": [
+      {
+        "clueId": "clue_kilborn",
+        "explanation": "Craig Kilborn led to OLD SCHOOL — a deliberate misdirection. The film was never the point. Kilborn matters because of the desk he left behind."
+      },
+      {
+        "clueId": "clue_mccarthy",
+        "explanation": "Jenny McCarthy led to MTV — not about her at all. MTV is where Jon Stewart's talk-show career began in the early 90s."
+      },
+      {
+        "clueId": "clue_noah",
+        "explanation": "Trevor Noah led to THE DAILY SHOW — naming the institution that connects Kilborn, Stewart and Noah as successive hosts."
+      },
+      {
+        "clueId": "clue_latelate",
+        "explanation": "The Late Late Show led to 1999 — the handover year. Kilborn moved to CBS, and Stewart took The Daily Show chair that January."
+      },
+      {
+        "clueId": "clue_bigdaddy",
+        "explanation": "Big Daddy led to SONNY'S ROOMMATE — Jon Stewart played Kevin Gerrity, Sonny's roommate, in the same year as the handover."
+      },
+      {
+        "clueId": "clue_colbert",
+        "explanation": "Stephen Colbert led to the sign-off quote — Colbert came up from Stewart's correspondent desk, and 'your Moment of Zen' closed every Stewart episode."
+      }
+    ],
+    "evidenceToAnswer": "The evidence triangulates one figure at the center of a television succession: a predecessor (Kilborn, via Old School), a network origin (MTV), an institution (The Daily Show), a handover year (1999), a film role that rewards looking past the star (Sonny's roommate), and a signature sign-off (your Moment of Zen). Only Jon Stewart sits at the intersection of all six.",
+    "majorConnections": [
+      "Craig Kilborn → original Daily Show host → succeeded by Jon Stewart (January 1999)",
+      "MTV → The Jon Stewart Show (1993), the network's first talk show",
+      "Big Daddy (1999) → Jon Stewart as Sonny's roommate, the same year as the handover",
+      "Stephen Colbert → Daily Show correspondent under Stewart → The Colbert Report",
+      "Trevor Noah → inherited the same desk in 2015"
+    ],
+    "alternatePaths": [
+      "Recognize Kilborn as the pre-1999 Daily Show host and follow the succession",
+      "Enter through 1990s MTV culture and Stewart's early talk shows",
+      "Enter through modern late night via Trevor Noah and Stephen Colbert",
+      "Enter through comedy film via Big Daddy and the roommate role"
+    ],
+    "ohMoment": "Craig Kilborn wasn't the answer — he was the arrow. The moment you remember who took his desk in 1999, every other piece snaps into place."
+  },
+  "editorial": {
+    "entryPoints": [
+      {
+        "id": "entry_film",
+        "domain": "Comedy film",
+        "description": "Old School and Big Daddy give film-comedy fans two doorways; neither requires knowing late-night history to solve.",
+        "clueId": "clue_kilborn"
+      },
+      {
+        "id": "entry_mtv",
+        "domain": "1990s MTV culture",
+        "description": "Singled Out is broadly remembered 90s pop culture; the MTV evidence rewards anyone who knows Stewart's origins there.",
+        "clueId": "clue_mccarthy"
+      },
+      {
+        "id": "entry_latenight",
+        "domain": "Modern late-night television",
+        "description": "Younger players can enter through Trevor Noah and Stephen Colbert without knowing Kilborn at all.",
+        "clueId": "clue_noah"
+      }
+    ],
+    "hypotheses": [
+      {
+        "id": "hyp_kilborn",
+        "hypothesis": "Craig Kilborn",
+        "supportingEvidence": "OLD SCHOOL points straight at him; THE DAILY SHOW and 1999 both fit his biography (he hosted until the end of 1998 and moved to CBS in 1999).",
+        "weakeningEvidence": "MTV doesn't fit Kilborn, SONNY'S ROOMMATE isn't him, and the Moment of Zen sign-off belongs to his successor.",
+        "resolution": "Kilborn is the predecessor, not the answer — the case is designed so the player's strongest early theory turns out to be the arrow pointing at Stewart."
+      },
+      {
+        "id": "hyp_noah",
+        "hypothesis": "Trevor Noah (or another Daily Show host)",
+        "supportingEvidence": "THE DAILY SHOW evidence makes any of its hosts plausible for a moment.",
+        "weakeningEvidence": "1999 rules Noah out (he took over in 2015), and the MTV and Big Daddy evidence never fit him.",
+        "resolution": "The year forces the question 'who held the desk in 1999?' — which resolves to Stewart."
+      },
+      {
+        "id": "hyp_stewart",
+        "hypothesis": "Jon Stewart (correct)",
+        "supportingEvidence": "He is Kilborn's successor (1999), an MTV talk-show alum, Sonny's roommate in Big Daddy, Colbert's old boss, and the voice of 'your Moment of Zen'.",
+        "weakeningEvidence": "Nothing — every piece converges once the succession is seen.",
+        "resolution": "The conclusive quote confirms it."
+      }
+    ],
+    "notes": "Designer test case built from the design thread: clues are solvable little facts, evidence stays one inference away from the answer, and the intended arc is 'Kilborn is my theory' → 'Kilborn is the arrow' → Stewart. No clue or evidence names Stewart before the conclusive piece."
+  }
+}

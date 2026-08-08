@@ -9,6 +9,8 @@ import { deleteDraft, listDrafts, saveDraft } from "../authoring/draftStore";
 import { importCaseFromJson } from "../authoring/io";
 import { CASE_WORKSHEET_TEMPLATE } from "../authoring/worksheetTemplate";
 import { listPublishedCases, unpublishCase } from "../data/caseLibrary";
+import { parseCase } from "../data/schema";
+import jonStewartTestCase from "../data/cases/case_jon_stewart_test.json";
 
 export default function Workshop() {
   const navigate = useNavigate();
@@ -22,6 +24,13 @@ export default function Workshop() {
 
   function handleNewCase() {
     const caseData = blankCase();
+    saveDraft(caseData.id, caseData);
+    navigate(`/workshop/${caseData.id}`);
+  }
+
+  function handleLoadTestCase() {
+    const { caseData } = parseCase(jonStewartTestCase);
+    if (!caseData) return;
     saveDraft(caseData.id, caseData);
     navigate(`/workshop/${caseData.id}`);
   }
@@ -67,6 +76,9 @@ export default function Workshop() {
         </button>
         <button className="btn" onClick={() => setShowWorksheet(true)}>
           Blank worksheet
+        </button>
+        <button className="btn" onClick={handleLoadTestCase}>
+          Load test case (Jon Stewart)
         </button>
       </div>
 
