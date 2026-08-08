@@ -584,6 +584,182 @@ h3 {
   border-radius: 12px;
 }
 
+/* ------------------------------------------------------- home game list */
+
+.game-list {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.game-row {
+  background: var(--card);
+  border-radius: 18px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  box-shadow: var(--shadow-sm);
+  text-align: left;
+}
+
+.game-row-info h2 {
+  font-size: 21px;
+}
+
+.game-row-info p {
+  margin: 3px 0 0;
+  font-size: 13.5px;
+  color: var(--ink-3);
+}
+
+/* --------------------------------------------------- phrase board (game 2) */
+
+.phrase-board {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 22px;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.pword {
+  display: inline-flex;
+  gap: 5px;
+}
+
+.ptile {
+  width: 34px;
+  height: 42px;
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: var(--shadow-sm), inset 0 -3px 0 rgba(29, 26, 19, 0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.ptile--shown {
+  background: var(--gold);
+  animation: tile-pop 0.4s var(--bounce) backwards;
+}
+
+.ppunct {
+  display: inline-flex;
+  align-items: flex-end;
+  font-size: 24px;
+  font-weight: 700;
+  padding-bottom: 4px;
+}
+
+@media (max-width: 420px) {
+  .ptile {
+    width: 26px;
+    height: 34px;
+    font-size: 19px;
+    border-radius: 6px;
+  }
+}
+
+/* question cards */
+
+.pq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pq-card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 14px 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.pq-card--correct {
+  box-shadow: var(--shadow-sm), inset 0 0 0 2px var(--green);
+}
+
+.pq-card--wrong {
+  opacity: 0.75;
+  box-shadow: var(--shadow-sm), inset 0 0 0 2px rgba(208, 52, 44, 0.4);
+}
+
+.pq-card--reveal {
+  opacity: 1;
+}
+
+.pq-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.pq-prompt {
+  margin: 0 0 10px;
+  font-size: 15.5px;
+  font-weight: 500;
+}
+
+.pq-answer {
+  margin: 0;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.pq-answer--wrong {
+  color: var(--red);
+}
+
+.pq-note {
+  margin: 8px 0 0;
+  font-size: 13.5px;
+  color: var(--ink-2);
+  border-top: 2px solid var(--line);
+  padding-top: 8px;
+}
+
+.pletter {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--mono);
+  font-weight: 700;
+  background: var(--tile);
+  border-radius: 8px;
+  padding: 4px 9px;
+  font-size: 14px;
+}
+
+.pletter em {
+  font-style: normal;
+  font-size: 10px;
+  color: var(--ink-3);
+}
+
+.pletter--small {
+  font-size: 13px;
+}
+
+.pletter--earned {
+  background: var(--gold);
+}
+
+.pletter--lost {
+  background: var(--red-soft);
+  color: var(--red);
+  text-decoration: line-through;
+}
+
 .home-footnote {
   margin-top: 34px;
   font-family: var(--mono);

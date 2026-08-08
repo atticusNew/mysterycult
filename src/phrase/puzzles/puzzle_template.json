@@ -1,0 +1,18 @@
+{
+  "id": "puzzle_template",
+  "version": 1,
+  "title": "New Puzzle",
+  "phrase": "",
+  "connection": {
+    "primary": "",
+    "aliases": []
+  },
+  "questions": [],
+  "reveal": {
+    "summary": "",
+    "ohMoment": ""
+  },
+  "editorial": {
+    "notes": ""
+  }
+}

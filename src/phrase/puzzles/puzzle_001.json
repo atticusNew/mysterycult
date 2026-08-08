@@ -1,0 +1,69 @@
+{
+  "id": "phrase_001",
+  "version": 1,
+  "title": "Tagline #001",
+  "phrase": "There can be only one",
+  "connection": {
+    "primary": "Highlander",
+    "aliases": ["highlander", "the highlander", "highlander 1986", "highlander the movie"]
+  },
+  "questions": [
+    {
+      "id": "q_band",
+      "prompt": "'We Will Rock You' and 'We Are the Champions' were released on the same 1977 single — by which band?",
+      "answer": {
+        "primary": "Queen",
+        "aliases": ["queen band", "the band queen"]
+      },
+      "letter": "Y",
+      "connectionNote": "Queen wrote the film's soundtrack — 'Princes of the Universe,' and 'Who Wants to Live Forever' for its century-crossing love story."
+    },
+    {
+      "id": "q_country",
+      "prompt": "Loch Ness, kilts and the Battle of Culloden belong to which country?",
+      "answer": {
+        "primary": "Scotland",
+        "aliases": ["scotland uk", "bonnie scotland"]
+      },
+      "letter": "H",
+      "connectionNote": "Where the story begins: the glens of 1536, and a clansman who cannot die."
+    },
+    {
+      "id": "q_sword",
+      "prompt": "What is the name of the curved, single-edged sword carried by the samurai?",
+      "answer": {
+        "primary": "Katana",
+        "aliases": ["katana sword", "samurai sword", "a katana"]
+      },
+      "letter": "O",
+      "connectionNote": "The blade the mentor gives his student — an impossible sword, centuries ahead of its time."
+    },
+    {
+      "id": "q_bond",
+      "prompt": "Who was the first actor to play James Bond on the big screen?",
+      "answer": {
+        "primary": "Sean Connery",
+        "aliases": ["connery", "sir sean connery"]
+      },
+      "letter": "N",
+      "connectionNote": "Connery plays the mentor: an Egyptian posing as a Spaniard, delivered in the broadest Scottish accent in cinema."
+    },
+    {
+      "id": "q_channel",
+      "prompt": "'Video Killed the Radio Star' was the first video ever played on which channel?",
+      "answer": {
+        "primary": "MTV",
+        "aliases": ["mtv music television", "music television"]
+      },
+      "letter": "E",
+      "connectionNote": "Director Russell Mulcahy made that very video — and shot the film like one long, gorgeous music video."
+    }
+  ],
+  "reveal": {
+    "summary": "Highlander. A band, a country, a sword, a Bond and a channel — none of the questions name it, but every answer lives inside it: Queen on the soundtrack, Scotland in 1536, the katana in Connor's hands, Connery as the gloriously miscast mentor, and MTV's first director behind the camera. And the phrase could only ever end one way.",
+    "ohMoment": "Five answers that never mention it — then the tiles start spelling a sentence you've known your whole life."
+  },
+  "editorial": {
+    "notes": "Demo puzzle for the Tagline format. Letter curve: Y(1) → H(1) → O(2) → N(3) → E(4); full success reveals 11 of 17 letters (65%). Question difficulty ramps gently; the connection insight lets a player predict the phrase before the letters do."
+  }
+}
