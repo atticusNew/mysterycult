@@ -1,0 +1,19 @@
+{
+  "id": "case_template",
+  "version": 1,
+  "title": "New Case",
+  "question": "",
+  "answer": {
+    "primary": "",
+    "aliases": []
+  },
+  "type": "",
+  "category": "",
+  "entityId": null,
+  "clues": [],
+  "evidence": [],
+  "investigationPaths": [],
+  "hints": [],
+  "reveal": {},
+  "editorial": {}
+}
