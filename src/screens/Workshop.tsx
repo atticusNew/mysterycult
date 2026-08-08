@@ -11,7 +11,7 @@ import { CASE_WORKSHEET_TEMPLATE } from "../authoring/worksheetTemplate";
 import { listPublishedCases, unpublishCase } from "../data/caseLibrary";
 import { parseCase } from "../data/schema";
 import jonStewartTestCase from "../data/cases/case_jon_stewart_test.json";
-import sopranosCase from "../data/cases/case_the_sopranos.json";
+import caseTwo from "../data/cases/case_002.json";
 
 export default function Workshop() {
   const navigate = useNavigate();
@@ -79,10 +79,10 @@ export default function Workshop() {
           Blank worksheet
         </button>
         <button className="btn" onClick={() => handleLoadBundled(jonStewartTestCase)}>
-          Load test case (Jon Stewart)
+          Load test case #001
         </button>
-        <button className="btn" onClick={() => handleLoadBundled(sopranosCase)}>
-          Load test case (The Sopranos)
+        <button className="btn" onClick={() => handleLoadBundled(caseTwo)}>
+          Load test case #002
         </button>
       </div>
 

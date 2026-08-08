@@ -395,7 +395,15 @@ export function validateCase(caseData: CaseData): ValidationReport {
       const suspectsKilled = suspects.filter((suspect) =>
         suspect.eliminatedBy.includes(item.id),
       ).length;
-      if (suspects.length > 1 && suspectsKilled === 0) {
+      // Exhibit 1 is allowed to be pure atmosphere, and the CONCLUSIVE
+      // smoking gun confirms rather than eliminates; everything in between
+      // should do elimination work.
+      if (
+        suspects.length > 1 &&
+        suspectsKilled === 0 &&
+        index > 0 &&
+        item.diagnosticity !== "conclusive"
+      ) {
         issues.push(
           issue(
             "warning",

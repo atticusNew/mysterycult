@@ -6,7 +6,7 @@
 import { describe, expect, it } from "vitest";
 import template from "./cases/case_template.json";
 import jonStewartCase from "./cases/case_jon_stewart_test.json";
-import sopranosCase from "./cases/case_the_sopranos.json";
+import caseTwo from "./cases/case_002.json";
 import { parseCase } from "./schema";
 import { validateCase } from "../authoring/CaseValidator";
 
@@ -32,12 +32,12 @@ describe("shipped case files", () => {
     expect(caseData.lineup.suspects.length).toBeGreaterThanOrEqual(8);
   });
 
-  it("the Sopranos test case parses and validates cleanly", () => {
-    const caseData = expectClean(sopranosCase);
+  it("case #002 parses and validates cleanly", () => {
+    const caseData = expectClean(caseTwo);
 
-    // The suspect funnel: a big board, decoys that die on specific exhibits,
-    // and a single smoking gun kept last.
-    expect(caseData.lineup.suspects.length).toBeGreaterThanOrEqual(8);
+    // The suspect funnel: a six-tile board, decoys that die on specific
+    // exhibits, and a single smoking gun kept last.
+    expect(caseData.lineup.suspects.length).toBe(6);
     const conclusive = caseData.evidence.filter(
       (item) => item.diagnosticity === "conclusive",
     );
@@ -45,15 +45,20 @@ describe("shipped case files", () => {
     expect(caseData.evidence[caseData.evidence.length - 1].id).toBe(
       conclusive[0].id,
     );
-    const answer = caseData.lineup.suspects.find(
-      (suspect) => suspect.id === caseData.lineup.answerSuspectId,
-    );
-    expect(answer?.label).toBe("The Sopranos");
     // Every decoy must be killable.
     caseData.lineup.suspects
       .filter((suspect) => suspect.id !== caseData.lineup.answerSuspectId)
       .forEach((suspect) => {
         expect(suspect.eliminatedBy.length).toBeGreaterThan(0);
       });
+    // The case id and asset paths must not leak the answer.
+    const answer = caseData.lineup.suspects.find(
+      (suspect) => suspect.id === caseData.lineup.answerSuspectId,
+    )!;
+    const surname = answer.label.split(" ").pop()!.toLowerCase();
+    expect(caseData.id.toLowerCase()).not.toContain(surname);
+    caseData.evidence.forEach((item) => {
+      expect(item.content.toLowerCase().includes(surname)).toBe(false);
+    });
   });
 });

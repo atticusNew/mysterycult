@@ -1,0 +1,223 @@
+{
+  "id": "case_002",
+  "version": 2,
+  "title": "Case #002",
+  "question": "Whose story is this?",
+  "answer": {
+    "primary": "Dolly Parton",
+    "aliases": ["dolly parton", "dolly"]
+  },
+  "type": "person",
+  "category": "American music",
+  "entityId": "dolly_parton",
+  "entity": {
+    "id": "dolly_parton",
+    "name": "Dolly Parton",
+    "type": "person",
+    "recognition": "broad",
+    "longevity": "high",
+    "connectionDensity": "high",
+    "eras": ["1970s", "1980s", "1990s", "2000s", "2010s", "2020s"],
+    "domains": ["music", "film", "philanthropy", "science", "business", "appalachia"]
+  },
+  "lineup": {
+    "answerSuspectId": "s_dolly",
+    "suspects": [
+      {
+        "id": "s_whitney",
+        "label": "Whitney Houston",
+        "whyPlausible": "The designed trap. When 'I Will Always Love You' flips, most of the board will tap her — it is the most famous vocal performance of the modern era. But she sang it; she didn't live this story.",
+        "eliminatedBy": ["ev_iwaly", "ev_vaccine"]
+      },
+      {
+        "id": "s_dolly",
+        "label": "Dolly Parton",
+        "whyPlausible": "The answer. The butterfly is her symbol, the Smokies are home, 9 to 5 is hers, she WROTE 'I Will Always Love You', she helped fund a vaccine, she mails children books, and the park is hers.",
+        "eliminatedBy": []
+      },
+      {
+        "id": "s_taylor",
+        "label": "Taylor Swift",
+        "whyPlausible": "The doorway for younger players: butterflies are all over her imagery, and she's a Nashville songwriter with a business empire.",
+        "eliminatedBy": ["ev_nineToFive"]
+      },
+      {
+        "id": "s_loretta",
+        "label": "Loretta Lynn",
+        "whyPlausible": "The other Appalachian legend — a coal miner's daughter from a Kentucky holler fits the misty mountains as well as anyone.",
+        "eliminatedBy": ["ev_books"]
+      },
+      {
+        "id": "s_shania",
+        "label": "Shania Twain",
+        "whyPlausible": "A country superstar with crossover fame and a rags-to-riches story of her own.",
+        "eliminatedBy": ["ev_mountains"]
+      },
+      {
+        "id": "s_reba",
+        "label": "Reba McEntire",
+        "whyPlausible": "Country royalty with a television and business career beyond music.",
+        "eliminatedBy": ["ev_mountains"]
+      }
+    ]
+  },
+  "clues": [],
+  "evidence": [
+    {
+      "id": "ev_butterfly",
+      "type": "image",
+      "content": "/assets/cases/case002/butterfly.jpg",
+      "caption": null,
+      "diagnosticity": "low",
+      "relatedEntities": ["dolly_parton"],
+      "authorNotes": {
+        "meaning": "Pure atmosphere, eliminating no one: butterflies belong to Taylor's murals as much as anyone. It is actually the answer's lifelong personal symbol — 'Love Is Like a Butterfly,' the park logo, the whole iconography — but nobody should know that yet."
+      }
+    },
+    {
+      "id": "ev_mountains",
+      "type": "image",
+      "content": "/assets/cases/case002/mountains.jpg",
+      "caption": "Home, not scenery.",
+      "diagnosticity": "low",
+      "relatedEntities": ["smoky_mountains", "dolly_parton"],
+      "authorNotes": {
+        "meaning": "The Smokies — the blue ridgelines and the haze are unmistakable to anyone who has been. The caption says this is where the story STARTS. Geography quietly clears Shania (Ontario) and Reba (Oklahoma plains) while keeping both Appalachian legends — Loretta's Kentucky holler is close enough to feel right."
+      }
+    },
+    {
+      "id": "ev_nineToFive",
+      "type": "text",
+      "content": "9 TO 5",
+      "caption": null,
+      "diagnosticity": "medium",
+      "relatedEntities": ["nine_to_five", "dolly_parton"],
+      "authorNotes": {
+        "meaning": "Reads at first like a phrase about work, not a title. It is a 1980 film and its Oscar-nominated theme — written on set with acrylic nails as the rhythm section. The year does the elimination: a 1980 workplace anthem predates Taylor Swift's whole career."
+      }
+    },
+    {
+      "id": "ev_iwaly",
+      "type": "quote",
+      "content": "I will always love you.",
+      "caption": "Written 1974. Immortal 1992.",
+      "diagnosticity": "medium",
+      "relatedEntities": ["i_will_always_love_you", "whitney_houston", "dolly_parton"],
+      "authorNotes": {
+        "meaning": "The trap, sprung. Everyone hears Whitney — that's the point. But the caption carries her elimination in the fine print: written in 1974, when Whitney Houston was eleven years old, eighteen years before The Bodyguard. The song belongs to the person who wrote it (and who turned Elvis down rather than surrender the publishing). Players who tap Whitney here lose the case; players who ask why the caption has two dates find the answer."
+      }
+    },
+    {
+      "id": "ev_vaccine",
+      "type": "text",
+      "content": "A $1,000,000 CHECK TOWARD A VACCINE",
+      "caption": "Spring 2020.",
+      "diagnosticity": "high",
+      "relatedEntities": ["moderna_research", "dolly_parton"],
+      "authorNotes": {
+        "meaning": "The fact nobody believes the first time: a country singer helped bankroll the research fund behind one of the first COVID vaccines. Spring 2020 is also a hard tombstone test — Whitney Houston died in 2012. The trap officially dies here for anyone still holding it."
+      }
+    },
+    {
+      "id": "ev_books",
+      "type": "text",
+      "content": "ONE FREE BOOK IN THE MAIL, EVERY MONTH, BIRTH TO FIVE",
+      "caption": "More than 200 million so far.",
+      "diagnosticity": "high",
+      "relatedEntities": ["imagination_library", "dolly_parton"],
+      "authorNotes": {
+        "meaning": "The Imagination Library, founded in 1995 in honor of a father who never learned to read. Beloved, enormous, and famously one woman's — this is what separates the two Appalachians left standing."
+      }
+    },
+    {
+      "id": "ev_park",
+      "type": "text",
+      "content": "HER OWN THEME PARK IN THE SMOKIES, EST. 1986",
+      "caption": null,
+      "diagnosticity": "conclusive",
+      "relatedEntities": ["dollywood", "dolly_parton"],
+      "authorNotes": {
+        "meaning": "The smoking gun. Exactly one person on this board has a theme park in those mountains with her name on the gate."
+      }
+    }
+  ],
+  "investigationPaths": [
+    {
+      "id": "path_geography",
+      "name": "The geography route",
+      "startingPoint": "The mountains as home",
+      "nodes": ["ev_mountains", "ev_park"],
+      "target": "Dolly Parton"
+    },
+    {
+      "id": "path_songwriting",
+      "name": "The songwriter route",
+      "startingPoint": "9 to 5 and the 1974 date on the quote",
+      "nodes": ["ev_nineToFive", "ev_iwaly"],
+      "target": "Dolly Parton"
+    },
+    {
+      "id": "path_giving",
+      "name": "The philanthropy route",
+      "startingPoint": "The vaccine check and the books",
+      "nodes": ["ev_vaccine", "ev_books"],
+      "target": "Dolly Parton"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint_1",
+      "text": "The song you're sure belongs to one suspect was written by another. Look at the dates on the card."
+    },
+    {
+      "id": "hint_2",
+      "text": "The mountains aren't scenery — they're a birthplace. Whose?"
+    },
+    {
+      "id": "hint_3",
+      "text": "The check and the books come from the same pair of hands."
+    }
+  ],
+  "reveal": {
+    "summary": "Dolly Parton. The butterfly is her lifelong symbol. The misty mountains are Locust Ridge, Tennessee, where she grew up one of twelve children in a one-room cabin. 9 to 5 is her film, her song, her Oscar nomination — played on her acrylic nails. 'I Will Always Love You' is hers too: written in 1974, and she turned down Elvis rather than give up half the publishing, which is why Whitney's 1992 recording made her a fortune. In 2020 she quietly gave $1 million to the Vanderbilt fund that helped develop the Moderna vaccine. Her Imagination Library has mailed more than 200 million free books to children, in honor of a father who never learned to read. And since 1986, her name has been on the gate of a theme park in those same Smokies.",
+    "clueExplanations": [],
+    "evidenceToAnswer": "The board narrows honestly: the butterfly keeps everyone alive; the Smokies clear Canada and Oklahoma but spare both Appalachians; 9 to 5's year retires Taylor; the quote tempts you to tap Whitney — the one move that loses — until spring 2020 makes her impossible; the book program separates the two women from the hollers; and only one suspect owns a theme park in those mountains.",
+    "majorConnections": [
+      "'I Will Always Love You' (1974) → refused to Elvis over publishing → Whitney Houston's 1992 recording",
+      "9 to 5 (1980) → the film, the Oscar-nominated theme, the acrylic-nail rhythm track",
+      "$1,000,000 to Vanderbilt (2020) → the fund behind the Moderna vaccine trials",
+      "The Imagination Library (1995) → 200+ million free children's books, for a father who couldn't read",
+      "Dollywood (1986) → the Smokies, made into a family business"
+    ],
+    "alternatePaths": [
+      "Geography first: the Smokies plus the park",
+      "Songwriting first: 9 to 5 plus the 1974 date on the quote",
+      "Philanthropy first: the vaccine check plus the books"
+    ],
+    "ohMoment": "You've known 'I Will Always Love You' your whole life — you just had the wrong voice. The moment the 1974 date lands, the butterfly, the mountains, the books and the vaccine all snap into one person: the songwriter from the one-room cabin who ended up funding a vaccine."
+  },
+  "editorial": {
+    "entryPoints": [
+      {
+        "id": "entry_music",
+        "domain": "Pop & country music",
+        "description": "Three generations of doorways: Whitney's ballad, Taylor's butterflies, classic country radio.",
+        "clueId": "ev_iwaly"
+      },
+      {
+        "id": "entry_film",
+        "domain": "Film & work culture",
+        "description": "9 to 5 works for film fans and for anyone who has ever had a job.",
+        "clueId": "ev_nineToFive"
+      },
+      {
+        "id": "entry_news",
+        "domain": "Recent history",
+        "description": "The vaccine donation was a genuine 2020 news moment — solvable with zero music knowledge.",
+        "clueId": "ev_vaccine"
+      }
+    ],
+    "hypotheses": [],
+    "notes": "SUSPECT FUNNEL (6 tiles): the butterfly eliminates no one by design; the Smokies clear Shania and Reba on geography while sparing Loretta; 9 to 5's year retires Taylor; the quote is the deliberate trap — Whitney surges exactly when tapping her would lose the case — and the 2020 vaccine check kills the trap; the books separate Dolly from Loretta; the park is the smoking gun, kept last. The answer is arguably NOT the most famous name on the board (Whitney and Taylor contest that), which keeps prior probability from solving the case. Images are original AI-generated evocations; no copyrighted lyrics are quoted (the six-word title phrase only)."
+  }
+}

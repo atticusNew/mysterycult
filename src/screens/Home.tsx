@@ -6,67 +6,57 @@ export default function Home() {
   const todaysCase = getTodaysCase();
   const publishedCount = listPublishedCases().length;
 
+  const today = new Date().toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+
   return (
-    <div className="shell shell--flush">
-      <header className="masthead">
-        <span className="kicker">Daily investigation</span>
-        <h1>Cultural Mystery</h1>
-        <p className="tagline">
-          One line-up. A stack of evidence. Flip as little as you dare, rule
-          out the impostors, and accuse.
-        </p>
-      </header>
+    <div className="shell title-screen">
+      <div className="mark" aria-hidden />
+      <h1>Cultural Mystery</h1>
+      <p className="date">{today}</p>
+      <p className="tagline">
+        A line-up of suspects. A stack of evidence. One accusation.
+      </p>
 
-      <div className="home-card">
-        <span className="kicker kicker--dim">Today's Case</span>
-        {todaysCase ? (
-          <>
-            <h2>{todaysCase.title || "Untitled Case"}</h2>
-            <p className="meta">
-              {todaysCase.question || "What are we looking for?"}
-            </p>
-            <button
-              className="btn btn--primary btn--block"
-              onClick={() => navigate(`/play/${todaysCase.id}`)}
-            >
-              Start Case
-            </button>
-          </>
-        ) : (
-          <>
-            <h2>No case published yet</h2>
-            <p className="meta">
-              The first case hasn't been authored. Open the Case Workshop to
-              create it — build the line-up, attach the exhibits, validate,
-              and publish.
-            </p>
-            <Link to="/workshop" className="btn btn--primary btn--block">
-              Open the Case Workshop
-            </Link>
-          </>
-        )}
-      </div>
+      {todaysCase ? (
+        <>
+          <button
+            className="btn btn--primary btn--big"
+            onClick={() => navigate(`/play/${todaysCase.id}`)}
+          >
+            Play
+          </button>
+          <span className="case-label">
+            {todaysCase.title || "Today's Case"}
+          </span>
+        </>
+      ) : (
+        <>
+          <Link to="/workshop" className="btn btn--primary btn--big">
+            Open the Case Workshop
+          </Link>
+          <span className="case-label">
+            No case published yet — author the first one.
+          </span>
+        </>
+      )}
 
-      <div className="home-card">
-        <span className="kicker kicker--dim">Practice</span>
-        <h2>Practice Cases</h2>
-        <p className="meta">
-          Replay past mysteries at your own pace. Coming soon.
-        </p>
-        <button className="btn btn--block" disabled>
-          Coming soon
+      <div className="title-links">
+        <button className="btn btn--small" disabled>
+          Practice — soon
         </button>
-      </div>
-
-      <hr className="rule" />
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span className="badge">
-          {publishedCount} CASE{publishedCount === 1 ? "" : "S"} IN LIBRARY
-        </span>
         <Link to="/workshop" className="btn btn--ghost btn--small">
-          Case Workshop →
+          Case Workshop
         </Link>
       </div>
+
+      <span className="badge" style={{ marginTop: 18 }}>
+        {publishedCount} CASE{publishedCount === 1 ? "" : "S"} IN LIBRARY
+      </span>
     </div>
   );
 }
