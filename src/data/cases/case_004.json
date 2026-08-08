@@ -1,0 +1,212 @@
+{
+  "id": "case_004",
+  "version": 2,
+  "title": "Case #004",
+  "question": "What are we looking at?",
+  "answer": {
+    "primary": "The Brooklyn Bridge",
+    "aliases": ["the brooklyn bridge", "brooklyn bridge"]
+  },
+  "type": "place",
+  "category": "New York City",
+  "entityId": "brooklyn_bridge",
+  "entity": {
+    "id": "brooklyn_bridge",
+    "name": "The Brooklyn Bridge",
+    "type": "place",
+    "recognition": "broad",
+    "longevity": "high",
+    "connectionDensity": "high",
+    "eras": ["1870s", "1880s", "1900s", "1980s", "2000s", "2010s", "2020s"],
+    "domains": ["engineering", "history", "new york", "women's history", "circus lore"]
+  },
+  "lineup": {
+    "answerSuspectId": "s_bridge",
+    "suspects": [
+      {
+        "id": "s_liberty",
+        "label": "Statue of Liberty",
+        "whyPlausible": "The default 19th-century New York monument — harbor, copper, France. Survives deep into the case; the irony is that the landmark that IS a woman had no hidden woman running the job.",
+        "eliminatedBy": ["ev_emily"]
+      },
+      {
+        "id": "s_esb",
+        "label": "Empire State Building",
+        "whyPlausible": "The famous construction epic — beams, rivets, daredevil workers. The cable photo fits its elevator shafts as well as anything.",
+        "eliminatedBy": ["ev_elephants"]
+      },
+      {
+        "id": "s_bridge",
+        "label": "Brooklyn Bridge",
+        "whyPlausible": "The answer. The cables, the caissons and the bends, Emily Roebling's eleven secret years, Barnum's 21 elephants, and opening day, May 24, 1883.",
+        "eliminatedBy": []
+      },
+      {
+        "id": "s_grandcentral",
+        "label": "Grand Central Terminal",
+        "whyPlausible": "The other great built-in-public New York epic, full of engineering lore of its own.",
+        "eliminatedBy": ["ev_bends"]
+      },
+      {
+        "id": "s_centralpark",
+        "label": "Central Park",
+        "whyPlausible": "A designed 19th-century marvel with a famous construction story and its own menagerie — which once held elephants.",
+        "eliminatedBy": ["ev_river"]
+      },
+      {
+        "id": "s_coney",
+        "label": "Coney Island",
+        "whyPlausible": "The designed trap's destination: when 21 elephants flip, the circus-and-sideshow world points straight at Coney — which has its own infamous elephant history.",
+        "eliminatedBy": ["ev_emily"]
+      }
+    ]
+  },
+  "clues": [],
+  "evidence": [
+    {
+      "id": "ev_cable",
+      "type": "image",
+      "content": "/assets/cases/case004/cable.jpg",
+      "caption": "Stronger than it needed to be — on purpose.",
+      "diagnosticity": "low",
+      "relatedEntities": ["roebling_wire", "brooklyn_bridge"],
+      "authorNotes": {
+        "meaning": "Pure atmosphere: woven steel fits elevator shafts, statue armatures, anything industrial. It is the bridge's suspension cable — and the caption nods at the scandal: when a contractor was caught supplying fraudulent wire, the design's six-fold safety margin absorbed it."
+      }
+    },
+    {
+      "id": "ev_river",
+      "type": "location",
+      "content": "THE EAST RIVER",
+      "caption": null,
+      "diagnosticity": "low",
+      "relatedEntities": ["east_river", "brooklyn_bridge"],
+      "authorNotes": {
+        "meaning": "Geography starts the elimination: whatever this is, it lives at the water. Central Park is the first quiet casualty — there is no East River in the middle of Manhattan."
+      }
+    },
+    {
+      "id": "ev_bends",
+      "type": "text",
+      "content": "THE BENDS",
+      "caption": "Its workers named the disease before divers did.",
+      "diagnosticity": "medium",
+      "relatedEntities": ["caisson_disease", "washington_roebling", "brooklyn_bridge"],
+      "authorNotes": {
+        "meaning": "Caisson disease was named by the project's own physician: men working in pressurized chambers under the riverbed came up sick, decades before recreational diving. Grand Central dies here — a cut-and-cover rail terminal has no underwater pressure chambers. And the chief engineer himself was crippled by it, which sets up the next-but-one exhibit."
+      }
+    },
+    {
+      "id": "ev_elephants",
+      "type": "text",
+      "content": "21 ELEPHANTS, SINGLE FILE",
+      "caption": "May 17, 1884.",
+      "diagnosticity": "medium",
+      "relatedEntities": ["pt_barnum", "jumbo", "coney_island", "brooklyn_bridge"],
+      "authorNotes": {
+        "meaning": "The trap, pointing hard at Coney Island — elephants mean circus, and Coney has its own infamous elephant lore. But the fine print is the date: in May 1884 the Empire State Building was 47 years from existing. The truth: P.T. Barnum marched 21 elephants, Jumbo included, across it to prove to a nervous public that it was safe."
+      }
+    },
+    {
+      "id": "ev_emily",
+      "type": "text",
+      "content": "FOR ELEVEN YEARS, A WOMAN SECRETLY RAN THE JOB",
+      "caption": null,
+      "diagnosticity": "high",
+      "relatedEntities": ["emily_roebling", "washington_roebling", "brooklyn_bridge"],
+      "authorNotes": {
+        "meaning": "Emily Warren Roebling. When the bends left her husband unable to visit the site, she carried his instructions, mastered the mathematics, and effectively directed the work for over a decade — and crossed first, carriage and rooster. This kills Coney Island (no single 'job' to run) and, with dark irony, the Statue of Liberty: the monument that IS a woman had no hidden woman building it."
+      }
+    },
+    {
+      "id": "ev_opening",
+      "type": "date",
+      "content": "MAY 24, 1883",
+      "caption": "Opening day. Six days later, a stampede. A year later, the elephants.",
+      "diagnosticity": "conclusive",
+      "relatedEntities": ["opening_day_1883", "brooklyn_bridge"],
+      "authorNotes": {
+        "meaning": "The smoking gun: one search away for anyone, instant for history lovers. The caption stitches the case together — the Memorial Day panic that killed twelve, and the elephant parade Barnum staged a year later to bury the fear."
+      }
+    }
+  ],
+  "investigationPaths": [
+    {
+      "id": "path_engineering",
+      "name": "The engineering route",
+      "startingPoint": "The cable and the bends",
+      "nodes": ["ev_cable", "ev_bends"],
+      "target": "The Brooklyn Bridge"
+    },
+    {
+      "id": "path_history",
+      "name": "The people route",
+      "startingPoint": "Emily Roebling's eleven years",
+      "nodes": ["ev_emily", "ev_opening"],
+      "target": "The Brooklyn Bridge"
+    },
+    {
+      "id": "path_spectacle",
+      "name": "The spectacle route",
+      "startingPoint": "The elephants and opening day",
+      "nodes": ["ev_elephants", "ev_opening"],
+      "target": "The Brooklyn Bridge"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint_1",
+      "text": "The workers got sick going down, not up."
+    },
+    {
+      "id": "hint_2",
+      "text": "The elephants weren't the show — they were the proof."
+    },
+    {
+      "id": "hint_3",
+      "text": "A woman finished what the father started and the son couldn't."
+    }
+  ],
+  "reveal": {
+    "summary": "The Brooklyn Bridge. John Roebling designed it and died of tetanus before the towers rose. His son Washington took over and was crippled by caisson disease — the bends, named by the bridge's own physician as men surfaced sick from the pressurized chambers beneath the East River. For the next eleven years Washington watched through a window while his wife, Emily Warren Roebling, carried the instructions, learned the engineering, and ran the job — then crossed first, with a rooster in her carriage, on May 24, 1883. Six days later a stampede killed twelve people; a year after that, P.T. Barnum marched 21 elephants across in single file to prove the span was safe. It still carries New York today, on cables strong enough to shrug off the fraudulent wire a contractor snuck into them.",
+    "clueExplanations": [],
+    "evidenceToAnswer": "The funnel: the cable fits any industrial epic; the East River retires Central Park; the bends kill Grand Central — no pressure chambers under a train hall; the elephants point at Coney Island while their 1884 date quietly rules out the Empire State Building; Emily's eleven years kill Coney and the Statue of Liberty both; and one date remains, six days before a stampede and a year before the elephants.",
+    "majorConnections": [
+      "Caisson disease → named at this job site, decades before diving",
+      "Washington Roebling's sickbed window → Emily Warren Roebling, de facto chief engineer for 11 years",
+      "P.T. Barnum + Jumbo → 21 elephants, May 17, 1884 — a publicity stunt as a public safety proof",
+      "May 24, 1883 → opening day; May 30, 1883 → the stampede that made the elephants necessary",
+      "The six-fold safety margin → the fraudulent-wire scandal it survived"
+    ],
+    "alternatePaths": [
+      "Engineering first: the cable plus the bends",
+      "People first: Emily's eleven years",
+      "Spectacle first: the elephants plus opening day"
+    ],
+    "ohMoment": "The elephants were never circus — they were structural reassurance. And the greatest engineering feat of the nineteenth century was quietly finished by a woman whose name isn't on it."
+  },
+  "editorial": {
+    "entryPoints": [
+      {
+        "id": "entry_engineering",
+        "domain": "Engineering & science",
+        "description": "The cable, the caissons and the bends work for anyone technical, zero New York knowledge needed.",
+        "clueId": "ev_bends"
+      },
+      {
+        "id": "entry_history",
+        "domain": "Women's history",
+        "description": "Emily Roebling's story is increasingly taught and instantly compelling on its own.",
+        "clueId": "ev_emily"
+      },
+      {
+        "id": "entry_spectacle",
+        "domain": "Circus & pop lore",
+        "description": "Barnum, Jumbo and the elephant parade give trivia lovers a colorful doorway.",
+        "clueId": "ev_elephants"
+      }
+    ],
+    "hypotheses": [],
+    "notes": "SUSPECT FUNNEL (6 tiles): cable is atmosphere; the East River retires Central Park; the bends kill Grand Central; the elephants are the trap (pointing at Coney's circus lore) with the 1884 date as fine print that kills the Empire State Building; Emily's exhibit kills Coney and — ironically — the Statue of Liberty; the date is the smoking gun. The answer is NOT the most famous name on the board (Liberty and ESB out-fame it). TRAP PATTERN: 'the spectacle points at the showman's home turf, not the structure it was staged on.' First place-type case — proves the engine handles non-person answers."
+  }
+}

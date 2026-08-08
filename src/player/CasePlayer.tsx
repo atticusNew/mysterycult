@@ -47,6 +47,7 @@ export default function CasePlayer({
   const [showHints, setShowHints] = useState(false);
   const [copied, setCopied] = useState(false);
   const railRef = useRef<HTMLDivElement>(null);
+  const hintsRef = useRef<HTMLElement>(null);
 
   const accusing = session.phase === "ACCUSING";
   const revealedEvidence = unlockedPlayerEvidence(
@@ -67,6 +68,13 @@ export default function CasePlayer({
     if (!rail) return;
     rail.scrollTo({ left: rail.scrollWidth, behavior: "smooth" });
   }, [session.revealedCount]);
+
+  // Scroll to the hints when one is revealed.
+  useEffect(() => {
+    if (showHints && session.hintsUsed > 0) {
+      hintsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [showHints, session.hintsUsed]);
 
   function act(action: GameAction) {
     dispatch(action);
@@ -323,7 +331,7 @@ export default function CasePlayer({
 
       {/* hints */}
       {revealedHints.length > 0 && showHints ? (
-        <section className="section">
+        <section className="section" ref={hintsRef}>
           <span className="kicker kicker--dim">Hints</span>
           {revealedHints.map((hint) => (
             <div className="hint-note" key={hint.id}>
