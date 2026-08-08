@@ -198,9 +198,37 @@ export default function CasePlayer({
       <section className="section">
         <div className="section-head">
           <span className="kicker kicker--dim">Evidence</span>
-          <span className="badge">
-            EXHIBIT {session.revealedCount ? romanNumeral(session.revealedCount) : "—"} OF{" "}
-            {totalExhibits ? romanNumeral(totalExhibits) : "—"}
+          <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <span className="badge">
+              EXHIBIT {session.revealedCount ? romanNumeral(session.revealedCount) : "—"} OF{" "}
+              {totalExhibits ? romanNumeral(totalExhibits) : "—"}
+            </span>
+            {session.revealedCount > 1 || (session.revealedCount === 1 && canFlip) ? (
+              <span className="rail-nav">
+                <button
+                  aria-label="Previous exhibit"
+                  onClick={() =>
+                    railRef.current?.scrollBy({
+                      left: -railRef.current.clientWidth * 0.85,
+                      behavior: "smooth",
+                    })
+                  }
+                >
+                  ‹
+                </button>
+                <button
+                  aria-label="Next exhibit"
+                  onClick={() =>
+                    railRef.current?.scrollBy({
+                      left: railRef.current.clientWidth * 0.85,
+                      behavior: "smooth",
+                    })
+                  }
+                >
+                  ›
+                </button>
+              </span>
+            ) : null}
           </span>
         </div>
         {totalExhibits === 0 ? (
