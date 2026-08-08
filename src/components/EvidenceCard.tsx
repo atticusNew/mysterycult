@@ -79,15 +79,25 @@ function EvidenceContent({ evidence }: { evidence: PlayerEvidence }) {
 
     case "number":
     case "date":
-      return <div className="econtent econtent--number">{evidence.content}</div>;
+      return (
+        <div className="efill">
+          <div className="econtent econtent--number">{evidence.content}</div>
+        </div>
+      );
 
     case "quote":
-      return <div className="econtent econtent--quote">{evidence.content}</div>;
+      return (
+        <div className="efill">
+          <div className="econtent econtent--quote">{evidence.content}</div>
+        </div>
+      );
 
     case "audio":
       return (
-        <div className="emedia">
-          <audio controls preload="metadata" src={evidence.content} />
+        <div className="efill efill--media">
+          <div className="emedia">
+            <audio controls preload="metadata" src={evidence.content} />
+          </div>
         </div>
       );
 
@@ -109,8 +119,10 @@ function EvidenceContent({ evidence }: { evidence: PlayerEvidence }) {
 
     case "location":
       return (
-        <div className="econtent econtent--location">
-          <span className="pin">◉</span> {evidence.content}
+        <div className="efill">
+          <div className="econtent econtent--display">
+            <span className="pin">◉</span> {evidence.content}
+          </div>
         </div>
       );
 
@@ -120,10 +132,17 @@ function EvidenceContent({ evidence }: { evidence: PlayerEvidence }) {
       return isMediaPath(evidence.content) ? (
         <img src={evidence.content} alt="Evidence" loading="lazy" />
       ) : (
-        <div className="econtent">{evidence.content}</div>
+        <div className="efill">
+          <div className="econtent econtent--display">{evidence.content}</div>
+        </div>
       );
 
     default:
-      return <div className="econtent">{evidence.content}</div>;
+      // Plain text exhibits render as full title cards.
+      return (
+        <div className="efill">
+          <div className="econtent econtent--display">{evidence.content}</div>
+        </div>
+      );
   }
 }

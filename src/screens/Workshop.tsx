@@ -10,6 +10,7 @@ import { importCaseFromJson } from "../authoring/io";
 import { CASE_WORKSHEET_TEMPLATE } from "../authoring/worksheetTemplate";
 import { listPublishedCases, unpublishCase } from "../data/caseLibrary";
 import { parseCase } from "../data/schema";
+import { isCleanHome, setCleanHome } from "../app/settings";
 import jonStewartTestCase from "../data/cases/case_jon_stewart_test.json";
 import caseTwo from "../data/cases/case_002.json";
 import caseThree from "../data/cases/case_003.json";
@@ -23,6 +24,7 @@ export default function Workshop() {
   const [showImport, setShowImport] = useState(false);
   const [importText, setImportText] = useState("");
   const [importErrors, setImportErrors] = useState<string[]>([]);
+  const [cleanHome, setCleanHomeState] = useState(isCleanHome);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   function handleNewCase() {
@@ -91,6 +93,15 @@ export default function Workshop() {
         </button>
         <button className="btn" onClick={() => handleLoadBundled(caseFour)}>
           Load test case #004
+        </button>
+        <button
+          className="btn"
+          onClick={() => {
+            setCleanHome(!cleanHome);
+            setCleanHomeState(!cleanHome);
+          }}
+        >
+          Home screen: {cleanHome ? "Clean ✓" : "Full"}
         </button>
       </div>
 

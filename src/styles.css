@@ -409,6 +409,32 @@ h3 {
   transform: scale(0.9);
 }
 
+/* small round icon button (help etc.) */
+.icon-round {
+  appearance: none;
+  border: none;
+  background: var(--tile);
+  color: var(--ink);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, transform 0.12s var(--bounce);
+}
+
+.icon-round:hover {
+  background: var(--tile-hover);
+}
+
+.icon-round:active {
+  transform: scale(0.9);
+}
+
 .rail-card {
   flex: 0 0 84%;
   max-width: 400px;
@@ -462,18 +488,52 @@ h3 {
   overflow-wrap: anywhere;
 }
 
+/* textual exhibits fill the card and center, like a title card */
+.evidence-card .efill {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 18px 8px;
+  min-height: 150px;
+}
+
+.evidence-card .efill--media {
+  padding: 10px 0;
+}
+
+.evidence-card .efill--media .emedia {
+  width: 100%;
+}
+
+.evidence-card .econtent--display {
+  font-family: var(--serif);
+  font-size: 27px;
+  font-weight: 700;
+  line-height: 1.22;
+  letter-spacing: 0.01em;
+  max-width: 22ch;
+}
+
 .evidence-card .econtent--number {
   font-family: var(--serif);
-  font-size: 42px;
+  font-size: 48px;
   font-weight: 700;
 }
 
 .evidence-card .econtent--quote {
   font-family: var(--serif);
   font-style: italic;
-  font-size: 21px;
+  font-size: 23px;
   font-weight: 500;
   line-height: 1.4;
+  max-width: 24ch;
+}
+
+/* cards in the rail share one height so the board doesn't jump */
+.rail-card .evidence-card {
+  min-height: 300px;
 }
 
 .evidence-card .econtent--quote::before {
@@ -486,15 +546,18 @@ h3 {
   color: var(--gold);
 }
 
-.evidence-card .econtent--location .pin {
+.evidence-card .econtent--display .pin {
   color: var(--red);
 }
 
 .evidence-card img {
   width: 100%;
+  flex: 1;
+  object-fit: cover;
   border-radius: 12px;
   display: block;
   background: var(--tile);
+  min-height: 0;
 }
 
 .evidence-card .ecaption {
@@ -511,8 +574,24 @@ h3 {
 
 .evidence-card .eswatch {
   width: 100%;
+  flex: 1;
   min-height: 140px;
   border-radius: 12px;
+}
+
+.home-footnote {
+  margin-top: 34px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  opacity: 0.5;
+  text-decoration: none;
+}
+
+.home-footnote:hover {
+  opacity: 1;
 }
 
 /* the face-down next exhibit */

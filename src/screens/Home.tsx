@@ -1,10 +1,12 @@
 import { Link, useNavigate } from "react-router-dom";
 import { getTodaysCase, listPublishedCases } from "../data/caseLibrary";
+import { isCleanHome } from "../app/settings";
 
 export default function Home() {
   const navigate = useNavigate();
   const todaysCase = getTodaysCase();
   const publishedCount = listPublishedCases().length;
+  const clean = isCleanHome();
 
   const today = new Date().toLocaleDateString(undefined, {
     weekday: "long",
@@ -45,18 +47,25 @@ export default function Home() {
         </>
       )}
 
-      <div className="title-links">
-        <button className="btn btn--small" disabled>
-          Practice — soon
-        </button>
-        <Link to="/workshop" className="btn btn--ghost btn--small">
-          Case Workshop
+      {clean ? (
+        <Link to="/workshop" className="home-footnote">
+          Workshop
         </Link>
-      </div>
-
-      <span className="badge" style={{ marginTop: 18 }}>
-        {publishedCount} CASE{publishedCount === 1 ? "" : "S"} IN LIBRARY
-      </span>
+      ) : (
+        <>
+          <div className="title-links">
+            <button className="btn btn--small" disabled>
+              Practice — soon
+            </button>
+            <Link to="/workshop" className="btn btn--ghost btn--small">
+              Case Workshop
+            </Link>
+          </div>
+          <span className="badge" style={{ marginTop: 18 }}>
+            {publishedCount} CASE{publishedCount === 1 ? "" : "S"} IN LIBRARY
+          </span>
+        </>
+      )}
     </div>
   );
 }

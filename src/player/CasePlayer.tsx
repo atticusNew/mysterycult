@@ -45,9 +45,18 @@ export default function CasePlayer({
   );
   const [pendingAccuseId, setPendingAccuseId] = useState<string | null>(null);
   const [showHints, setShowHints] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [copied, setCopied] = useState(false);
   const railRef = useRef<HTMLDivElement>(null);
   const hintsRef = useRef<HTMLElement>(null);
+
+  // No intro screen: the case opens straight onto the board with
+  // Exhibit I already flipped. Rules live behind the "?" button.
+  useEffect(() => {
+    if (session.phase === "CASE_INTRO") {
+      dispatch({ type: "BEGIN_INVESTIGATION" });
+    }
+  }, [session.phase]);
 
   const accusing = session.phase === "ACCUSING";
   const revealedEvidence = unlockedPlayerEvidence(
@@ -62,11 +71,18 @@ export default function CasePlayer({
   );
   const canFlip = session.revealedCount < totalExhibits;
 
-  // Keep the newest exhibit in view.
+  // Center the newest exhibit in the rail (not the face-down card after it).
   useEffect(() => {
     const rail = railRef.current;
-    if (!rail) return;
-    rail.scrollTo({ left: rail.scrollWidth, behavior: "smooth" });
+    if (!rail || session.revealedCount === 0) return;
+    const newest = rail.children[session.revealedCount - 1] as
+      | HTMLElement
+      | undefined;
+    newest?.scrollIntoView({
+      behavior: "smooth",
+      inline: "center",
+      block: "nearest",
+    });
   }, [session.revealedCount]);
 
   // Scroll to the hints when one is revealed.
@@ -139,45 +155,9 @@ export default function CasePlayer({
     );
   }
 
-  // -------------------------------------------------------------- CASE_INTRO
+  // While auto-beginning, render nothing for one frame.
   if (session.phase === "CASE_INTRO") {
-    return (
-      <div className="shell">
-        <div className="case-topbar">
-          <span className="kicker">{caseNumber ?? "Case"}</span>
-          <button className="btn btn--ghost btn--small" onClick={onExit}>
-            {exitLabel ?? "Exit"}
-          </button>
-        </div>
-        <div className="fullpage">
-          <span className="kicker kicker--dim">Daily case</span>
-          <h1 className="display">{caseData.title || "Untitled Case"}</h1>
-          <p className="case-question">
-            {caseData.question || "Whose story is the evidence telling?"}
-          </p>
-          <ol className="howto">
-            <li>
-              <strong>Flip exhibits.</strong> Every one truly connects to the
-              answer. The first is free; each flip costs score.
-            </li>
-            <li>
-              <strong>Work the line-up.</strong> Tap suspects to cross off
-              anyone the evidence rules out.
-            </li>
-            <li>
-              <strong>Accuse — once.</strong> One accusation. Wrong, and the
-              case goes cold.
-            </li>
-          </ol>
-          <button
-            className="btn btn--primary btn--block"
-            onClick={() => act({ type: "BEGIN_INVESTIGATION" })}
-          >
-            Open the case
-          </button>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   // ------------------------------------------------------------- MAIN BOARD
@@ -190,9 +170,18 @@ export default function CasePlayer({
     <div className="shell">
       <div className="case-topbar">
         <span className="kicker">{caseNumber ?? "Case"}</span>
-        <button className="btn btn--ghost btn--small" onClick={onExit}>
-          {exitLabel ?? "Exit"}
-        </button>
+        <span style={{ display: "flex", gap: 6 }}>
+          <button
+            className="icon-round"
+            aria-label="How to play"
+            onClick={() => setShowHelp(true)}
+          >
+            ?
+          </button>
+          <button className="btn btn--ghost btn--small" onClick={onExit}>
+            {exitLabel ?? "Exit"}
+          </button>
+        </span>
       </div>
 
       <header className="case-header">
@@ -369,6 +358,35 @@ export default function CasePlayer({
           )}
         </div>
       </div>
+
+      {/* how to play */}
+      {showHelp ? (
+        <div className="overlay" onClick={() => setShowHelp(false)}>
+          <div className="sheet" onClick={(event) => event.stopPropagation()}>
+            <span className="kicker">How to play</span>
+            <ol className="howto" style={{ marginTop: 14 }}>
+              <li>
+                <strong>Flip exhibits.</strong> Every one truly connects to
+                the answer. The first is free; each flip costs score.
+              </li>
+              <li>
+                <strong>Work the line-up.</strong> Tap suspects to cross off
+                anyone the evidence rules out.
+              </li>
+              <li>
+                <strong>Accuse — once.</strong> Wrong, and the case goes cold.
+              </li>
+            </ol>
+            <button
+              className="btn btn--primary btn--block"
+              style={{ marginTop: 14 }}
+              onClick={() => setShowHelp(false)}
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {/* accusation confirm */}
       {pendingSuspect ? (
