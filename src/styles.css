@@ -722,24 +722,31 @@ h3 {
   text-align: center;
 }
 
-/* face-down subject card */
+/* face-down subject card — same language as the exhibit flip card */
 .pq-card--facedown {
   appearance: none;
-  border: none;
   width: 100%;
   text-align: left;
   cursor: pointer;
-  background: var(--ink);
-  color: var(--bg);
+  background: transparent;
+  border: 2px dashed var(--ink-3);
+  border-radius: 16px;
+  box-shadow: none;
+  color: var(--ink);
   display: flex;
   flex-direction: column;
   gap: 4px;
-  transition: transform 0.12s var(--bounce);
+  transition: transform 0.12s var(--bounce), border-color 0.15s ease, background 0.15s ease;
+}
+
+.pq-card--facedown:hover {
+  border-color: var(--ink);
+  background: var(--card);
 }
 
 .pq-card--facedown .badge,
 .pq-card--facedown .pq-status {
-  color: rgba(246, 240, 226, 0.55);
+  color: var(--ink-3);
 }
 
 .pq-card--facedown:active {
@@ -756,7 +763,7 @@ h3 {
 
 .pq-flip-hint {
   font-size: 12px;
-  color: rgba(246, 240, 226, 0.5);
+  color: var(--ink-3);
 }
 
 .pq-factoid {
