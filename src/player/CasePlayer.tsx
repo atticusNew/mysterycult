@@ -185,13 +185,16 @@ export default function CasePlayer({
                 evidence={item}
                 index={index}
                 highlight={item.id === session.lastUnlockedEvidenceId}
+                style={{ animationDelay: `${Math.min(index * 70, 400)}ms` }}
               />
             ))}
             {Array.from({
               length: caseData.evidence.length - unlockedEvidence.length,
             }).map((_, index) => (
               <div className="evidence-locked" key={`locked_${index}`}>
-                LOCKED
+                <span className="redact" />
+                <span className="redact" />
+                <span className="redact" />
               </div>
             ))}
           </div>
@@ -297,7 +300,16 @@ export default function CasePlayer({
             </div>
 
             {activeClue && session.phase === "CLUE_ACTIVE" ? (
-              <div className="clue-card">
+              <div
+                className={`clue-card${
+                  session.clueFeedback === "incorrect" ? " clue-card--shake" : ""
+                }`}
+                key={`${activeClue.id}:${
+                  session.clueProgress.find(
+                    (entry) => entry.clueId === activeClue.id,
+                  )?.wrongAttempts ?? 0
+                }`}
+              >
                 <span className="kicker kicker--dim">
                   Clue {clues.indexOf(activeClue) + 1}
                 </span>

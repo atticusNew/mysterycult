@@ -65,12 +65,7 @@ export const EVIDENCE_TYPE_VALUES: EvidenceType[] = [
 ];
 
 /** Evidence types the player UI can currently render. */
-export const SUPPORTED_EVIDENCE_TYPES: EvidenceType[] = [
-  "text",
-  "image",
-  "number",
-  "quote",
-];
+export const SUPPORTED_EVIDENCE_TYPES: EvidenceType[] = [...EVIDENCE_TYPE_VALUES];
 
 /** What kind of thing the final answer is (spec §9). */
 export type CaseType =

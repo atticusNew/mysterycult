@@ -1,0 +1,369 @@
+{
+  "id": "case_the_sopranos",
+  "version": 1,
+  "title": "Case #002",
+  "question": "What are we looking for?",
+  "answer": {
+    "primary": "The Sopranos",
+    "aliases": ["the sopranos", "sopranos", "the sopranos hbo", "the sopranos tv show"]
+  },
+  "type": "television",
+  "category": "television",
+  "entityId": "the_sopranos",
+  "entity": {
+    "id": "the_sopranos",
+    "name": "The Sopranos",
+    "type": "television",
+    "recognition": "broad",
+    "longevity": "high",
+    "connectionDensity": "high",
+    "eras": ["1990s", "2000s", "2010s", "2020s"],
+    "domains": ["television", "film", "music", "crime", "new jersey", "psychology"]
+  },
+  "clues": [
+    {
+      "id": "clue_vanzandt",
+      "type": "text",
+      "prompt": "Bruce Springsteen's longtime E Street Band guitarist, he also DJs a syndicated radio show from the 'Underground Garage.'",
+      "answer": {
+        "primary": "Steve Van Zandt",
+        "aliases": ["steven van zandt", "little steven", "little steven van zandt", "miami steve"]
+      },
+      "evidenceId": "ev_club",
+      "stage": "opening",
+      "authorNotes": {
+        "whyFair": "Two well-documented angles: the E Street Band and Little Steven's Underground Garage.",
+        "connection": "Van Zandt's first acting role ever was Silvio Dante — consigliere and owner of the Bada Bing club. The unlocked club photo is his territory."
+      }
+    },
+    {
+      "id": "clue_bracco",
+      "type": "text",
+      "prompt": "In Goodfellas, she played Karen — the wife who narrates half the movie.",
+      "answer": {
+        "primary": "Lorraine Bracco",
+        "aliases": ["bracco", "lorraine brocco"]
+      },
+      "evidenceId": "ev_office",
+      "stage": "opening",
+      "authorNotes": {
+        "whyFair": "Goodfellas is canonical; Karen Hill is a major, memorable role.",
+        "connection": "Bracco turned down the mob-wife archetype the second time around and played Dr. Jennifer Melfi instead. The therapist's office is hers."
+      }
+    },
+    {
+      "id": "clue_analyze",
+      "type": "text",
+      "prompt": "Billy Crystal plays the reluctant therapist to Robert De Niro's panicking mob boss in this 1999 comedy.",
+      "answer": {
+        "primary": "Analyze This",
+        "aliases": ["analyse this", "analyze this movie"]
+      },
+      "evidenceId": "ev_ducks",
+      "stage": "middle",
+      "authorNotes": {
+        "whyFair": "A mainstream, widely seen comedy with an unmistakable premise.",
+        "connection": "The same-year cousin: a mob boss in therapy, 1999. It seeds the era and the premise — and becomes the case's great red herring. The ducks that unlock are the pilot's panic-attack trigger, which Analyze This cannot explain."
+      }
+    },
+    {
+      "id": "clue_journey",
+      "type": "text",
+      "prompt": "Formed in San Francisco, this arena-rock band told everyone not to stop believin' in 1981.",
+      "answer": {
+        "primary": "Journey",
+        "aliases": ["journey band", "journey the band"]
+      },
+      "evidenceId": "ev_diner",
+      "stage": "middle",
+      "authorNotes": {
+        "whyFair": "One of the most recognizable songs in American culture.",
+        "connection": "The finale: a family in a diner booth, onion rings on the table, that song on the tabletop jukebox. The diner photo is the scene without the people."
+      }
+    },
+    {
+      "id": "clue_turnpike",
+      "type": "text",
+      "prompt": "You grab a ticket at the toll plaza — this famous highway runs from the George Washington Bridge down toward Delaware.",
+      "answer": {
+        "primary": "New Jersey Turnpike",
+        "aliases": ["nj turnpike", "the turnpike", "turnpike", "jersey turnpike", "the new jersey turnpike"]
+      },
+      "evidenceId": "ev_credits",
+      "stage": "late",
+      "authorNotes": {
+        "whyFair": "Basic American geography; the ticket detail confirms it for anyone who has driven it.",
+        "connection": "The most famous opening credits in television are a drive: out of the tunnel, through the toll, down the Turnpike, home to the driveway. The evidence tells the player to think about credits — which means television, not film."
+      }
+    },
+    {
+      "id": "clue_pines",
+      "type": "text",
+      "prompt": "A winged devil is said to haunt this sandy, pine-covered stretch of South Jersey.",
+      "answer": {
+        "primary": "The Pine Barrens",
+        "aliases": ["pine barrens", "pinelands", "the pinelands", "pine barrens new jersey"]
+      },
+      "evidenceId": "ev_pines",
+      "stage": "late",
+      "authorNotes": {
+        "whyFair": "The Jersey Devil legend is widely known regional folklore, and the answer is literally described.",
+        "connection": "'Pine Barrens' is the show's most legendary episode — two men lost in the snow. Fans recognize the snowy pines instantly; everyone else files it under New Jersey, which is the right direction anyway."
+      }
+    },
+    {
+      "id": "clue_gandolfini",
+      "type": "text",
+      "prompt": "He won three Emmys for a single role and died in Rome in 2013; his final leading part came in The Drop.",
+      "answer": {
+        "primary": "James Gandolfini",
+        "aliases": ["gandolfini", "jim gandolfini"]
+      },
+      "evidenceId": "ev_black",
+      "stage": "final",
+      "authorNotes": {
+        "whyFair": "Every fact in the clue is prominent and searchable; by the final stage the territory is fully established.",
+        "connection": "The role was Tony Soprano. The evidence is the ending itself: the cut to black, June 10, 2007, mid-song, mid-sentence."
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev_club",
+      "type": "image",
+      "content": "/assets/cases/case002/club.jpg",
+      "caption": "Route 17, after midnight.",
+      "diagnosticity": "low",
+      "relatedEntities": ["steve_van_zandt", "silvio_dante", "bada_bing", "the_sopranos"],
+      "authorNotes": {
+        "meaning": "A neon Jersey club at night — Silvio's world. Deliberately ambiguous: it could belong to a hundred stories. It plants New Jersey and nightlife without naming anything."
+      }
+    },
+    {
+      "id": "ev_office",
+      "type": "image",
+      "content": "/assets/cases/case002/office.jpg",
+      "caption": null,
+      "diagnosticity": "low",
+      "relatedEntities": ["lorraine_bracco", "dr_melfi", "the_sopranos"],
+      "authorNotes": {
+        "meaning": "Two chairs facing each other: therapy. With the club it starts a strange sentence — nightlife plus a therapist's office — but it also supports the Analyze This red herring."
+      }
+    },
+    {
+      "id": "ev_ducks",
+      "type": "audio",
+      "content": "/assets/cases/case002/poolside.mp3",
+      "caption": "Recorded poolside.",
+      "diagnosticity": "medium",
+      "relatedEntities": ["tony_soprano", "the_sopranos"],
+      "authorNotes": {
+        "meaning": "Ducks. In the pilot, the ducks in the backyard pool trigger the panic attacks that send the protagonist to therapy. Analyze This has a mob boss in therapy — but it has no ducks and no pool. This is the piece that starts breaking the red herring."
+      }
+    },
+    {
+      "id": "ev_diner",
+      "type": "image",
+      "content": "/assets/cases/case002/diner.jpg",
+      "caption": "The onion rings are the best in the state.",
+      "diagnosticity": "medium",
+      "relatedEntities": ["holstens", "journey", "the_sopranos"],
+      "authorNotes": {
+        "meaning": "The finale scene with the people removed: red booths, onion rings, a tabletop jukebox. Solved from the Journey clue, so the song and the booth arrive together. Fans feel it immediately; others hold it as 'a diner matters.'"
+      }
+    },
+    {
+      "id": "ev_credits",
+      "type": "text",
+      "content": "THE OPENING CREDITS",
+      "caption": null,
+      "diagnosticity": "high",
+      "relatedEntities": ["new_jersey_turnpike", "the_sopranos"],
+      "authorNotes": {
+        "meaning": "Unlocked by the Turnpike: the most famous opening credits on television are a drive down that road. It also quietly rules out every movie hypothesis — films aren't remembered for opening credits you watch eighty-six times."
+      }
+    },
+    {
+      "id": "ev_pines",
+      "type": "image",
+      "content": "/assets/cases/case002/pines.jpg",
+      "caption": "They were only supposed to be gone an hour.",
+      "diagnosticity": "high",
+      "relatedEntities": ["pine_barrens_episode", "the_sopranos"],
+      "authorNotes": {
+        "meaning": "Snowy pines and one set of footprints: the 'Pine Barrens' episode, two men lost in the snow. The caption is written to itch at fans without naming anyone."
+      }
+    },
+    {
+      "id": "ev_black",
+      "type": "color",
+      "content": "#0a0a0a",
+      "caption": "June 10, 2007. Mid-song, mid-sentence.",
+      "diagnosticity": "conclusive",
+      "relatedEntities": ["made_in_america_finale", "the_sopranos"],
+      "authorNotes": {
+        "meaning": "The most argued-about ten seconds in television history: the screen simply cut to black. Anyone who lived through it knows instantly; anyone who didn't can search the date. Undeniable."
+      }
+    }
+  ],
+  "investigationPaths": [
+    {
+      "id": "path_music",
+      "name": "The music route",
+      "startingPoint": "E Street Band / Journey",
+      "nodes": ["clue_vanzandt", "ev_club", "clue_journey", "ev_diner"],
+      "target": "The Sopranos"
+    },
+    {
+      "id": "path_film",
+      "name": "The film route",
+      "startingPoint": "Goodfellas / Analyze This",
+      "nodes": ["clue_bracco", "ev_office", "clue_analyze", "ev_ducks"],
+      "target": "The Sopranos"
+    },
+    {
+      "id": "path_jersey",
+      "name": "The New Jersey route",
+      "startingPoint": "Turnpike geography and Pine Barrens folklore",
+      "nodes": ["clue_turnpike", "ev_credits", "clue_pines", "ev_pines"],
+      "target": "The Sopranos"
+    },
+    {
+      "id": "path_finale",
+      "name": "The ending route",
+      "startingPoint": "Journey, the diner, the cut to black",
+      "nodes": ["clue_journey", "ev_diner", "clue_gandolfini", "ev_black"],
+      "target": "The Sopranos"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint_1",
+      "text": "The club, the two chairs and the ducks all belong to one man's week."
+    },
+    {
+      "id": "hint_2",
+      "text": "It isn't a movie. Ask yourself what kind of story is famous for its opening credits — and for how it ended."
+    },
+    {
+      "id": "hint_3",
+      "text": "Put the diner, the song and the date together. Then take the last piece of evidence literally: the screen itself is the evidence."
+    }
+  ],
+  "reveal": {
+    "summary": "The Sopranos. A New Jersey club run by a guitarist who had never acted before. A therapist's office where a Goodfellas wife chose the other chair. Ducks in a backyard pool that sent a mob boss into panic attacks — the same year Hollywood played the idea for laughs in Analyze This. Opening credits that were just a drive down the Turnpike. Two men lost in the snowy Pine Barrens. And a family in a diner booth, onion rings on the table, Journey on the jukebox — until the screen cut to black on June 10, 2007.",
+    "clueExplanations": [
+      {
+        "clueId": "clue_vanzandt",
+        "explanation": "Steve Van Zandt led to the neon club. His first acting role ever was Silvio Dante, consigliere and owner of the Bada Bing — David Chase cast a rock guitarist who had never acted."
+      },
+      {
+        "clueId": "clue_bracco",
+        "explanation": "Lorraine Bracco led to the therapist's office. Offered the mob-wife role, she asked for the opposite chair instead and became Dr. Jennifer Melfi."
+      },
+      {
+        "clueId": "clue_analyze",
+        "explanation": "Analyze This led to the ducks. Both stories — one comedy, one drama — put a mob boss in therapy in 1999. But only one of them begins with ducks landing in a backyard pool."
+      },
+      {
+        "clueId": "clue_journey",
+        "explanation": "Journey led to the diner booth. 'Don't Stop Believin'' plays on the tabletop jukebox in the final scene at Holsten's, over a plate of onion rings."
+      },
+      {
+        "clueId": "clue_turnpike",
+        "explanation": "The New Jersey Turnpike led to THE OPENING CREDITS — the famous title sequence is one long drive: out of the tunnel, through the toll, down the Turnpike, home."
+      },
+      {
+        "clueId": "clue_pines",
+        "explanation": "The Pine Barrens led to the snowy pines — 'Pine Barrens,' the show's most legendary episode, strands Paulie and Christopher in those woods overnight."
+      },
+      {
+        "clueId": "clue_gandolfini",
+        "explanation": "James Gandolfini — three Emmys as Tony Soprano — led to the black screen: the cut to black that ended the series mid-song and started a twenty-year argument."
+      }
+    ],
+    "evidenceToAnswer": "Each exhibit is one wall of the same house: the club is Silvio's, the office is Melfi's, the ducks are Tony's, the diner is the family's, the credits are the commute, the pines are the show's most famous hour, and the black screen is how it all ended. No film explains the credits; no other series explains the ducks; nothing else in television ends on that date, in that booth, with that song.",
+    "majorConnections": [
+      "Steve Van Zandt (E Street Band) → Silvio Dante, his first acting role",
+      "Lorraine Bracco → from Goodfellas mob wife to Dr. Melfi's chair",
+      "Analyze This (1999) → the same-year mob-boss-in-therapy comedy, the case's red herring",
+      "Journey → 'Don't Stop Believin'' on the diner jukebox in the final scene",
+      "The New Jersey Turnpike → the opening-credits drive",
+      "The Pine Barrens → the lost-in-the-snow episode",
+      "James Gandolfini → Tony Soprano → the cut to black, June 10, 2007"
+    ],
+    "alternatePaths": [
+      "Music first: Van Zandt's club plus Journey's diner",
+      "Film first: Bracco's office plus Analyze This — then the ducks break the movie theory",
+      "New Jersey first: the Turnpike credits plus the Pine Barrens",
+      "The ending first: diner, song, date, black"
+    ],
+    "ohMoment": "The moment the player realizes the evidence isn't pointing at a movie — it's pointing at a life. A club, a therapist, ducks in a pool, a commute, a diner. And then the screen goes black, and they hear the argument everyone had on June 11, 2007: 'Wait — is that IT?'"
+  },
+  "editorial": {
+    "entryPoints": [
+      {
+        "id": "entry_music",
+        "domain": "Music",
+        "description": "The E Street Band and Journey give music fans two doorways; neither requires having seen a single episode.",
+        "clueId": "clue_vanzandt"
+      },
+      {
+        "id": "entry_film",
+        "domain": "Film",
+        "description": "Goodfellas and Analyze This let film fans in — and Analyze This is the intended wrong theory, since it shares the premise and the year.",
+        "clueId": "clue_bracco"
+      },
+      {
+        "id": "entry_jersey",
+        "domain": "American geography & folklore",
+        "description": "The Turnpike and the Jersey Devil's Pine Barrens are solvable from general knowledge, no television required.",
+        "clueId": "clue_turnpike"
+      },
+      {
+        "id": "entry_finale",
+        "domain": "Television history",
+        "description": "The cut to black is a shared cultural memory — even people who never watched know the ending was an event.",
+        "clueId": "clue_gandolfini"
+      }
+    ],
+    "hypotheses": [
+      {
+        "id": "hyp_analyze",
+        "hypothesis": "Analyze This (or 'a mob movie')",
+        "supportingEvidence": "The therapist's office plus mob signals fit it perfectly — it is literally a mob boss in therapy, from the same year. Strongest suspect through the first three exhibits.",
+        "weakeningEvidence": "The ducks have no place in it; THE OPENING CREDITS points at television; the Pine Barrens and the dated black screen belong to a series finale, not a film.",
+        "resolution": "The player should ride this theory for a while and feel it crack — first the ducks, then the credits. That crack is the case's designed hypothesis-flip."
+      },
+      {
+        "id": "hyp_goodfellas",
+        "hypothesis": "Goodfellas",
+        "supportingEvidence": "Lorraine Bracco plus club-and-crime imagery reads as Scorsese, and the diner booth fits a dozen Scorsese scenes.",
+        "weakeningEvidence": "Goodfellas is New York, not the Turnpike; it has no therapist, no ducks, and no opening-credits drive — and it didn't end on June 10, 2007.",
+        "resolution": "Bracco is the bridge, not the destination — she walked from Karen Hill to Dr. Melfi."
+      },
+      {
+        "id": "hyp_jerseyboys",
+        "hypothesis": "Jersey Boys (or 'a New Jersey music story')",
+        "supportingEvidence": "A rock guitarist clue, a neon Jersey club, a jukebox diner — the first exhibits read plausibly as a Jersey music story with mob edges.",
+        "weakeningEvidence": "The therapist's office and the ducks belong to no musical; THE OPENING CREDITS and the dated black screen say prestige television.",
+        "resolution": "The music was always set dressing: Van Zandt matters as an actor, and Journey matters for one diner scene."
+      },
+      {
+        "id": "hyp_boardwalk",
+        "hypothesis": "Boardwalk Empire (or 'another HBO Jersey crime show')",
+        "supportingEvidence": "Once THE OPENING CREDITS forces television, a New Jersey crime series with famous credits is a fair suspect.",
+        "weakeningEvidence": "Boardwalk Empire is Prohibition-era Atlantic City — the neon strip-mall club is decades wrong — and it premiered in 2010, after the black screen's 2007 date.",
+        "resolution": "The date on the conclusive exhibit is the tiebreaker among television suspects."
+      },
+      {
+        "id": "hyp_sopranos",
+        "hypothesis": "The Sopranos (correct)",
+        "supportingEvidence": "Every exhibit converges: Silvio's club, Melfi's office, Tony's ducks, the credits drive, the Pine Barrens, the diner, the black screen.",
+        "weakeningEvidence": "Nothing — the case is built so all seven pieces only intersect once.",
+        "resolution": "Confirmed by the smoking gun: the black screen dated June 10, 2007."
+      }
+    ],
+    "notes": "SUSPECT FUNNEL: every LOW/MEDIUM exhibit deliberately fits multiple suspects (club → Goodfellas/Jersey Boys/Sopranos; office → Analyze This/Sopranos; ducks → nobody but the answer, which is what makes them itch; diner → Scorsese/Jersey Boys/Sopranos). Each suspect dies on a specific exhibit: ducks kill Analyze This, THE OPENING CREDITS kills every movie, the 2007 date kills Boardwalk Empire. Exactly one smoking gun — the black screen — and it arrives on the final-stage clue. Difficulty: two LOW openers, MEDIUM pair builds the red herring, HIGH pair forces 'New Jersey television', CONCLUSIVE ends it. Media: images are original AI-generated scene evocations; the audio is an original synthesized recording (no copyrighted show material)."
+  }
+}

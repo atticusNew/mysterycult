@@ -99,6 +99,26 @@ describe("validateCase", () => {
     );
   });
 
+  it("warns when the suspect pool is too small", () => {
+    const thin = dummyCase();
+    thin.editorial = { ...thin.editorial, hypotheses: [] };
+    const report = validateCase(thin);
+    expect(report.warnings.map((warning) => warning.code)).toContain(
+      "too_few_hypotheses",
+    );
+  });
+
+  it("warns when the smoking gun arrives too early", () => {
+    const early = dummyCase();
+    // Move the conclusive evidence onto an opening-stage clue.
+    early.clues[0] = { ...early.clues[0], evidenceId: "evidence_003" };
+    early.clues[2] = { ...early.clues[2], evidenceId: "evidence_001" };
+    const report = validateCase(early);
+    expect(report.warnings.map((warning) => warning.code)).toContain(
+      "conclusive_too_early",
+    );
+  });
+
   it("warns about duplicate clues and evidence", () => {
     const dupes = dummyCase();
     dupes.clues[1] = { ...dupes.clues[1], prompt: dupes.clues[0].prompt };

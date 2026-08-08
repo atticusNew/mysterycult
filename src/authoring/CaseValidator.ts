@@ -402,6 +402,48 @@ export function validateCase(caseData: CaseData): ValidationReport {
   }
 
   // -------------------------------------------------------------------
+  // EDITORIAL WARNINGS — SUSPECT POOL & SMOKING GUN
+  // -------------------------------------------------------------------
+  // A mystery needs multiple live "suspects": document at least two
+  // wrong-but-reasonable hypotheses and how the evidence breaks them.
+  const documentedHypotheses = caseData.editorial.hypotheses.filter((note) =>
+    note.hypothesis.trim(),
+  );
+  if (documentedHypotheses.length < 2) {
+    issues.push(
+      issue(
+        "warning",
+        "too_few_hypotheses",
+        "hypotheses",
+        `Only ${documentedHypotheses.length} hypothesis(es) documented. A strong case keeps multiple suspects alive — document at least two plausible wrong theories and which evidence breaks each one.`,
+      ),
+    );
+  }
+
+  // The smoking gun must arrive late: conclusive evidence unlocked by an
+  // opening- or middle-stage clue collapses the mystery too early.
+  const stageRank: Record<string, number> = {
+    opening: 0,
+    middle: 1,
+    late: 2,
+    final: 3,
+  };
+  caseData.clues.forEach((clue, index) => {
+    if (!clue.evidenceId) return;
+    const linked = caseData.evidence.find((item) => item.id === clue.evidenceId);
+    if (linked?.diagnosticity === "conclusive" && stageRank[clue.stage] < 2) {
+      issues.push(
+        issue(
+          "warning",
+          "conclusive_too_early",
+          "evidence",
+          `Clue ${index + 1} (stage "${clue.stage}") unlocks CONCLUSIVE evidence. The smoking gun should arrive at a late or final stage, after the suspect pool has formed.`,
+        ),
+      );
+    }
+  });
+
+  // -------------------------------------------------------------------
   // EDITORIAL WARNINGS — INVESTIGATION PATHS
   // -------------------------------------------------------------------
   if (caseData.investigationPaths.length <= 1) {

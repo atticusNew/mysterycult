@@ -1000,9 +1000,11 @@ export default function WorkshopEditor() {
       <section className="ws-section" id="hypotheses">
         <h2>Hypotheses</h2>
         <p className="section-note">
-          What might a player reasonably believe mid-case? Document each
-          plausible hypothesis, what supports it, what weakens it, and how it
-          resolves.
+          The suspect pool. Every early piece of evidence should fit more than
+          one suspect; each suspect should die on a specific later piece.
+          Document at least two plausible wrong theories, what supports them,
+          which evidence breaks them — and keep exactly one smoking gun for
+          the end.
         </p>
         {caseData.editorial.hypotheses.map((hypothesis, index) => (
           <div className="item-card" key={hypothesis.id}>

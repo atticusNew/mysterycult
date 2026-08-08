@@ -106,7 +106,7 @@ export default function CaseRevealView({ reveal, onExit, exitLabel }: Props) {
         {reveal.theories.length === 0 ? (
           <p className="prose">You never recorded a theory.</p>
         ) : (
-          <ul className="theory-history">
+          <ul className="theory-history theory-history--dark">
             {reveal.theories.map((theory, index) => (
               <li key={theory.id} className={theory.wasCorrect ? "correct" : ""}>
                 <span className="n">{index + 1}.</span>

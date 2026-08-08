@@ -11,6 +11,7 @@ import { CASE_WORKSHEET_TEMPLATE } from "../authoring/worksheetTemplate";
 import { listPublishedCases, unpublishCase } from "../data/caseLibrary";
 import { parseCase } from "../data/schema";
 import jonStewartTestCase from "../data/cases/case_jon_stewart_test.json";
+import sopranosCase from "../data/cases/case_the_sopranos.json";
 
 export default function Workshop() {
   const navigate = useNavigate();
@@ -28,8 +29,8 @@ export default function Workshop() {
     navigate(`/workshop/${caseData.id}`);
   }
 
-  function handleLoadTestCase() {
-    const { caseData } = parseCase(jonStewartTestCase);
+  function handleLoadBundled(raw: unknown) {
+    const { caseData } = parseCase(raw);
     if (!caseData) return;
     saveDraft(caseData.id, caseData);
     navigate(`/workshop/${caseData.id}`);
@@ -77,8 +78,11 @@ export default function Workshop() {
         <button className="btn" onClick={() => setShowWorksheet(true)}>
           Blank worksheet
         </button>
-        <button className="btn" onClick={handleLoadTestCase}>
+        <button className="btn" onClick={() => handleLoadBundled(jonStewartTestCase)}>
           Load test case (Jon Stewart)
+        </button>
+        <button className="btn" onClick={() => handleLoadBundled(sopranosCase)}>
+          Load test case (The Sopranos)
         </button>
       </div>
 
