@@ -68,11 +68,6 @@ export default function CasePlayer({
     caseData.evidence.slice(0, session.revealedCount).map((item) => item.id),
   );
   const totalExhibits = caseData.evidence.length;
-  const remaining = caseData.lineup.suspects.filter(
-    (suspect) =>
-      !session.ruledOutIds.includes(suspect.id) &&
-      !session.misses.includes(suspect.id),
-  );
   const canFlip = session.revealedCount < totalExhibits;
 
   // Center the newest exhibit in the rail (not the face-down card after it).
