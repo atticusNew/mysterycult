@@ -103,30 +103,14 @@ export function validatePuzzle(puzzle: PhrasePuzzle): PuzzleReport {
     if (!question.prompt.trim()) {
       issues.push(issue("warning", "missing_prompt", `${label} has no prompt.`));
     }
-    if (!question.subject.trim()) {
-      issues.push(
-        issue(
-          "warning",
-          "missing_subject",
-          `${label} has no subject card (e.g. HISTORY, MUSIC).`,
-        ),
-      );
-    }
+    // Subjects and factoids are currently not shown in play; validate only
+    // that a provided subject doesn't leak the connection.
     if (connection && containsPhraseTarget(question.subject, connection)) {
       issues.push(
         issue(
           "warning",
           "subject_names_connection",
           `${label}'s subject card names the connection.`,
-        ),
-      );
-    }
-    if (!question.factoid.trim()) {
-      issues.push(
-        issue(
-          "warning",
-          "missing_factoid",
-          `${label} has no factoid — the little reward after answering.`,
         ),
       );
     }

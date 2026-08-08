@@ -1,8 +1,9 @@
 /**
- * Tagline player — the hidden-phrase board.
+ * Tagline player — Wordle-simple, one screen.
  *
- * Answer questions (one attempt each) to earn letters; solve the phrase
- * whenever you dare; then name the connection for the bonus.
+ * Phrase tiles up top, five numbered questions with inline inputs beneath,
+ * and the phrase solve input at the bottom. One attempt per question;
+ * correct answers turn tiles green. Solve any time.
  */
 import { useMemo, useState, useReducer } from "react";
 import type { PhrasePuzzle } from "./model";
@@ -36,21 +37,18 @@ export default function PhrasePlayer({
     createPuzzleSession,
   );
   const [inputs, setInputs] = useState<Record<string, string>>({});
-  const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
-  const [flippedIds, setFlippedIds] = useState<string[]>([]);
-  const [solveOpen, setSolveOpen] = useState(false);
   const [solveText, setSolveText] = useState("");
   const [bonusText, setBonusText] = useState("");
   const [showHelp, setShowHelp] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const gameOver = session.phase === "COMPLETE" || session.phase === "COLD";
   const words = useMemo(
     () => puzzle.phrase.trim().split(/\s+/).filter(Boolean),
     [puzzle.phrase],
   );
   const earned = new Set(session.earnedLetters);
   const attemptsLeft = SOLVE_ATTEMPTS - session.wrongSolves.length;
+  const gameOver = session.phase === "COMPLETE" || session.phase === "COLD";
 
   function act(action: PuzzleAction) {
     dispatch(action);
@@ -62,8 +60,7 @@ export default function PhrasePlayer({
         <span className="pword" key={`${word}_${wordIndex}`}>
           {word.split("").map((char, charIndex) => {
             const upper = char.toUpperCase();
-            const isLetter = /[A-Z]/.test(upper);
-            if (!isLetter) {
+            if (!/[A-Z]/.test(upper)) {
               return (
                 <span className="ppunct" key={charIndex}>
                   {char}
@@ -89,7 +86,7 @@ export default function PhrasePlayer({
   if (gameOver) {
     const score = computePuzzleScore(session);
     return (
-      <div className="shell shell--flush">
+      <div className="shell shell--flush pshell">
         <div className="case-topbar">
           <span className="kicker">{puzzle.title || "Tagline"}</span>
           <span style={{ display: "flex", gap: 6 }}>
@@ -120,11 +117,6 @@ export default function PhrasePlayer({
           <h1 className="display" style={{ marginTop: 8 }}>
             {puzzle.connection.primary || "—"}
           </h1>
-          {session.bonusResult === "correct" ? (
-            <p className="prose" style={{ color: "var(--green)", fontWeight: 600 }}>
-              You named it. +{250}
-            </p>
-          ) : null}
           {puzzle.reveal.summary ? (
             <p className="prose" style={{ marginTop: 10 }}>
               {puzzle.reveal.summary}
@@ -132,47 +124,30 @@ export default function PhrasePlayer({
           ) : null}
         </div>
 
-        {puzzle.reveal.ohMoment ? (
-          <div className="section">
-            <span className="kicker kicker--dim">The moment</span>
-            <p className="case-question" style={{ marginTop: 8 }}>
-              {puzzle.reveal.ohMoment}
-            </p>
-          </div>
-        ) : null}
-
         <div className="section">
-          <span className="kicker kicker--dim">The questions</span>
-          <div className="pq-list" style={{ marginTop: 12 }}>
+          <div className="pq-simple-list">
             {puzzle.questions.map((question, index) => {
               const status = session.questionStatus[question.id];
               return (
-                <div className="pq-card pq-card--reveal" key={question.id}>
-                  <div className="pq-head">
-                    <span className="badge">
-                      Q{index + 1}
-                      {question.subject
-                        ? ` · ${question.subject.toUpperCase()}`
-                        : ""}{" "}
-                      ·{" "}
-                      {status === "correct"
-                        ? "SOLVED"
+                <div className="pq-row pq-row--reveal" key={question.id}>
+                  <span
+                    className={`pq-n${
+                      status === "correct"
+                        ? " pq-n--ok"
                         : status === "wrong"
-                          ? "MISSED"
-                          : "UNTOUCHED"}
-                    </span>
-                    <span className="pletter pletter--small">
-                      {question.letter}
-                    </span>
+                          ? " pq-n--bad"
+                          : ""
+                    }`}
+                  >
+                    {index + 1}
+                  </span>
+                  <div className="pq-body">
+                    <p className="pq-prompt">{question.prompt}</p>
+                    <p className="pq-answer">→ {question.answer.primary}</p>
+                    {question.connectionNote ? (
+                      <p className="pq-note">{question.connectionNote}</p>
+                    ) : null}
                   </div>
-                  <p className="pq-prompt">{question.prompt}</p>
-                  <p className="pq-answer">→ {question.answer.primary}</p>
-                  {question.factoid ? (
-                    <p className="pq-factoid">{question.factoid}</p>
-                  ) : null}
-                  {question.connectionNote ? (
-                    <p className="pq-note">{question.connectionNote}</p>
-                  ) : null}
                 </div>
               );
             })}
@@ -180,7 +155,6 @@ export default function PhrasePlayer({
         </div>
 
         <div className="section">
-          <span className="kicker kicker--dim">Score</span>
           <ul className="score-lines">
             {score.lines.map((line) => (
               <li key={line.label}>
@@ -219,8 +193,8 @@ export default function PhrasePlayer({
 
   // -------------------------------------------------------------- PLAYING
   return (
-    <div className="shell shell--flush">
-      <div className="case-topbar">
+    <div className="shell shell--flush pshell">
+      <div className="case-topbar pshell-topbar">
         <span className="kicker">{puzzle.title || "Tagline"}</span>
         <span style={{ display: "flex", gap: 6 }}>
           <button
@@ -241,87 +215,29 @@ export default function PhrasePlayer({
         </span>
       </div>
 
-      <header className="case-header">
-        <p className="case-question" style={{ marginTop: 0 }}>
-          Five answers share a secret. So does the phrase.
-        </p>
-      </header>
+      {board(false)}
 
-      <section className="section">{board(false)}</section>
-
-      <section className="section">
-        <div className="section-head">
-          <span className="kicker kicker--dim">The questions</span>
-          <span className="badge">ONE ATTEMPT EACH</span>
-        </div>
-        <div className="pq-list">
-          {puzzle.questions.map((question, index) => {
-            const status = session.questionStatus[question.id];
-            const isActive = activeQuestionId === question.id;
-            const hasSubject = question.subject.trim().length > 0;
-            const isFlipped =
-              !hasSubject || status !== "open" || flippedIds.includes(question.id);
-
-            // Face-down subject card: the question hides behind its topic.
-            if (!isFlipped) {
-              return (
-                <button
-                  className="pq-card pq-card--facedown"
-                  key={question.id}
-                  onClick={() => {
-                    setFlippedIds([...flippedIds, question.id]);
-                    setActiveQuestionId(question.id);
-                  }}
-                >
-                  <div className="pq-head">
-                    <span className="badge">Q{index + 1}</span>
-                    <span className="pq-status">+</span>
-                  </div>
-                  <span className="pq-subject">{question.subject}</span>
-                  <span className="pq-flip-hint">Tap to reveal the question</span>
-                </button>
-              );
-            }
-
-            return (
-              <div
-                className={`pq-card${
+      <div className="pq-simple-list">
+        {puzzle.questions.map((question, index) => {
+          const status = session.questionStatus[question.id];
+          return (
+            <div className="pq-row" key={question.id}>
+              <span
+                className={`pq-n${
                   status === "correct"
-                    ? " pq-card--correct"
+                    ? " pq-n--ok"
                     : status === "wrong"
-                      ? " pq-card--wrong"
-                      : isActive
-                        ? " pq-card--active"
-                        : " pq-card--tappable"
+                      ? " pq-n--bad"
+                      : ""
                 }`}
-                key={question.id}
-                onClick={
-                  status === "open"
-                    ? () =>
-                        setActiveQuestionId(isActive ? null : question.id)
-                    : undefined
-                }
               >
-                <div className="pq-head">
-                  <span className="badge">
-                    Q{index + 1}
-                    {hasSubject ? ` · ${question.subject.toUpperCase()}` : ""}
-                  </span>
-                  <span className="pq-status">
-                    {status === "correct"
-                      ? "✓"
-                      : status === "wrong"
-                        ? "✗"
-                        : isActive
-                          ? "—"
-                          : "+"}
-                  </span>
-                </div>
+                {status === "correct" ? "✓" : status === "wrong" ? "✗" : index + 1}
+              </span>
+              <div className="pq-body">
                 <p className="pq-prompt">{question.prompt}</p>
-                {status === "open" && isActive ? (
+                {status === "open" ? (
                   <form
-                    className="answer-row"
-                    onClick={(event) => event.stopPropagation()}
+                    className="pq-input-row"
                     onSubmit={(event) => {
                       event.preventDefault();
                       const value = inputs[question.id] ?? "";
@@ -331,14 +247,12 @@ export default function PhrasePlayer({
                         questionId: question.id,
                         answer: value,
                       });
-                      setActiveQuestionId(null);
                     }}
                   >
                     <input
-                      className="input"
-                      placeholder="Your answer — one attempt"
+                      className="input input--slim"
+                      placeholder="Answer"
                       value={inputs[question.id] ?? ""}
-                      autoFocus
                       onChange={(event) =>
                         setInputs({
                           ...inputs,
@@ -347,7 +261,7 @@ export default function PhrasePlayer({
                       }
                     />
                     <button
-                      className="btn"
+                      className="btn btn--small"
                       type="submit"
                       disabled={!(inputs[question.id] ?? "").trim()}
                     >
@@ -355,87 +269,47 @@ export default function PhrasePlayer({
                     </button>
                   </form>
                 ) : status === "correct" ? (
-                  <>
-                    <p className="pq-answer">✓ {question.answer.primary}</p>
-                    {question.factoid ? (
-                      <p className="pq-factoid">{question.factoid}</p>
-                    ) : null}
-                  </>
-                ) : status === "wrong" ? (
-                  <p className="pq-answer pq-answer--wrong">
-                    ✗ Locked — its letters stay hidden.
-                  </p>
-                ) : null}
+                  <p className="pq-answer">{question.answer.primary}</p>
+                ) : (
+                  <p className="pq-answer pq-answer--wrong">Locked</p>
+                )}
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
+      </div>
 
-        <div className="action-row">
-          <button
-            className="btn btn--accuse-solid"
-            onClick={() => setSolveOpen(true)}
-          >
-            Solve the phrase
-          </button>
-        </div>
-        <p className="board-help" style={{ textAlign: "center", marginTop: 10 }}>
-          {attemptsLeft} solve attempt{attemptsLeft === 1 ? "" : "s"} left ·
-          fewer questions used = higher score
-        </p>
-      </section>
-
-      {/* solve sheet */}
-      {solveOpen && session.phase === "PLAYING" ? (
-        <div className="overlay" onClick={() => setSolveOpen(false)}>
-          <div className="sheet" onClick={(event) => event.stopPropagation()}>
-            <span className="kicker">Solve the phrase</span>
-            <div style={{ margin: "14px 0" }}>{board(false)}</div>
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                if (!solveText.trim()) return;
-                act({ type: "ATTEMPT_SOLVE", text: solveText });
-                setSolveText("");
-                setSolveOpen(false);
-              }}
-            >
-              <input
-                className="input"
-                placeholder="Type the full phrase"
-                value={solveText}
-                onChange={(event) => setSolveText(event.target.value)}
-                autoFocus
-              />
-              <div className="answer-row" style={{ marginTop: 12 }}>
-                <button
-                  className="btn"
-                  type="button"
-                  onClick={() => setSolveOpen(false)}
-                >
-                  Not yet
-                </button>
-                <button
-                  className="btn btn--accuse-solid"
-                  type="submit"
-                  disabled={!solveText.trim()}
-                >
-                  Solve
-                </button>
-              </div>
-            </form>
-            {session.wrongSolves.length > 0 ? (
-              <p
-                className="board-help"
-                style={{ marginTop: 10, color: "var(--red)" }}
-              >
-                Not it. {attemptsLeft} attempt{attemptsLeft === 1 ? "" : "s"}{" "}
-                left.
-              </p>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
+      {/* inline phrase solve */}
+      <form
+        className="psolve"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (!solveText.trim()) return;
+          act({ type: "ATTEMPT_SOLVE", text: solveText });
+          setSolveText("");
+        }}
+      >
+        <input
+          className="input"
+          placeholder="Type the phrase…"
+          value={solveText}
+          onChange={(event) => setSolveText(event.target.value)}
+        />
+        <button
+          className="btn btn--accuse-solid"
+          type="submit"
+          disabled={!solveText.trim()}
+        >
+          Solve
+        </button>
+      </form>
+      <p
+        className={`psolve-note${session.wrongSolves.length > 0 ? " psolve-note--miss" : ""}`}
+      >
+        {session.wrongSolves.length > 0
+          ? `Not it — ${attemptsLeft} attempt${attemptsLeft === 1 ? "" : "s"} left`
+          : `${attemptsLeft} attempts · fewer questions = higher score`}
+      </p>
 
       {/* bonus crescendo */}
       {session.phase === "BONUS" ? (
@@ -489,12 +363,12 @@ export default function PhrasePlayer({
             <span className="kicker">How to play</span>
             <ol className="howto" style={{ marginTop: 14 }}>
               <li>
-                <strong>Answer questions to earn letters.</strong> One attempt
-                each — every correct answer lights up letters in the phrase.
+                <strong>Answer questions.</strong> One attempt each — correct
+                answers turn letters green.
               </li>
               <li>
-                <strong>Find what connects the answers.</strong> All five —
-                and the phrase itself — share one secret.
+                <strong>Spot the connection.</strong> All five answers — and
+                the phrase — share one secret.
               </li>
               <li>
                 <strong>Solve the phrase.</strong> Any time, {SOLVE_ATTEMPTS}{" "}
