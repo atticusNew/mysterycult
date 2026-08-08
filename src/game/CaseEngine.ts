@@ -19,6 +19,9 @@ import { appendTheory } from "./HypothesisEngine";
  */
 export const MAX_MISSES = 1;
 
+/** Hints available per case during play, regardless of how many are authored. */
+export const MAX_HINTS = 1;
+
 export type GamePhase =
   | "CASE_INTRO"
   | "INVESTIGATING"
@@ -261,7 +264,8 @@ export function gameReducer(
 
     case "USE_HINT": {
       if (!LIVE_PHASES.includes(session.phase)) return session;
-      if (session.hintsUsed >= caseData.hints.length) return session;
+      const available = Math.min(caseData.hints.length, MAX_HINTS);
+      if (session.hintsUsed >= available) return session;
       return { ...session, hintsUsed: session.hintsUsed + 1 };
     }
 

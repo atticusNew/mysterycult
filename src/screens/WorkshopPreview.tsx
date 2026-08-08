@@ -29,25 +29,13 @@ export default function WorkshopPreview() {
   }
 
   return (
-    <>
-      <div className="preview-banner">
-        <span>Workshop preview — plays exactly like the live game</span>
-        <span style={{ display: "flex", gap: 6 }}>
-          <button onClick={() => setRunKey((value) => value + 1)}>
-            Restart
-          </button>
-          <button onClick={() => navigate(`/workshop/${draftId}`)}>
-            Back to editor
-          </button>
-        </span>
-      </div>
-      <CasePlayer
-        key={runKey}
-        caseData={draft.caseData}
-        caseNumber="Preview"
-        onExit={() => navigate(`/workshop/${draftId}`)}
-        exitLabel="Editor"
-      />
-    </>
+    <CasePlayer
+      key={runKey}
+      caseData={draft.caseData}
+      caseNumber="Preview"
+      onExit={() => navigate(`/workshop/${draftId}`)}
+      exitLabel="Editor"
+      onRestart={() => setRunKey((value) => value + 1)}
+    />
   );
 }

@@ -135,7 +135,7 @@ describe("CaseEngine line-up playthrough", () => {
     expect(reveal.theories[reveal.theories.length - 1].wasCorrect).toBe(true);
   });
 
-  it("hints reveal sequentially and are capped", () => {
+  it("hints are capped at one per case", () => {
     let session = run(
       createSession(caseData),
       { type: "BEGIN_INVESTIGATION" },
@@ -144,7 +144,7 @@ describe("CaseEngine line-up playthrough", () => {
       { type: "USE_HINT" },
       { type: "USE_HINT" },
     );
-    expect(session.hintsUsed).toBe(2); // dummy case has 2 hints
+    expect(session.hintsUsed).toBe(1);
   });
 
   it("scoring rewards early, clean solves", () => {

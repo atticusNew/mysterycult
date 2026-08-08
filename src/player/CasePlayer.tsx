@@ -12,6 +12,7 @@ import type { CaseData } from "../models/types";
 import {
   createSession,
   gameReducer,
+  MAX_HINTS,
   type GameAction,
 } from "../game/CaseEngine";
 import { unlockedPlayerEvidence } from "../game/EvidenceEngine";
@@ -29,6 +30,8 @@ interface Props {
   caseNumber?: string;
   onExit: () => void;
   exitLabel?: string;
+  /** Provided in workshop preview: shows a restart control in the header. */
+  onRestart?: () => void;
 }
 
 export default function CasePlayer({
@@ -36,6 +39,7 @@ export default function CasePlayer({
   caseNumber,
   onExit,
   exitLabel,
+  onRestart,
 }: Props) {
   const [session, dispatch] = useReducer(
     (state: ReturnType<typeof createSession>, action: GameAction) =>
@@ -178,6 +182,16 @@ export default function CasePlayer({
           >
             ?
           </button>
+          {onRestart ? (
+            <button
+              className="icon-round"
+              aria-label="Restart preview"
+              title="Restart"
+              onClick={onRestart}
+            >
+              ↺
+            </button>
+          ) : null}
           <button className="btn btn--ghost btn--small" onClick={onExit}>
             {exitLabel ?? "Exit"}
           </button>
@@ -257,23 +271,7 @@ export default function CasePlayer({
       <section className="section">
         <div className="section-head">
           <span className="kicker kicker--dim">The line-up</span>
-          <span style={{ display: "flex", gap: 12, alignItems: "baseline" }}>
-            {caseData.hints.length > 0 ? (
-              <button
-                className="hint-link"
-                disabled={showHints && session.hintsUsed >= caseData.hints.length}
-                onClick={() => {
-                  setShowHints(true);
-                  if (session.hintsUsed < caseData.hints.length) {
-                    act({ type: "USE_HINT" });
-                  }
-                }}
-              >
-                Hint ({caseData.hints.length - session.hintsUsed})
-              </button>
-            ) : null}
-            <span className="badge">{remaining.length} REMAIN</span>
-          </span>
+          <span className="badge">{remaining.length} REMAIN</span>
         </div>
 
         {accusing ? (
@@ -333,14 +331,6 @@ export default function CasePlayer({
       {/* dock */}
       <div className="dock">
         <div className="dock-inner">
-          {canFlip && !accusing ? (
-            <button
-              className="btn"
-              onClick={() => act({ type: "FLIP_EXHIBIT" })}
-            >
-              Flip Exhibit {romanNumeral(session.revealedCount + 1)}
-            </button>
-          ) : null}
           {accusing ? (
             <button
               className="btn"
@@ -349,12 +339,26 @@ export default function CasePlayer({
               Keep investigating
             </button>
           ) : (
-            <button
-              className="btn btn--accuse-solid"
-              onClick={() => act({ type: "OPEN_ACCUSE" })}
-            >
-              Accuse
-            </button>
+            <>
+              {caseData.hints.length > 0 ? (
+                <button
+                  className="btn"
+                  disabled={session.hintsUsed >= MAX_HINTS}
+                  onClick={() => {
+                    setShowHints(true);
+                    act({ type: "USE_HINT" });
+                  }}
+                >
+                  {session.hintsUsed >= MAX_HINTS ? "Hint used" : "Hint"}
+                </button>
+              ) : null}
+              <button
+                className="btn btn--accuse-solid"
+                onClick={() => act({ type: "OPEN_ACCUSE" })}
+              >
+                Accuse
+              </button>
+            </>
           )}
         </div>
       </div>
