@@ -12,7 +12,12 @@
 import type { CaseData, Hypothesis } from "../models/types";
 import { appendTheory } from "./HypothesisEngine";
 
-export const MAX_MISSES = 3;
+/**
+ * Accusations allowed before the case goes cold. One: you get a single
+ * warrant, so accusing early is a real gamble and exhibits buy confidence.
+ * Tunable if playtesting shows it's too harsh.
+ */
+export const MAX_MISSES = 1;
 
 export type GamePhase =
   | "CASE_INTRO"

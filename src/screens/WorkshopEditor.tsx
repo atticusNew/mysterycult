@@ -660,8 +660,9 @@ export default function WorkshopEditor() {
         <p className="section-note">
           The suspect board: the answer plus designed decoys. Every early
           exhibit should fit several suspects; each decoy should die on a
-          specific exhibit. Aim for 8–12 suspects. Mark exactly one as the
-          answer.
+          specific exhibit. Aim for 8–12 suspects — and the answer should NOT
+          be the board's most famous name, or prior probability solves the
+          case before the evidence does. Mark exactly one as the answer.
         </p>
         {caseData.lineup.suspects.map((suspect, index) => {
           const isAnswer = caseData.lineup.answerSuspectId === suspect.id;

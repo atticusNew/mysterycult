@@ -81,7 +81,8 @@ describe("CaseEngine line-up playthrough", () => {
     ]);
   });
 
-  it("a wrong accusation strikes the suspect but keeps the case open", () => {
+  it("a wrong accusation sends the case cold (one warrant only)", () => {
+    expect(MAX_MISSES).toBe(1);
     let session = run(
       createSession(caseData),
       { type: "BEGIN_INVESTIGATION" },
@@ -89,33 +90,23 @@ describe("CaseEngine line-up playthrough", () => {
       { type: "OPEN_ACCUSE" },
       { type: "ACCUSE", suspectId: "s2" },
     );
-    expect(session.phase).toBe("INVESTIGATING");
-    expect(session.solved).toBe(false);
-    expect(session.misses).toEqual(["s2"]);
-    expect(session.ruledOutIds).toContain("s2");
-    // Missed suspects can't be restored or accused again.
-    const before = session;
-    session = run(session, { type: "TOGGLE_RULE_OUT", suspectId: "s2" });
-    expect(session).toBe(before);
-  });
-
-  it("three misses send the case cold", () => {
-    let session = run(
-      createSession(caseData),
-      { type: "BEGIN_INVESTIGATION" },
-      { type: "CONTINUE_INVESTIGATION" },
-      { type: "OPEN_ACCUSE" },
-      { type: "ACCUSE", suspectId: "s2" },
-      { type: "OPEN_ACCUSE" },
-      { type: "ACCUSE", suspectId: "s3" },
-      { type: "OPEN_ACCUSE" },
-      { type: "ACCUSE", suspectId: "s4" },
-    );
-    expect(session.misses).toHaveLength(MAX_MISSES);
     expect(session.phase).toBe("CASE_COLD");
     expect(session.solved).toBe(false);
+    expect(session.misses).toEqual(["s2"]);
     session = run(session, { type: "VIEW_REVEAL" });
     expect(session.phase).toBe("REVEAL");
+  });
+
+  it("cancelling an accusation returns to investigating", () => {
+    let session = run(
+      createSession(caseData),
+      { type: "BEGIN_INVESTIGATION" },
+      { type: "CONTINUE_INVESTIGATION" },
+      { type: "OPEN_ACCUSE" },
+    );
+    expect(session.phase).toBe("ACCUSING");
+    session = run(session, { type: "CANCEL_ACCUSE" });
+    expect(session.phase).toBe("INVESTIGATING");
   });
 
   it("the correct accusation closes the case and builds the reveal", () => {
@@ -166,7 +157,7 @@ describe("CaseEngine line-up playthrough", () => {
     );
     expect(computeScore(clean).total).toBe(SCORING.base);
 
-    const messy = run(
+    const slower = run(
       createSession(caseData),
       { type: "BEGIN_INVESTIGATION" },
       { type: "CONTINUE_INVESTIGATION" },
@@ -174,15 +165,10 @@ describe("CaseEngine line-up playthrough", () => {
       { type: "CONTINUE_INVESTIGATION" },
       { type: "USE_HINT" },
       { type: "OPEN_ACCUSE" },
-      { type: "ACCUSE", suspectId: "s2" },
-      { type: "OPEN_ACCUSE" },
       { type: "ACCUSE", suspectId: "s1" },
     );
-    expect(computeScore(messy).total).toBe(
-      SCORING.base -
-        SCORING.perExtraExhibit -
-        SCORING.perMiss -
-        SCORING.perHint,
+    expect(computeScore(slower).total).toBe(
+      SCORING.base - SCORING.perExtraExhibit - SCORING.perHint,
     );
   });
 
