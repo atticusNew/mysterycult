@@ -6,7 +6,6 @@
  */
 import { useMemo, useState, useReducer } from "react";
 import type { PhrasePuzzle } from "./model";
-import { letterCount } from "./model";
 import {
   buildPuzzleShareText,
   computePuzzleScore,
@@ -37,6 +36,7 @@ export default function PhrasePlayer({
     createPuzzleSession,
   );
   const [inputs, setInputs] = useState<Record<string, string>>({});
+  const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
   const [solveOpen, setSolveOpen] = useState(false);
   const [solveText, setSolveText] = useState("");
   const [bonusText, setBonusText] = useState("");
@@ -249,7 +249,7 @@ export default function PhrasePlayer({
         <div className="pq-list">
           {puzzle.questions.map((question, index) => {
             const status = session.questionStatus[question.id];
-            const count = letterCount(puzzle.phrase, question.letter);
+            const isActive = activeQuestionId === question.id;
             return (
               <div
                 className={`pq-card${
@@ -257,26 +257,35 @@ export default function PhrasePlayer({
                     ? " pq-card--correct"
                     : status === "wrong"
                       ? " pq-card--wrong"
-                      : ""
+                      : isActive
+                        ? " pq-card--active"
+                        : " pq-card--tappable"
                 }`}
                 key={question.id}
+                onClick={
+                  status === "open"
+                    ? () =>
+                        setActiveQuestionId(isActive ? null : question.id)
+                    : undefined
+                }
               >
                 <div className="pq-head">
                   <span className="badge">Q{index + 1}</span>
-                  <span
-                    className={`pletter pletter--small${
-                      status === "correct" ? " pletter--earned" : ""
-                    }${status === "wrong" ? " pletter--lost" : ""}`}
-                    title={`Unlocks every ${question.letter}`}
-                  >
-                    {question.letter}
-                    {count > 1 ? <em>×{count}</em> : null}
+                  <span className="pq-status">
+                    {status === "correct"
+                      ? "✓"
+                      : status === "wrong"
+                        ? "✗"
+                        : isActive
+                          ? "—"
+                          : "+"}
                   </span>
                 </div>
                 <p className="pq-prompt">{question.prompt}</p>
-                {status === "open" ? (
+                {status === "open" && isActive ? (
                   <form
                     className="answer-row"
+                    onClick={(event) => event.stopPropagation()}
                     onSubmit={(event) => {
                       event.preventDefault();
                       const value = inputs[question.id] ?? "";
@@ -286,12 +295,14 @@ export default function PhrasePlayer({
                         questionId: question.id,
                         answer: value,
                       });
+                      setActiveQuestionId(null);
                     }}
                   >
                     <input
                       className="input"
-                      placeholder="Your answer"
+                      placeholder="Your answer — one attempt"
                       value={inputs[question.id] ?? ""}
+                      autoFocus
                       onChange={(event) =>
                         setInputs({
                           ...inputs,
@@ -309,11 +320,11 @@ export default function PhrasePlayer({
                   </form>
                 ) : status === "correct" ? (
                   <p className="pq-answer">✓ {question.answer.primary}</p>
-                ) : (
+                ) : status === "wrong" ? (
                   <p className="pq-answer pq-answer--wrong">
-                    ✗ Locked — the letter stays hidden.
+                    ✗ Locked — its letters stay hidden.
                   </p>
-                )}
+                ) : null}
               </div>
             );
           })}
@@ -438,8 +449,7 @@ export default function PhrasePlayer({
             <ol className="howto" style={{ marginTop: 14 }}>
               <li>
                 <strong>Answer questions to earn letters.</strong> One attempt
-                each — a correct answer reveals its letter everywhere in the
-                phrase.
+                each — every correct answer lights up letters in the phrase.
               </li>
               <li>
                 <strong>Find what connects the answers.</strong> All five —

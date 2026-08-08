@@ -12,6 +12,8 @@ import {
   unpublishPuzzle,
 } from "./store";
 import demoPuzzle from "./puzzles/puzzle_001.json";
+import demoPuzzleTwo from "./puzzles/puzzle_002.json";
+import demoPuzzleThree from "./puzzles/puzzle_003.json";
 
 export default function PhraseWorkshop() {
   const navigate = useNavigate();
@@ -69,15 +71,18 @@ export default function PhraseWorkshop() {
         >
           Import JSON
         </button>
-        <button
-          className="btn"
-          onClick={() => {
-            const { puzzle } = parsePuzzle(demoPuzzle);
-            if (puzzle) openDraft(puzzle);
-          }}
-        >
-          Load demo puzzle
-        </button>
+        {[demoPuzzle, demoPuzzleTwo, demoPuzzleThree].map((raw, index) => (
+          <button
+            key={index}
+            className="btn"
+            onClick={() => {
+              const { puzzle } = parsePuzzle(raw);
+              if (puzzle) openDraft(puzzle);
+            }}
+          >
+            Load demo #{`00${index + 1}`}
+          </button>
+        ))}
       </div>
 
       <section className="ws-section">

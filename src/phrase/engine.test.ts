@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import demoPuzzle from "./puzzles/puzzle_001.json";
+import demoPuzzleTwo from "./puzzles/puzzle_002.json";
+import demoPuzzleThree from "./puzzles/puzzle_003.json";
 import template from "./puzzles/puzzle_template.json";
 import { parsePuzzle, phraseLetters, letterCount } from "./model";
 import {
@@ -161,12 +163,20 @@ describe("shipped puzzles", () => {
     expect(parsed).not.toBeNull();
   });
 
-  it("the demo puzzle validates with zero errors and zero warnings", () => {
-    const data = puzzle();
-    const report = validatePuzzle(data);
-    expect(report.errors.map((item) => item.message)).toEqual([]);
-    expect(report.warnings.map((item) => item.message)).toEqual([]);
-    // The puzzle id must not leak the connection.
-    expect(data.id.toLowerCase()).not.toContain("highlander");
+  it("every demo puzzle validates with zero errors and zero warnings", () => {
+    [demoPuzzle, demoPuzzleTwo, demoPuzzleThree].forEach((raw) => {
+      const { puzzle: parsed, errors } = parsePuzzle(raw);
+      expect(errors).toHaveLength(0);
+      expect(parsed).not.toBeNull();
+      const report = validatePuzzle(parsed!);
+      expect(report.errors.map((item) => item.message)).toEqual([]);
+      expect(report.warnings.map((item) => item.message)).toEqual([]);
+      // The puzzle id must not leak the connection.
+      const keyword = parsed!.connection.primary
+        .split(" ")
+        .pop()!
+        .toLowerCase();
+      expect(parsed!.id.toLowerCase()).not.toContain(keyword);
+    });
   });
 });

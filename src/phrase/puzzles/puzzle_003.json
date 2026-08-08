@@ -1,0 +1,69 @@
+{
+  "id": "phrase_003",
+  "version": 1,
+  "title": "Tagline #003",
+  "phrase": "Frankly, my dear, I don't give a damn",
+  "connection": {
+    "primary": "Gone with the Wind",
+    "aliases": ["gone with the wind", "gwtw", "gone with the wind movie", "gone with the wind 1939"]
+  },
+  "questions": [
+    {
+      "id": "q_city",
+      "prompt": "Coca-Cola, CNN and the 1996 Summer Olympics call which city home?",
+      "answer": {
+        "primary": "Atlanta",
+        "aliases": ["atlanta georgia", "the city of atlanta"]
+      },
+      "letter": "R",
+      "connectionNote": "The story's beating heart — and its most famous scene is the city burning."
+    },
+    {
+      "id": "q_war",
+      "prompt": "Which American war ended at Appomattox Court House in 1865?",
+      "answer": {
+        "primary": "The Civil War",
+        "aliases": ["civil war", "american civil war", "the american civil war", "us civil war"]
+      },
+      "letter": "E",
+      "connectionNote": "The backdrop of the whole saga, from the barbecue at Twelve Oaks to the ruin of Tara."
+    },
+    {
+      "id": "q_king",
+      "prompt": "'The King of Hollywood' won his only Oscar for It Happened One Night — who was he?",
+      "answer": {
+        "primary": "Clark Gable",
+        "aliases": ["gable", "william clark gable"]
+      },
+      "letter": "N",
+      "connectionNote": "Gable is Rhett Butler — the man who delivers the line and walks into the fog."
+    },
+    {
+      "id": "q_oscar",
+      "prompt": "Who was the first Black performer to win an Academy Award?",
+      "answer": {
+        "primary": "Hattie McDaniel",
+        "aliases": ["mcdaniel", "hattie mc daniel", "hattie macdaniel"]
+      },
+      "letter": "D",
+      "connectionNote": "She won it in 1940 for playing Mammy — at a ceremony held in a segregated hotel she had to get special permission to enter."
+    },
+    {
+      "id": "q_author",
+      "prompt": "Which Atlanta journalist wrote exactly one novel — and won the Pulitzer Prize for it?",
+      "answer": {
+        "primary": "Margaret Mitchell",
+        "aliases": ["mitchell", "peggy mitchell", "margaret munnerlyn mitchell"]
+      },
+      "letter": "A",
+      "connectionNote": "One book, published 1936. She never wrote another — she never needed to."
+    }
+  ],
+  "reveal": {
+    "summary": "Gone with the Wind. A city, a war, a king, a barrier-breaking Oscar and a one-novel author — every answer orbits the same epic: Atlanta burning, the Civil War, Clark Gable's exit line, Hattie McDaniel's historic win, and Margaret Mitchell's only book. Frankly, my dear, I don't give a damn.",
+    "ohMoment": "The line almost didn't survive: 'damn' ran afoul of the Production Code, and the studio seriously considered 'Frankly, my dear, I don't care.' The censors blinked — and the American Film Institute later crowned the original the greatest movie quote of all time."
+  },
+  "editorial": {
+    "notes": "Canonical-phrase rule applied: trimmed to the exact famous form (no trailing 'about it'), because players type from memory. Letter curve: R(2) → E(2) → N(3) → D(3) → A(4); full success reveals 14 of 27 letters (52%)."
+  }
+}

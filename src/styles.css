@@ -697,6 +697,39 @@ h3 {
   opacity: 1;
 }
 
+.pq-card--tappable {
+  cursor: pointer;
+  transition: transform 0.12s var(--bounce), box-shadow 0.15s ease;
+}
+
+.pq-card--tappable:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.pq-card--tappable:active {
+  transform: scale(0.985);
+}
+
+.pq-card--active {
+  box-shadow: var(--shadow-sm), inset 0 0 0 2px var(--ink);
+}
+
+.pq-status {
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--ink-3);
+  width: 22px;
+  text-align: center;
+}
+
+.pq-card--correct .pq-status {
+  color: var(--green);
+}
+
+.pq-card--wrong .pq-status {
+  color: var(--red);
+}
+
 .pq-head {
   display: flex;
   justify-content: space-between;
