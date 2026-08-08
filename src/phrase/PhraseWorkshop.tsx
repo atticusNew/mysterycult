@@ -14,6 +14,7 @@ import {
 import demoPuzzle from "./puzzles/puzzle_001.json";
 import demoPuzzleTwo from "./puzzles/puzzle_002.json";
 import demoPuzzleThree from "./puzzles/puzzle_003.json";
+import demoPuzzleFour from "./puzzles/puzzle_004.json";
 
 export default function PhraseWorkshop() {
   const navigate = useNavigate();
@@ -71,7 +72,7 @@ export default function PhraseWorkshop() {
         >
           Import JSON
         </button>
-        {[demoPuzzle, demoPuzzleTwo, demoPuzzleThree].map((raw, index) => (
+        {[demoPuzzle, demoPuzzleTwo, demoPuzzleThree, demoPuzzleFour].map((raw, index) => (
           <button
             key={index}
             className="btn"

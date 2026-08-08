@@ -290,6 +290,18 @@ export default function PhraseEditor() {
                 </button>
               </div>
             </div>
+            <Field
+              label="Subject card"
+              hint="Shown face-up before the question (e.g. HISTORY, MUSIC). Often a feint."
+            >
+              <input
+                className="input"
+                value={question.subject}
+                onChange={(event) =>
+                  updateQuestion(index, { subject: event.target.value })
+                }
+              />
+            </Field>
             <Field label="Prompt">
               <textarea
                 className="textarea"
@@ -350,6 +362,19 @@ export default function PhraseEditor() {
                   </label>
                 ))}
               </div>
+            </Field>
+            <Field
+              label="Factoid"
+              hint="Shown after answering. About the SUBJECT meaning only — never the connection (no spoilers)."
+            >
+              <textarea
+                className="textarea"
+                style={{ minHeight: 52 }}
+                value={question.factoid}
+                onChange={(event) =>
+                  updateQuestion(index, { factoid: event.target.value })
+                }
+              />
             </Field>
             <Field label="Connection note" hint="How the answer ties to the connection. Reveal-only.">
               <textarea

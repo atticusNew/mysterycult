@@ -5,57 +5,88 @@
   "phrase": "There can be only one",
   "connection": {
     "primary": "Highlander",
-    "aliases": ["highlander", "the highlander", "highlander 1986", "highlander the movie"]
+    "aliases": [
+      "highlander",
+      "the highlander",
+      "highlander 1986",
+      "highlander the movie"
+    ]
   },
   "questions": [
     {
       "id": "q_band",
+      "subject": "Music",
       "prompt": "'We Will Rock You' and 'We Are the Champions' were released on the same 1977 single — by which band?",
       "answer": {
         "primary": "Queen",
-        "aliases": ["queen band", "the band queen"]
+        "aliases": [
+          "queen band",
+          "the band queen"
+        ]
       },
       "letter": "Y",
+      "factoid": "The single sold over a million copies before anyone realized both sides were album tracks.",
       "connectionNote": "Queen wrote the film's soundtrack — 'Princes of the Universe,' and 'Who Wants to Live Forever' for its century-crossing love story."
     },
     {
       "id": "q_country",
+      "subject": "Geography",
       "prompt": "Loch Ness, kilts and the Battle of Culloden belong to which country?",
       "answer": {
         "primary": "Scotland",
-        "aliases": ["scotland uk", "bonnie scotland"]
+        "aliases": [
+          "scotland uk",
+          "bonnie scotland"
+        ]
       },
       "letter": "H",
+      "factoid": "Scotland has more than 30,000 freshwater lochs — and one alleged monster.",
       "connectionNote": "Where the story begins: the glens of 1536, and a clansman who cannot die."
     },
     {
       "id": "q_sword",
+      "subject": "Weapons",
       "prompt": "What is the name of the curved, single-edged sword carried by the samurai?",
       "answer": {
         "primary": "Katana",
-        "aliases": ["katana sword", "samurai sword", "a katana"]
+        "aliases": [
+          "katana sword",
+          "samurai sword",
+          "a katana"
+        ]
       },
       "letter": "O",
+      "factoid": "A traditional katana is forged by folding steel over and over, creating thousands of microscopic layers.",
       "connectionNote": "The blade the mentor gives his student — an impossible sword, centuries ahead of its time."
     },
     {
       "id": "q_bond",
+      "subject": "Movies",
       "prompt": "Who was the first actor to play James Bond on the big screen?",
       "answer": {
         "primary": "Sean Connery",
-        "aliases": ["connery", "sir sean connery"]
+        "aliases": [
+          "connery",
+          "sir sean connery"
+        ]
       },
       "letter": "N",
+      "factoid": "He was a bodybuilder first — he placed in the 1953 Mr. Universe contest before acting.",
       "connectionNote": "Connery plays the mentor: an Egyptian posing as a Spaniard, delivered in the broadest Scottish accent in cinema."
     },
     {
       "id": "q_channel",
+      "subject": "Television",
       "prompt": "'Video Killed the Radio Star' was the first video ever played on which channel?",
       "answer": {
         "primary": "MTV",
-        "aliases": ["mtv music television", "music television"]
+        "aliases": [
+          "mtv music television",
+          "music television"
+        ]
       },
       "letter": "E",
+      "factoid": "On launch day in 1981, the channel reached only a few thousand homes in northern New Jersey.",
       "connectionNote": "Director Russell Mulcahy made that very video — and shot the film like one long, gorgeous music video."
     }
   ],

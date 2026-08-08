@@ -5,57 +5,91 @@
   "phrase": "Houston, we have a problem",
   "connection": {
     "primary": "Apollo 13",
-    "aliases": ["apollo 13", "apollo thirteen", "apollo13", "apollo 13 movie", "the apollo 13 mission"]
+    "aliases": [
+      "apollo 13",
+      "apollo thirteen",
+      "apollo13",
+      "apollo 13 movie",
+      "the apollo 13 mission"
+    ]
   },
   "questions": [
     {
       "id": "q_actor",
+      "subject": "Movies",
       "prompt": "Forrest Gump, Big and Cast Away star which actor?",
       "answer": {
         "primary": "Tom Hanks",
-        "aliases": ["hanks", "thomas hanks", "tom hank"]
+        "aliases": [
+          "hanks",
+          "thomas hanks",
+          "tom hank"
+        ]
       },
       "letter": "M",
+      "factoid": "He's a distant relative of Abraham Lincoln through the president's mother, Nancy Hanks.",
       "connectionNote": "Hanks plays commander Jim Lovell — the man who says the line."
     },
     {
       "id": "q_element",
+      "subject": "Science",
       "prompt": "Which chemical element has the symbol O?",
       "answer": {
         "primary": "Oxygen",
-        "aliases": ["oxygen gas", "o2"]
+        "aliases": [
+          "oxygen gas",
+          "o2"
+        ]
       },
       "letter": "H",
+      "factoid": "About two-thirds of your body weight is oxygen — most of it locked up in water.",
       "connectionNote": "Oxygen tank two exploded 200,000 miles from Earth — the reason the line exists."
     },
     {
       "id": "q_bacon",
+      "subject": "Pop Culture",
       "prompt": "Hollywood's 'six degrees of separation' are famously measured to which actor?",
       "answer": {
         "primary": "Kevin Bacon",
-        "aliases": ["bacon", "kevin norwood bacon"]
+        "aliases": [
+          "bacon",
+          "kevin norwood bacon"
+        ]
       },
       "letter": "A",
+      "factoid": "He leaned into the game and founded SixDegrees.org, a charity network built on the idea.",
       "connectionNote": "Bacon flew the command module as Jack Swigert — who actually spoke the words first."
     },
     {
       "id": "q_tape",
+      "subject": "Everyday Objects",
       "prompt": "Which silver adhesive is 'like the Force: it has a light side, a dark side, and it holds the universe together'?",
       "answer": {
         "primary": "Duct tape",
-        "aliases": ["duck tape", "duct-tape", "ducttape"]
+        "aliases": [
+          "duck tape",
+          "duct-tape",
+          "ducttape"
+        ]
       },
       "letter": "O",
+      "factoid": "It was invented for WWII ammunition boxes — soldiers called it 'duck tape' because it shed water.",
       "connectionNote": "The square-peg-in-a-round-hole fix: a CO₂ scrubber rebuilt from duct tape, hoses and a flight-plan cover."
     },
     {
       "id": "q_director",
+      "subject": "Classic TV",
       "prompt": "Which Happy Days actor grew up to direct A Beautiful Mind?",
       "answer": {
         "primary": "Ron Howard",
-        "aliases": ["howard", "ronny howard", "ronald howard"]
+        "aliases": [
+          "howard",
+          "ronny howard",
+          "ronald howard"
+        ]
       },
       "letter": "E",
+      "factoid": "He directed his first feature at 23, for B-movie legend Roger Corman.",
       "connectionNote": "Howard directed the film — and shot the weightless scenes in NASA's actual zero-g training plane."
     }
   ],

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import demoPuzzle from "./puzzles/puzzle_001.json";
 import demoPuzzleTwo from "./puzzles/puzzle_002.json";
 import demoPuzzleThree from "./puzzles/puzzle_003.json";
+import demoPuzzleFour from "./puzzles/puzzle_004.json";
 import template from "./puzzles/puzzle_template.json";
 import { parsePuzzle, phraseLetters, letterCount } from "./model";
 import {
@@ -164,7 +165,7 @@ describe("shipped puzzles", () => {
   });
 
   it("every demo puzzle validates with zero errors and zero warnings", () => {
-    [demoPuzzle, demoPuzzleTwo, demoPuzzleThree].forEach((raw) => {
+    [demoPuzzle, demoPuzzleTwo, demoPuzzleThree, demoPuzzleFour].forEach((raw) => {
       const { puzzle: parsed, errors } = parsePuzzle(raw);
       expect(errors).toHaveLength(0);
       expect(parsed).not.toBeNull();

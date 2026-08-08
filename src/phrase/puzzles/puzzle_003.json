@@ -5,57 +5,90 @@
   "phrase": "Frankly, my dear, I don't give a damn",
   "connection": {
     "primary": "Gone with the Wind",
-    "aliases": ["gone with the wind", "gwtw", "gone with the wind movie", "gone with the wind 1939"]
+    "aliases": [
+      "gone with the wind",
+      "gwtw",
+      "gone with the wind movie",
+      "gone with the wind 1939"
+    ]
   },
   "questions": [
     {
       "id": "q_city",
+      "subject": "Geography",
       "prompt": "Coca-Cola, CNN and the 1996 Summer Olympics call which city home?",
       "answer": {
         "primary": "Atlanta",
-        "aliases": ["atlanta georgia", "the city of atlanta"]
+        "aliases": [
+          "atlanta georgia",
+          "the city of atlanta"
+        ]
       },
       "letter": "R",
+      "factoid": "The city's original name was 'Terminus' — literally the end of the railroad line.",
       "connectionNote": "The story's beating heart — and its most famous scene is the city burning."
     },
     {
       "id": "q_oz",
+      "subject": "Movies",
       "prompt": "Ruby slippers, a yellow brick road and flying monkeys — which 1939 film?",
       "answer": {
         "primary": "The Wizard of Oz",
-        "aliases": ["wizard of oz", "the wizard of oz 1939", "oz"]
+        "aliases": [
+          "wizard of oz",
+          "the wizard of oz 1939",
+          "oz"
+        ]
       },
       "letter": "E",
+      "factoid": "The ruby slippers were silver in the book — MGM changed them to show off Technicolor.",
       "connectionNote": "The lateral link: Victor Fleming walked off The Wizard of Oz mid-production to take over this film — and directed both of 1939's twin monuments."
     },
     {
       "id": "q_king",
+      "subject": "Old Hollywood",
       "prompt": "'The King of Hollywood' won his only Oscar for It Happened One Night — who was he?",
       "answer": {
         "primary": "Clark Gable",
-        "aliases": ["gable", "william clark gable"]
+        "aliases": [
+          "gable",
+          "william clark gable"
+        ]
       },
       "letter": "N",
+      "factoid": "His Oscar sold at auction in 1996 — Steven Spielberg bought it and donated it back to the Academy.",
       "connectionNote": "Gable is Rhett Butler — the man who delivers the line and walks into the fog."
     },
     {
       "id": "q_oscar",
+      "subject": "The Oscars",
       "prompt": "Who was the first Black performer to win an Academy Award?",
       "answer": {
         "primary": "Hattie McDaniel",
-        "aliases": ["mcdaniel", "hattie mc daniel", "hattie macdaniel"]
+        "aliases": [
+          "mcdaniel",
+          "hattie mc daniel",
+          "hattie macdaniel"
+        ]
       },
       "letter": "D",
+      "factoid": "Her Oscar plaque, left to Howard University, vanished decades ago and has never been found.",
       "connectionNote": "She won it in 1940 for playing Mammy — at a ceremony held in a segregated hotel she had to get special permission to enter."
     },
     {
       "id": "q_author",
+      "subject": "Books",
       "prompt": "Which Atlanta journalist wrote exactly one novel — and won the Pulitzer Prize for it?",
       "answer": {
         "primary": "Margaret Mitchell",
-        "aliases": ["mitchell", "peggy mitchell", "margaret munnerlyn mitchell"]
+        "aliases": [
+          "mitchell",
+          "peggy mitchell",
+          "margaret munnerlyn mitchell"
+        ]
       },
       "letter": "A",
+      "factoid": "She wrote the final chapter first and worked backwards toward the beginning.",
       "connectionNote": "One book, published 1936. She never wrote another — she never needed to."
     }
   ],

@@ -722,6 +722,52 @@ h3 {
   text-align: center;
 }
 
+/* face-down subject card */
+.pq-card--facedown {
+  appearance: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  background: var(--ink);
+  color: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: transform 0.12s var(--bounce);
+}
+
+.pq-card--facedown .badge,
+.pq-card--facedown .pq-status {
+  color: rgba(246, 240, 226, 0.55);
+}
+
+.pq-card--facedown:active {
+  transform: scale(0.985);
+}
+
+.pq-subject {
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.pq-flip-hint {
+  font-size: 12px;
+  color: rgba(246, 240, 226, 0.5);
+}
+
+.pq-factoid {
+  margin: 8px 0 0;
+  font-size: 13.5px;
+  color: var(--ink-2);
+  background: var(--gold-soft);
+  border-radius: 10px;
+  padding: 9px 12px;
+}
+
 .pq-card--correct .pq-status {
   color: var(--green);
 }

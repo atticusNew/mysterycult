@@ -16,11 +16,22 @@ export const CURRENT_PUZZLE_VERSION = 1;
 
 export interface PhraseQuestion {
   id: string;
+  /**
+   * The subject card shown face-up before the question is revealed
+   * (e.g. HISTORY, MUSIC). Often a feint: the answer's real meaning lies
+   * with the connection.
+   */
+  subject: string;
   /** Self-contained general-knowledge prompt. Never names the connection. */
   prompt: string;
   answer: AnswerSpec;
   /** The letter (A–Z) this question unlocks in the phrase. */
   letter: string;
+  /**
+   * A quick interesting fact shown after answering — about the SUBJECT
+   * meaning of the answer, never the connection meaning (no spoilers).
+   */
+  factoid: string;
   /** Editorial: how this answer relates to the connection. Reveal-only. */
   connectionNote: string;
 }
@@ -96,9 +107,11 @@ export function parsePuzzle(raw: unknown): PuzzleParseResult {
         const qid = asString(record.id) || `q_${index + 1}`;
         return {
           id: qid,
+          subject: asString(record.subject),
           prompt: asString(record.prompt),
           answer: parseAnswerSpec(record.answer),
           letter: asString(record.letter).trim().toUpperCase().slice(0, 1),
+          factoid: asString(record.factoid),
           connectionNote: asString(record.connectionNote),
         };
       })
@@ -169,9 +182,11 @@ function uid(prefix: string): string {
 export function blankQuestion(): PhraseQuestion {
   return {
     id: uid("q"),
+    subject: "",
     prompt: "",
     answer: { primary: "", aliases: [] },
     letter: "",
+    factoid: "",
     connectionNote: "",
   };
 }

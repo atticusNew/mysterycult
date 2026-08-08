@@ -37,6 +37,7 @@ export default function PhrasePlayer({
   );
   const [inputs, setInputs] = useState<Record<string, string>>({});
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
+  const [flippedIds, setFlippedIds] = useState<string[]>([]);
   const [solveOpen, setSolveOpen] = useState(false);
   const [solveText, setSolveText] = useState("");
   const [bonusText, setBonusText] = useState("");
@@ -149,7 +150,11 @@ export default function PhrasePlayer({
                 <div className="pq-card pq-card--reveal" key={question.id}>
                   <div className="pq-head">
                     <span className="badge">
-                      Q{index + 1} ·{" "}
+                      Q{index + 1}
+                      {question.subject
+                        ? ` · ${question.subject.toUpperCase()}`
+                        : ""}{" "}
+                      ·{" "}
                       {status === "correct"
                         ? "SOLVED"
                         : status === "wrong"
@@ -162,6 +167,9 @@ export default function PhrasePlayer({
                   </div>
                   <p className="pq-prompt">{question.prompt}</p>
                   <p className="pq-answer">→ {question.answer.primary}</p>
+                  {question.factoid ? (
+                    <p className="pq-factoid">{question.factoid}</p>
+                  ) : null}
                   {question.connectionNote ? (
                     <p className="pq-note">{question.connectionNote}</p>
                   ) : null}
@@ -250,6 +258,31 @@ export default function PhrasePlayer({
           {puzzle.questions.map((question, index) => {
             const status = session.questionStatus[question.id];
             const isActive = activeQuestionId === question.id;
+            const hasSubject = question.subject.trim().length > 0;
+            const isFlipped =
+              !hasSubject || status !== "open" || flippedIds.includes(question.id);
+
+            // Face-down subject card: the question hides behind its topic.
+            if (!isFlipped) {
+              return (
+                <button
+                  className="pq-card pq-card--facedown"
+                  key={question.id}
+                  onClick={() => {
+                    setFlippedIds([...flippedIds, question.id]);
+                    setActiveQuestionId(question.id);
+                  }}
+                >
+                  <div className="pq-head">
+                    <span className="badge">Q{index + 1}</span>
+                    <span className="pq-status">+</span>
+                  </div>
+                  <span className="pq-subject">{question.subject}</span>
+                  <span className="pq-flip-hint">Tap to reveal the question</span>
+                </button>
+              );
+            }
+
             return (
               <div
                 className={`pq-card${
@@ -270,7 +303,10 @@ export default function PhrasePlayer({
                 }
               >
                 <div className="pq-head">
-                  <span className="badge">Q{index + 1}</span>
+                  <span className="badge">
+                    Q{index + 1}
+                    {hasSubject ? ` · ${question.subject.toUpperCase()}` : ""}
+                  </span>
                   <span className="pq-status">
                     {status === "correct"
                       ? "✓"
@@ -319,7 +355,12 @@ export default function PhrasePlayer({
                     </button>
                   </form>
                 ) : status === "correct" ? (
-                  <p className="pq-answer">✓ {question.answer.primary}</p>
+                  <>
+                    <p className="pq-answer">✓ {question.answer.primary}</p>
+                    {question.factoid ? (
+                      <p className="pq-factoid">{question.factoid}</p>
+                    ) : null}
+                  </>
                 ) : status === "wrong" ? (
                   <p className="pq-answer pq-answer--wrong">
                     ✗ Locked — its letters stay hidden.
