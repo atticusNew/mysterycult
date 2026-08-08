@@ -12,7 +12,8 @@ export default function Home() {
         <span className="kicker">Daily investigation</span>
         <h1>Cultural Mystery</h1>
         <p className="tagline">
-          Solve clues. Unlock evidence. Form a theory. Close the case.
+          One line-up. A stack of evidence. Flip as little as you dare, rule
+          out the impostors, and accuse.
         </p>
       </header>
 
@@ -36,8 +37,8 @@ export default function Home() {
             <h2>No case published yet</h2>
             <p className="meta">
               The first case hasn't been authored. Open the Case Workshop to
-              create it — write the clues, attach the evidence, validate, and
-              publish.
+              create it — build the line-up, attach the exhibits, validate,
+              and publish.
             </p>
             <Link to="/workshop" className="btn btn--primary btn--block">
               Open the Case Workshop

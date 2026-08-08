@@ -10,6 +10,16 @@ import sopranosCase from "./cases/case_the_sopranos.json";
 import { parseCase } from "./schema";
 import { validateCase } from "../authoring/CaseValidator";
 
+function expectClean(raw: unknown) {
+  const { caseData, errors } = parseCase(raw);
+  expect(errors).toHaveLength(0);
+  expect(caseData).not.toBeNull();
+  const report = validateCase(caseData!);
+  expect(report.errors.map((issue) => issue.message)).toEqual([]);
+  expect(report.warnings.map((issue) => issue.message)).toEqual([]);
+  return caseData!;
+}
+
 describe("shipped case files", () => {
   it("the blank template parses with no structural errors", () => {
     const { caseData, errors } = parseCase(template);
@@ -18,35 +28,32 @@ describe("shipped case files", () => {
   });
 
   it("the Jon Stewart test case parses and validates cleanly", () => {
-    const { caseData, errors } = parseCase(jonStewartCase);
-    expect(errors).toHaveLength(0);
-    expect(caseData).not.toBeNull();
-
-    const report = validateCase(caseData!);
-    expect(report.errors.map((issue) => issue.message)).toEqual([]);
-    expect(report.warnings.map((issue) => issue.message)).toEqual([]);
+    const caseData = expectClean(jonStewartCase);
+    expect(caseData.lineup.suspects.length).toBeGreaterThanOrEqual(8);
   });
 
   it("the Sopranos test case parses and validates cleanly", () => {
-    const { caseData, errors } = parseCase(sopranosCase);
-    expect(errors).toHaveLength(0);
-    expect(caseData).not.toBeNull();
+    const caseData = expectClean(sopranosCase);
 
-    const report = validateCase(caseData!);
-    expect(report.errors.map((issue) => issue.message)).toEqual([]);
-    expect(report.warnings.map((issue) => issue.message)).toEqual([]);
-
-    // The suspect funnel: multiple documented wrong theories, one smoking gun
-    // on a final-stage clue, and an ambiguous (low/medium) opening.
-    const suspects = caseData!.editorial.hypotheses;
-    expect(suspects.length).toBeGreaterThanOrEqual(3);
-    const conclusive = caseData!.evidence.filter(
+    // The suspect funnel: a big board, decoys that die on specific exhibits,
+    // and a single smoking gun kept last.
+    expect(caseData.lineup.suspects.length).toBeGreaterThanOrEqual(8);
+    const conclusive = caseData.evidence.filter(
       (item) => item.diagnosticity === "conclusive",
     );
     expect(conclusive).toHaveLength(1);
-    const gunClue = caseData!.clues.find(
-      (clue) => clue.evidenceId === conclusive[0].id,
+    expect(caseData.evidence[caseData.evidence.length - 1].id).toBe(
+      conclusive[0].id,
     );
-    expect(gunClue?.stage).toBe("final");
+    const answer = caseData.lineup.suspects.find(
+      (suspect) => suspect.id === caseData.lineup.answerSuspectId,
+    );
+    expect(answer?.label).toBe("The Sopranos");
+    // Every decoy must be killable.
+    caseData.lineup.suspects
+      .filter((suspect) => suspect.id !== caseData.lineup.answerSuspectId)
+      .forEach((suspect) => {
+        expect(suspect.eliminatedBy.length).toBeGreaterThan(0);
+      });
   });
 });

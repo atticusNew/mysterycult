@@ -20,7 +20,9 @@ import type {
   Hint,
   HypothesisNote,
   InvestigationPath,
+  Lineup,
   RevealSpec,
+  Suspect,
 } from "../models/types";
 import {
   CLUE_STAGE_VALUES,
@@ -28,7 +30,7 @@ import {
   EVIDENCE_TYPE_VALUES,
 } from "../models/types";
 
-export const CURRENT_CASE_VERSION = 1;
+export const CURRENT_CASE_VERSION = 2;
 
 export interface ParseResult {
   caseData: CaseData | null;
@@ -131,6 +133,40 @@ function parseEvidence(
     relatedEntities: asStringArray(value.relatedEntities),
     authorNotes: { meaning: asString(notes.meaning) || undefined },
   };
+}
+
+function parseSuspect(value: unknown, index: number): Suspect {
+  const record = isRecord(value) ? value : {};
+  return {
+    id: asString(record.id) || `suspect_${index + 1}`,
+    label: asString(record.label),
+    whyPlausible: asString(record.whyPlausible),
+    eliminatedBy: asStringArray(record.eliminatedBy),
+  };
+}
+
+function parseLineup(value: unknown, errors: string[]): Lineup {
+  const record = isRecord(value) ? value : {};
+  const suspects = Array.isArray(record.suspects)
+    ? record.suspects.map(parseSuspect)
+    : [];
+  const ids = new Set<string>();
+  suspects.forEach((suspect) => {
+    if (ids.has(suspect.id)) {
+      errors.push(`Duplicate suspect id: ${suspect.id}`);
+    }
+    ids.add(suspect.id);
+  });
+  const answerSuspectId =
+    record.answerSuspectId == null
+      ? null
+      : asString(record.answerSuspectId) || null;
+  if (answerSuspectId && !ids.has(answerSuspectId)) {
+    errors.push(
+      `Line-up answer "${answerSuspectId}" is not one of the suspects.`,
+    );
+  }
+  return { suspects, answerSuspectId };
 }
 
 function parseEntity(value: unknown): CulturalEntity | null {
@@ -304,6 +340,7 @@ export function parseCase(raw: unknown): ParseResult {
     category: asString(raw.category),
     entityId: raw.entityId == null ? null : asString(raw.entityId) || null,
     entity: parseEntity(raw.entity),
+    lineup: parseLineup(raw.lineup, errors),
     clues,
     evidence,
     investigationPaths: Array.isArray(raw.investigationPaths)

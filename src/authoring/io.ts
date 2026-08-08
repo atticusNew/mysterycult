@@ -25,6 +25,7 @@ export function exportCaseToJson(caseData: CaseData): string {
     category: caseData.category,
     entityId: caseData.entityId,
     entity: caseData.entity,
+    lineup: caseData.lineup,
     clues: caseData.clues,
     evidence: caseData.evidence,
     investigationPaths: caseData.investigationPaths,

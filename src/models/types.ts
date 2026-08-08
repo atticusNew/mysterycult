@@ -114,6 +114,32 @@ export interface AnswerSpec {
   aliases: string[];
 }
 
+/**
+ * A suspect on the line-up board (game v2).
+ *
+ * The daily case presents a closed line-up: the answer plus author-designed
+ * decoys. Every exhibit truthfully connects to the answer; decoys are
+ * designed to fit early exhibits and die on specific later ones.
+ */
+export interface Suspect {
+  id: string;
+  /** Display name on the board. */
+  label: string;
+  /** Editorial: why this suspect is plausible. Never shown pre-reveal. */
+  whyPlausible: string;
+  /**
+   * Editorial: evidence ids that (are designed to) rule this suspect out.
+   * Used by the validator and the reveal. Empty for the answer.
+   */
+  eliminatedBy: string[];
+}
+
+export interface Lineup {
+  suspects: Suspect[];
+  /** The suspect that is the correct answer. */
+  answerSuspectId: string | null;
+}
+
 /** Author-only notes attached to a clue. Never shown during gameplay. */
 export interface ClueAuthorNotes {
   whyFair?: string;
@@ -236,7 +262,7 @@ export interface CaseData {
   id: string;
   version: number;
   title: string;
-  /** The mystery question, e.g. "What are we looking for?" */
+  /** The mystery question, e.g. "Whose story is the evidence telling?" */
   question: string;
   answer: AnswerSpec;
   type: CaseType | string;
@@ -244,7 +270,15 @@ export interface CaseData {
   entityId: string | null;
   /** Embedded cultural entity metadata (editorial). */
   entity: CulturalEntity | null;
+  /** The suspect board (game v2). */
+  lineup: Lineup;
+  /**
+   * Legacy (v1) clue list. The current game flips exhibits directly; clue
+   * data is still parsed for compatibility with older exports but is not
+   * used by the player.
+   */
   clues: Clue[];
+  /** Exhibits, in flip order. Exhibit 1 is revealed free at case start. */
   evidence: Evidence[];
   investigationPaths: InvestigationPath[];
   hints: Hint[];

@@ -1,33 +1,24 @@
 /**
  * Case Workshop editor — visual authoring of a complete case, no raw JSON
- * required. Sections mirror the spec (§42): CASE, CULTURAL ENTITY, ENTRY
- * POINTS, CLUES, EVIDENCE, HYPOTHESES, INVESTIGATION PATHS, HINTS, REVEAL,
- * VALIDATION — plus Save Draft, Validate, Preview, Export JSON, Import JSON
- * and Publish.
+ * required. Sections: CASE, CULTURAL ENTITY, ENTRY POINTS, THE LINE-UP,
+ * EXHIBITS, INVESTIGATION PATHS, HINTS, REVEAL, VALIDATION — plus Save
+ * Draft, Validate, Preview, Export JSON, Import JSON and Publish.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import type {
-  CaseData,
-  Clue,
-  Evidence,
-  EvidenceType,
-} from "../models/types";
+import type { CaseData, Evidence, EvidenceType, Suspect } from "../models/types";
 import {
   CASE_TYPE_VALUES,
-  CLUE_STAGE_VALUES,
   DIAGNOSTICITY_VALUES,
   EVIDENCE_TYPE_VALUES,
-  SUPPORTED_EVIDENCE_TYPES,
 } from "../models/types";
 import { getDraft, saveDraft } from "../authoring/draftStore";
 import {
-  blankClue,
   blankEntryPoint,
   blankEvidence,
   blankHint,
-  blankHypothesis,
   blankPath,
+  blankSuspect,
 } from "../authoring/newCase";
 import { downloadCaseJson, exportCaseToJson, importCaseFromJson } from "../authoring/io";
 import { validateCase, type ValidationReport } from "../authoring/CaseValidator";
@@ -38,9 +29,8 @@ const SECTIONS = [
   ["case", "Case"],
   ["entity", "Cultural Entity"],
   ["entry-points", "Entry Points"],
-  ["clues", "Clues"],
-  ["evidence", "Evidence"],
-  ["hypotheses", "Hypotheses"],
+  ["lineup", "The Line-up"],
+  ["evidence", "Exhibits"],
   ["paths", "Investigation Paths"],
   ["hints", "Hints"],
   ["reveal", "Reveal"],
@@ -206,13 +196,6 @@ export default function WorkshopEditor() {
     setDirty(true);
   }
 
-  function updateClue(index: number, patch: Partial<Clue>) {
-    const clues = caseData!.clues.map((clue, i) =>
-      i === index ? { ...clue, ...patch } : clue,
-    );
-    update({ clues });
-  }
-
   function updateEvidence(index: number, patch: Partial<Evidence>) {
     const evidence = caseData!.evidence.map((item, i) =>
       i === index ? { ...item, ...patch } : item,
@@ -286,21 +269,26 @@ export default function WorkshopEditor() {
 
   const evidenceOptions = caseData.evidence.map((item, index) => ({
     id: item.id,
-    label: `Evidence ${index + 1} — ${item.type}${
-      item.content ? ` — ${item.content.slice(0, 32)}` : ""
+    label: `Exhibit ${index + 1}${
+      item.content ? ` — ${item.content.slice(0, 28)}` : ""
     }`,
   }));
 
-  const nodeOptions = [
-    ...caseData.clues.map((clue, index) => ({
-      id: clue.id,
-      label: `Clue ${index + 1}`,
-    })),
-    ...caseData.evidence.map((item, index) => ({
-      id: item.id,
-      label: `Evidence ${index + 1}`,
-    })),
-  ];
+  const nodeOptions = caseData.evidence.map((item, index) => ({
+    id: item.id,
+    label: `Exhibit ${index + 1}`,
+  }));
+
+  function updateSuspect(index: number, patch: Partial<Suspect>) {
+    update({
+      lineup: {
+        ...caseData!.lineup,
+        suspects: caseData!.lineup.suspects.map((suspect, i) =>
+          i === index ? { ...suspect, ...patch } : suspect,
+        ),
+      },
+    });
+  }
 
   return (
     <div className="shell shell--wide shell--flush">
@@ -600,7 +588,7 @@ export default function WorkshopEditor() {
                   }
                 />
               </Field>
-              <Field label="Relevant clue">
+              <Field label="First relevant exhibit">
                 <select
                   className="select"
                   value={entry.clueId ?? ""}
@@ -619,9 +607,9 @@ export default function WorkshopEditor() {
                   }
                 >
                   <option value="">— none —</option>
-                  {caseData.clues.map((clue, clueIndex) => (
-                    <option key={clue.id} value={clue.id}>
-                      Clue {clueIndex + 1}
+                  {evidenceOptions.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.label}
                     </option>
                   ))}
                 </select>
@@ -666,175 +654,159 @@ export default function WorkshopEditor() {
         </button>
       </section>
 
-      {/* ================================================================ CLUES */}
-      <section className="ws-section" id="clues">
-        <h2>Clues</h2>
+      {/* =============================================================== LINE-UP */}
+      <section className="ws-section" id="lineup">
+        <h2>The Line-up</h2>
         <p className="section-note">
-          A clue is something the player solves. The evidence it unlocks does
-          NOT have to be the clue's answer.
+          The suspect board: the answer plus designed decoys. Every early
+          exhibit should fit several suspects; each decoy should die on a
+          specific exhibit. Aim for 8–12 suspects. Mark exactly one as the
+          answer.
         </p>
-        {caseData.clues.map((clue, index) => (
-          <div className="item-card" key={clue.id}>
-            <div className="item-card-head">
-              <span className="kicker">Clue {index + 1}</span>
-              <div className="item-card-actions">
-                <button
-                  className="icon-btn"
-                  title="Move up"
-                  onClick={() => update({ clues: move(caseData.clues, index, -1) })}
-                >
-                  ↑
-                </button>
-                <button
-                  className="icon-btn"
-                  title="Move down"
-                  onClick={() => update({ clues: move(caseData.clues, index, 1) })}
-                >
-                  ↓
-                </button>
-                <button
-                  className="icon-btn icon-btn--danger"
-                  title="Remove"
-                  onClick={() =>
-                    update({
-                      clues: caseData.clues.filter((_, i) => i !== index),
-                    })
-                  }
-                >
-                  ×
-                </button>
+        {caseData.lineup.suspects.map((suspect, index) => {
+          const isAnswer = caseData.lineup.answerSuspectId === suspect.id;
+          return (
+            <div className="item-card" key={suspect.id}>
+              <div className="item-card-head">
+                <span className="kicker">
+                  Suspect {index + 1}
+                  {isAnswer ? " — THE ANSWER" : ""}
+                </span>
+                <div className="item-card-actions">
+                  <button
+                    className="icon-btn icon-btn--danger"
+                    title="Remove"
+                    onClick={() =>
+                      update({
+                        lineup: {
+                          answerSuspectId: isAnswer
+                            ? null
+                            : caseData.lineup.answerSuspectId,
+                          suspects: caseData.lineup.suspects.filter(
+                            (_, i) => i !== index,
+                          ),
+                        },
+                      })
+                    }
+                  >
+                    ×
+                  </button>
+                </div>
               </div>
-            </div>
-            <Field label="Clue text">
-              <textarea
-                className="textarea"
-                value={clue.prompt}
-                onChange={(event) =>
-                  updateClue(index, { prompt: event.target.value })
-                }
-              />
-            </Field>
-            <div className="form-row">
-              <Field label="Expected answer">
-                <input
-                  className="input"
-                  value={clue.answer.primary}
-                  onChange={(event) =>
-                    updateClue(index, {
-                      answer: { ...clue.answer, primary: event.target.value },
-                    })
-                  }
-                />
-              </Field>
-              <Field label="Accepted aliases" hint="Comma-separated.">
-                <CsvInput
-                  value={clue.answer.aliases}
-                  onChange={(aliases) =>
-                    updateClue(index, {
-                      answer: { ...clue.answer, aliases },
-                    })
-                  }
-                />
-              </Field>
-            </div>
-            <div className="form-row">
-              <Field label="Clue type">
-                <select
-                  className="select"
-                  value={clue.type}
-                  onChange={(event) =>
-                    updateClue(index, { type: event.target.value })
-                  }
-                >
-                  <option value="text">text</option>
-                </select>
-              </Field>
-              <Field label="Stage">
-                <select
-                  className="select"
-                  value={clue.stage}
-                  onChange={(event) =>
-                    updateClue(index, {
-                      stage: event.target.value as Clue["stage"],
-                    })
-                  }
-                >
-                  {CLUE_STAGE_VALUES.map((stage) => (
-                    <option key={stage} value={stage}>
-                      {stage}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-            </div>
-            <Field
-              label="Linked evidence"
-              hint="Unlocked when the clue is solved."
-            >
-              <select
-                className="select"
-                value={clue.evidenceId ?? ""}
-                onChange={(event) =>
-                  updateClue(index, { evidenceId: event.target.value || null })
-                }
-              >
-                <option value="">— none —</option>
-                {evidenceOptions.map((option) => (
-                  <option key={option.id} value={option.id}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <div className="form-row">
-              <Field label="Author note — why fair">
+              <div className="form-row">
+                <Field label="Name on the board">
+                  <input
+                    className="input"
+                    value={suspect.label}
+                    onChange={(event) =>
+                      updateSuspect(index, { label: event.target.value })
+                    }
+                  />
+                </Field>
+                <Field label="Is this the answer?">
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "11px 0",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="answer-suspect"
+                      checked={isAnswer}
+                      onChange={() =>
+                        update({
+                          lineup: {
+                            ...caseData.lineup,
+                            answerSuspectId: suspect.id,
+                          },
+                        })
+                      }
+                    />
+                    <span style={{ fontSize: 14 }}>
+                      {isAnswer ? "Yes — this is the answer" : "Mark as answer"}
+                    </span>
+                  </label>
+                </Field>
+              </div>
+              <Field label="Why plausible (editorial)">
                 <textarea
                   className="textarea"
                   style={{ minHeight: 52 }}
-                  value={clue.authorNotes.whyFair ?? ""}
+                  value={suspect.whyPlausible}
                   onChange={(event) =>
-                    updateClue(index, {
-                      authorNotes: {
-                        ...clue.authorNotes,
-                        whyFair: event.target.value,
-                      },
-                    })
+                    updateSuspect(index, { whyPlausible: event.target.value })
                   }
                 />
               </Field>
-              <Field label="Author note — connection">
-                <textarea
-                  className="textarea"
-                  style={{ minHeight: 52 }}
-                  value={clue.authorNotes.connection ?? ""}
-                  onChange={(event) =>
-                    updateClue(index, {
-                      authorNotes: {
-                        ...clue.authorNotes,
-                        connection: event.target.value,
-                      },
-                    })
-                  }
-                />
-              </Field>
+              {!isAnswer ? (
+                <Field
+                  label="Ruled out by"
+                  hint="Which exhibits are designed to eliminate this suspect?"
+                >
+                  <div className="checkbox-chips">
+                    {evidenceOptions.length === 0 ? (
+                      <span className="badge">ADD EXHIBITS FIRST</span>
+                    ) : (
+                      evidenceOptions.map((option) => {
+                        const checked = suspect.eliminatedBy.includes(
+                          option.id,
+                        );
+                        return (
+                          <label
+                            key={option.id}
+                            className={checked ? "checked" : ""}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() =>
+                                updateSuspect(index, {
+                                  eliminatedBy: checked
+                                    ? suspect.eliminatedBy.filter(
+                                        (id) => id !== option.id,
+                                      )
+                                    : [...suspect.eliminatedBy, option.id],
+                                })
+                              }
+                            />
+                            {option.label}
+                          </label>
+                        );
+                      })
+                    )}
+                  </div>
+                </Field>
+              ) : null}
             </div>
-          </div>
-        ))}
+          );
+        })}
         <button
           className="btn btn--small"
-          onClick={() => update({ clues: [...caseData.clues, blankClue()] })}
+          onClick={() =>
+            update({
+              lineup: {
+                ...caseData.lineup,
+                suspects: [...caseData.lineup.suspects, blankSuspect()],
+              },
+            })
+          }
         >
-          + Add clue
+          + Add suspect
         </button>
       </section>
 
       {/* ============================================================= EVIDENCE */}
       <section className="ws-section" id="evidence">
-        <h2>Evidence</h2>
+        <h2>Exhibits</h2>
         <p className="section-note">
-          What the player receives after solving a clue. Diagnosticity controls
-          the mystery's progression: LOW is ambiguous, CONCLUSIVE is
-          undeniable.
+          Exhibits flip in this order — Exhibit 1 is free, each further flip
+          costs score. Every exhibit must truthfully connect to the answer.
+          Diagnosticity controls the arc: LOW is ambiguous, CONCLUSIVE is the
+          smoking gun (keep it last).
         </p>
         {caseData.evidence.map((item, index) => (
           <div className="item-card" key={item.id}>
@@ -865,11 +837,15 @@ export default function WorkshopEditor() {
                   onClick={() =>
                     update({
                       evidence: caseData.evidence.filter((_, i) => i !== index),
-                      clues: caseData.clues.map((clue) =>
-                        clue.evidenceId === item.id
-                          ? { ...clue, evidenceId: null }
-                          : clue,
-                      ),
+                      lineup: {
+                        ...caseData.lineup,
+                        suspects: caseData.lineup.suspects.map((suspect) => ({
+                          ...suspect,
+                          eliminatedBy: suspect.eliminatedBy.filter(
+                            (id) => id !== item.id,
+                          ),
+                        })),
+                      },
                     })
                   }
                 >
@@ -891,9 +867,6 @@ export default function WorkshopEditor() {
                   {EVIDENCE_TYPE_VALUES.map((type) => (
                     <option key={type} value={type}>
                       {type.replace(/_/g, " ")}
-                      {SUPPORTED_EVIDENCE_TYPES.includes(type)
-                        ? ""
-                        : " (future)"}
                     </option>
                   ))}
                 </select>
@@ -993,138 +966,6 @@ export default function WorkshopEditor() {
           }
         >
           + Add evidence
-        </button>
-      </section>
-
-      {/* =========================================================== HYPOTHESES */}
-      <section className="ws-section" id="hypotheses">
-        <h2>Hypotheses</h2>
-        <p className="section-note">
-          The suspect pool. Every early piece of evidence should fit more than
-          one suspect; each suspect should die on a specific later piece.
-          Document at least two plausible wrong theories, what supports them,
-          which evidence breaks them — and keep exactly one smoking gun for
-          the end.
-        </p>
-        {caseData.editorial.hypotheses.map((hypothesis, index) => (
-          <div className="item-card" key={hypothesis.id}>
-            <div className="item-card-head">
-              <span className="kicker">Hypothesis {index + 1}</span>
-              <div className="item-card-actions">
-                <button
-                  className="icon-btn icon-btn--danger"
-                  title="Remove"
-                  onClick={() =>
-                    update({
-                      editorial: {
-                        ...caseData.editorial,
-                        hypotheses: caseData.editorial.hypotheses.filter(
-                          (_, i) => i !== index,
-                        ),
-                      },
-                    })
-                  }
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-            <Field label="Plausible hypothesis">
-              <input
-                className="input"
-                value={hypothesis.hypothesis}
-                onChange={(event) =>
-                  update({
-                    editorial: {
-                      ...caseData.editorial,
-                      hypotheses: caseData.editorial.hypotheses.map((item, i) =>
-                        i === index
-                          ? { ...item, hypothesis: event.target.value }
-                          : item,
-                      ),
-                    },
-                  })
-                }
-              />
-            </Field>
-            <div className="form-row">
-              <Field label="Supporting evidence">
-                <textarea
-                  className="textarea"
-                  style={{ minHeight: 52 }}
-                  value={hypothesis.supportingEvidence}
-                  onChange={(event) =>
-                    update({
-                      editorial: {
-                        ...caseData.editorial,
-                        hypotheses: caseData.editorial.hypotheses.map(
-                          (item, i) =>
-                            i === index
-                              ? { ...item, supportingEvidence: event.target.value }
-                              : item,
-                        ),
-                      },
-                    })
-                  }
-                />
-              </Field>
-              <Field label="Weakening evidence">
-                <textarea
-                  className="textarea"
-                  style={{ minHeight: 52 }}
-                  value={hypothesis.weakeningEvidence}
-                  onChange={(event) =>
-                    update({
-                      editorial: {
-                        ...caseData.editorial,
-                        hypotheses: caseData.editorial.hypotheses.map(
-                          (item, i) =>
-                            i === index
-                              ? { ...item, weakeningEvidence: event.target.value }
-                              : item,
-                        ),
-                      },
-                    })
-                  }
-                />
-              </Field>
-            </div>
-            <Field label="Eventual resolution">
-              <textarea
-                className="textarea"
-                style={{ minHeight: 52 }}
-                value={hypothesis.resolution}
-                onChange={(event) =>
-                  update({
-                    editorial: {
-                      ...caseData.editorial,
-                      hypotheses: caseData.editorial.hypotheses.map((item, i) =>
-                        i === index
-                          ? { ...item, resolution: event.target.value }
-                          : item,
-                      ),
-                    },
-                  })
-                }
-              />
-            </Field>
-          </div>
-        ))}
-        <button
-          className="btn btn--small"
-          onClick={() =>
-            update({
-              editorial: {
-                ...caseData.editorial,
-                hypotheses: [
-                  ...caseData.editorial.hypotheses,
-                  blankHypothesis(),
-                ],
-              },
-            })
-          }
-        >
-          + Add hypothesis
         </button>
       </section>
 
@@ -1327,38 +1168,6 @@ export default function WorkshopEditor() {
             }
           />
         </Field>
-        {caseData.clues.map((clue, index) => {
-          const existing = caseData.reveal.clueExplanations.find(
-            (item) => item.clueId === clue.id,
-          );
-          return (
-            <Field
-              key={clue.id}
-              label={`Clue ${index + 1} → evidence explanation`}
-              hint={clue.prompt ? `Clue: "${clue.prompt.slice(0, 60)}"` : undefined}
-            >
-              <textarea
-                className="textarea"
-                style={{ minHeight: 52 }}
-                value={existing?.explanation ?? ""}
-                onChange={(event) => {
-                  const rest = caseData.reveal.clueExplanations.filter(
-                    (item) => item.clueId !== clue.id,
-                  );
-                  update({
-                    reveal: {
-                      ...caseData.reveal,
-                      clueExplanations: [
-                        ...rest,
-                        { clueId: clue.id, explanation: event.target.value },
-                      ],
-                    },
-                  });
-                }}
-              />
-            </Field>
-          );
-        })}
         <Field label="Evidence → answer explanation">
           <textarea
             className="textarea"

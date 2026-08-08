@@ -10,6 +10,10 @@
   "type": "",
   "category": "",
   "entityId": null,
+  "lineup": {
+    "suspects": [],
+    "answerSuspectId": null
+  },
   "clues": [],
   "evidence": [],
   "investigationPaths": [],

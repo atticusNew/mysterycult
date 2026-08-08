@@ -1,24 +1,22 @@
 /**
- * ScoringEngine — deliberately simple initial model (spec §20).
+ * ScoringEngine (game v2) — the headline metric is how early the case was
+ * closed: which exhibit the player accused on, and how cleanly.
  *
- * BASE 1000, with deductions for wrong clue answers, hints, wrong final
- * guesses, and how much evidence the player needed. The headline metric is
- * "how early did the player solve the mystery?".
+ * Numeric score kept deliberately simple for stats; the human-readable
+ * result ("Solved on Exhibit III · 1 miss") and the spoiler-free share
+ * line are the real currency.
  */
+import type { CaseData } from "../models/types";
 import type { GameSession } from "./CaseEngine";
 
 export const SCORING = {
   base: 1000,
-  /** Deducted per incorrect clue answer. */
-  wrongClueAnswer: 25,
+  /** Deducted per exhibit flipped beyond the free first one. */
+  perExtraExhibit: 100,
+  /** Deducted per wrong accusation. */
+  perMiss: 150,
   /** Deducted per hint used. */
-  hintUsed: 60,
-  /** Deducted per incorrect final guess. */
-  wrongFinalGuess: 100,
-  /** Evidence pieces the player may unlock with no deduction. */
-  freeEvidence: 2,
-  /** Deducted per evidence piece beyond the free allowance. */
-  evidenceBeyondFree: 40,
+  perHint: 50,
   min: 0,
 } as const;
 
@@ -32,46 +30,38 @@ export interface ScoreBreakdown {
   lines: ScoreBreakdownLine[];
 }
 
+const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+
+export function romanNumeral(index: number): string {
+  return ROMAN[index - 1] ?? String(index);
+}
+
 export function computeScore(session: GameSession): ScoreBreakdown {
   const lines: ScoreBreakdownLine[] = [
     { label: "Base score", amount: SCORING.base },
   ];
 
-  const wrongClueAnswers = session.clueProgress.reduce(
-    (sum, entry) => sum + entry.wrongAttempts,
-    0,
-  );
-  if (wrongClueAnswers > 0) {
+  const extraExhibits = Math.max(0, session.revealedCount - 1);
+  if (extraExhibits > 0) {
     lines.push({
-      label: `Incorrect clue answers × ${wrongClueAnswers}`,
-      amount: -wrongClueAnswers * SCORING.wrongClueAnswer,
+      label: `Exhibits flipped beyond the first × ${extraExhibits}`,
+      amount: -extraExhibits * SCORING.perExtraExhibit,
     });
   }
-
+  if (session.misses.length > 0) {
+    lines.push({
+      label: `Wrong accusations × ${session.misses.length}`,
+      amount: -session.misses.length * SCORING.perMiss,
+    });
+  }
   if (session.hintsUsed > 0) {
     lines.push({
       label: `Hints used × ${session.hintsUsed}`,
-      amount: -session.hintsUsed * SCORING.hintUsed,
+      amount: -session.hintsUsed * SCORING.perHint,
     });
   }
-
-  const wrongFinals = session.wrongFinalGuesses.length;
-  if (wrongFinals > 0) {
-    lines.push({
-      label: `Incorrect final guesses × ${wrongFinals}`,
-      amount: -wrongFinals * SCORING.wrongFinalGuess,
-    });
-  }
-
-  const extraEvidence = Math.max(
-    0,
-    session.unlockedEvidenceIds.length - SCORING.freeEvidence,
-  );
-  if (extraEvidence > 0) {
-    lines.push({
-      label: `Evidence needed beyond ${SCORING.freeEvidence} × ${extraEvidence}`,
-      amount: -extraEvidence * SCORING.evidenceBeyondFree,
-    });
+  if (!session.solved) {
+    lines.push({ label: "Case went cold", amount: -SCORING.base });
   }
 
   const total = Math.max(
@@ -79,4 +69,30 @@ export function computeScore(session: GameSession): ScoreBreakdown {
     lines.reduce((sum, line) => sum + line.amount, 0),
   );
   return { total, lines };
+}
+
+/** Human-readable result, e.g. "Solved on Exhibit III · clean". */
+export function resultLine(session: GameSession): string {
+  if (!session.solved) return "The case went cold";
+  const exhibit = romanNumeral(session.solvedOnExhibit ?? 1);
+  const misses =
+    session.misses.length === 0
+      ? "clean"
+      : `${session.misses.length} miss${session.misses.length > 1 ? "es" : ""}`;
+  return `Solved on Exhibit ${exhibit} · ${misses}`;
+}
+
+/** Spoiler-free share text. */
+export function buildShareText(
+  caseData: CaseData,
+  session: GameSession,
+): string {
+  const total = caseData.evidence.length;
+  const used = session.revealedCount;
+  const tiles =
+    "🟨".repeat(used) + "⬜".repeat(Math.max(0, total - used));
+  const missMarks = "❌".repeat(session.misses.length);
+  const outcome = session.solved ? "✔" : "🧊";
+  const title = caseData.title || "Cultural Mystery";
+  return `${title} — ${resultLine(session)}\n${tiles} ${missMarks}${outcome}`.trim();
 }

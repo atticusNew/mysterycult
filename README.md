@@ -4,14 +4,16 @@ A mobile-first daily cultural mystery game — plus the **Case Workshop**, the i
 
 The full product specification lives at [`MysteryCult/CULTURAL_MYSTERY_SPEC.md`](MysteryCult/CULTURAL_MYSTERY_SPEC.md).
 
-## The core loop
+## The core loop (game v2: the line-up)
 
 ```
-SOLVE CLUE → UNLOCK EVIDENCE → INTERPRET EVIDENCE → FORM HYPOTHESIS
-→ GATHER MORE EVIDENCE → REVISE HYPOTHESIS → SOLVE CASE → CASE REVEAL
+FLIP EXHIBIT → INTERPRET → RULE OUT SUSPECTS → (flip or accuse?)
+→ ACCUSE → CASE CLOSED → REVEAL → SHARE
 ```
 
-The critical design distinction: a **clue** is something the player solves; **evidence** is what they receive for solving it — and the two are not necessarily the same thing. The engine never explains the relationship during gameplay. That inference is the game.
+Each daily case is a closed **line-up** of ~10 suspects (the answer plus designed decoys) and a stack of **exhibits** that flip one at a time. Exhibit I is free; every further flip lowers the potential score. Every exhibit truthfully connects to the answer — the player's job is to see how, and to notice which suspects it kills. Wrong accusations are strikes; three and the case goes cold.
+
+The design rule is the **suspect funnel**: every early exhibit fits several suspects, each decoy dies on a specific exhibit, and exactly one smoking gun (the single CONCLUSIVE exhibit, kept last) fits only the answer. The engine never explains relationships during play — only the reveal does.
 
 ## Running it
 

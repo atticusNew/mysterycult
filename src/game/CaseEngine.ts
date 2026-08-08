@@ -1,62 +1,62 @@
 /**
- * CaseEngine — orchestrates a single investigation session.
+ * CaseEngine — orchestrates one investigation (game v2: the line-up).
  *
- * Implemented as a pure reducer over an explicit GameSession so the same
- * engine drives the daily player experience AND the Case Workshop preview.
- * All behaviour is driven by case data; there is no case-specific logic here.
+ * The loop: exhibits flip one at a time (Exhibit I is free). Between flips
+ * the player studies the board — a closed line-up of suspects — rules
+ * suspects out (free, reversible notes), marks a prime suspect (their
+ * recorded theory), and eventually ACCUSES. Flipping more exhibits lowers
+ * the potential score; a wrong accusation is a miss (three misses and the
+ * case goes cold). Implemented as a pure reducer so the same engine drives
+ * the daily game and the Case Workshop preview.
  */
-import type { CaseData } from "../models/types";
-import type { Hypothesis } from "../models/types";
-import { answerMatches } from "./AnswerEngine";
-import {
-  initialClueProgress,
-  refreshAvailability,
-  nextOpenClueId,
-  type ClueProgress,
-} from "./ClueEngine";
+import type { CaseData, Hypothesis } from "../models/types";
 import { appendTheory } from "./HypothesisEngine";
-import { transition, type GamePhase } from "./stateMachine";
+
+export const MAX_MISSES = 3;
+
+export type GamePhase =
+  | "CASE_INTRO"
+  | "INVESTIGATING"
+  | "EXHIBIT_REVEALED"
+  | "ACCUSING"
+  | "CASE_COMPLETE"
+  | "CASE_COLD"
+  | "REVEAL";
 
 export interface GameSession {
   caseId: string;
   phase: GamePhase;
-  clueProgress: ClueProgress[];
-  /** The clue currently in front of the player, if any. */
-  activeClueId: string | null;
-  /** The clue that was just solved (drives the evidence reveal moment). */
-  lastSolvedClueId: string | null;
-  /** The evidence item that was just unlocked (highlighted in the UI). */
-  lastUnlockedEvidenceId: string | null;
-  /** Evidence ids in unlock order. */
-  unlockedEvidenceIds: string[];
+  /** How many exhibits are face-up (in authored order). */
+  revealedCount: number;
+  /** The exhibit that was just flipped (drives the reveal moment). */
+  lastRevealedEvidenceId: string | null;
+  /** Suspect ids the player has struck out. Free and reversible. */
+  ruledOutIds: string[];
+  /** The player's current prime suspect, if any. */
+  primeSuspectId: string | null;
+  /** Theory history — every prime-suspect change is recorded. */
   theories: Hypothesis[];
-  /** How many hints have been revealed (hints reveal sequentially). */
+  /** Wrongly accused suspect ids, in order. */
+  misses: string[];
   hintsUsed: number;
-  wrongFinalGuesses: string[];
-  finalAnswer: string | null;
   solved: boolean;
-  /** Transient UI feedback for the last clue submission. */
-  clueFeedback: "correct" | "incorrect" | null;
-  /** Transient UI feedback for the last final-answer submission. */
-  finalFeedback: "correct" | "incorrect" | null;
+  /** Exhibits face-up at the moment the case was solved (or went cold). */
+  solvedOnExhibit: number | null;
   startedAt: number;
   completedAt: number | null;
 }
 
 export type GameAction =
   | { type: "BEGIN_INVESTIGATION" }
-  | { type: "SUBMIT_CLUE_ANSWER"; answer: string }
-  | { type: "REVEAL_EVIDENCE" }
+  | { type: "FLIP_EXHIBIT" }
   | { type: "CONTINUE_INVESTIGATION" }
-  | { type: "ACTIVATE_CLUE"; clueId: string }
-  | { type: "SET_ASIDE_CLUE" }
-  | { type: "RECORD_THEORY"; text: string }
+  | { type: "TOGGLE_RULE_OUT"; suspectId: string }
+  | { type: "SET_PRIME"; suspectId: string }
+  | { type: "OPEN_ACCUSE" }
+  | { type: "CANCEL_ACCUSE" }
+  | { type: "ACCUSE"; suspectId: string }
   | { type: "USE_HINT" }
-  | { type: "OPEN_SOLVE" }
-  | { type: "CANCEL_SOLVE" }
-  | { type: "SUBMIT_FINAL_ANSWER"; answer: string }
-  | { type: "VIEW_REVEAL" }
-  | { type: "CLEAR_FEEDBACK" };
+  | { type: "VIEW_REVEAL" };
 
 export function createSession(
   caseData: CaseData,
@@ -65,27 +65,32 @@ export function createSession(
   return {
     caseId: caseData.id,
     phase: "CASE_INTRO",
-    clueProgress: initialClueProgress(caseData),
-    activeClueId: null,
-    lastSolvedClueId: null,
-    lastUnlockedEvidenceId: null,
-    unlockedEvidenceIds: [],
+    revealedCount: 0,
+    lastRevealedEvidenceId: null,
+    ruledOutIds: [],
+    primeSuspectId: null,
     theories: [],
+    misses: [],
     hintsUsed: 0,
-    wrongFinalGuesses: [],
-    finalAnswer: null,
     solved: false,
-    clueFeedback: null,
-    finalFeedback: null,
+    solvedOnExhibit: null,
     startedAt: now,
     completedAt: null,
   };
 }
 
-function findClue(caseData: CaseData, clueId: string | null) {
-  if (!clueId) return undefined;
-  return caseData.clues.find((clue) => clue.id === clueId);
+function suspectLabel(caseData: CaseData, suspectId: string): string {
+  return (
+    caseData.lineup.suspects.find((suspect) => suspect.id === suspectId)
+      ?.label ?? suspectId
+  );
 }
+
+const LIVE_PHASES: GamePhase[] = [
+  "INVESTIGATING",
+  "EXHIBIT_REVEALED",
+  "ACCUSING",
+];
 
 export function gameReducer(
   caseData: CaseData,
@@ -95,227 +100,190 @@ export function gameReducer(
   switch (action.type) {
     case "BEGIN_INVESTIGATION": {
       if (session.phase !== "CASE_INTRO") return session;
-      const firstClueId = nextOpenClueId(session.clueProgress);
+      // Exhibit I is free.
+      const first = caseData.evidence[0];
       return {
         ...session,
-        phase: transition(
-          session.phase,
-          firstClueId ? "CLUE_ACTIVE" : "INVESTIGATING",
-        ),
-        activeClueId: firstClueId,
+        phase: first ? "EXHIBIT_REVEALED" : "INVESTIGATING",
+        revealedCount: first ? 1 : 0,
+        lastRevealedEvidenceId: first ? first.id : null,
       };
     }
 
-    case "SUBMIT_CLUE_ANSWER": {
-      if (session.phase !== "CLUE_ACTIVE") return session;
-      const clue = findClue(caseData, session.activeClueId);
-      if (!clue) return session;
-
-      if (!answerMatches(action.answer, clue.answer)) {
-        return {
-          ...session,
-          clueFeedback: "incorrect",
-          clueProgress: session.clueProgress.map((entry) =>
-            entry.clueId === clue.id
-              ? { ...entry, wrongAttempts: entry.wrongAttempts + 1 }
-              : entry,
-          ),
-        };
+    case "FLIP_EXHIBIT": {
+      if (
+        session.phase !== "INVESTIGATING" &&
+        session.phase !== "EXHIBIT_REVEALED"
+      ) {
+        return session;
       }
-
-      const clueProgress = refreshAvailability(
-        session.clueProgress.map((entry) =>
-          entry.clueId === clue.id
-            ? { ...entry, status: "solved" as const, solvedAt: Date.now() }
-            : entry,
-        ),
-      );
+      if (session.revealedCount >= caseData.evidence.length) return session;
+      const next = caseData.evidence[session.revealedCount];
       return {
         ...session,
-        phase: transition(session.phase, "CLUE_SOLVED"),
-        clueProgress,
-        clueFeedback: "correct",
-        lastSolvedClueId: clue.id,
-      };
-    }
-
-    case "REVEAL_EVIDENCE": {
-      if (session.phase !== "CLUE_SOLVED") return session;
-      const clue = findClue(caseData, session.lastSolvedClueId);
-      const evidenceId = clue?.evidenceId ?? null;
-      const alreadyUnlocked = evidenceId
-        ? session.unlockedEvidenceIds.includes(evidenceId)
-        : true;
-      if (!evidenceId || alreadyUnlocked) {
-        // Clue had no linked evidence — skip straight to investigating.
-        return {
-          ...session,
-          phase: transition(session.phase, "INVESTIGATING"),
-          activeClueId: null,
-          clueFeedback: null,
-          lastUnlockedEvidenceId: null,
-        };
-      }
-      return {
-        ...session,
-        phase: transition(session.phase, "EVIDENCE_REVEALED"),
-        unlockedEvidenceIds: [...session.unlockedEvidenceIds, evidenceId],
-        lastUnlockedEvidenceId: evidenceId,
-        activeClueId: null,
-        clueFeedback: null,
+        phase: "EXHIBIT_REVEALED",
+        revealedCount: session.revealedCount + 1,
+        lastRevealedEvidenceId: next.id,
       };
     }
 
     case "CONTINUE_INVESTIGATION": {
       if (
-        session.phase !== "EVIDENCE_REVEALED" &&
-        session.phase !== "THEORY_CREATED" &&
-        session.phase !== "CLUE_ACTIVE" &&
-        session.phase !== "CLUE_SOLVED"
+        session.phase !== "EXHIBIT_REVEALED" &&
+        session.phase !== "ACCUSING"
       ) {
         return session;
       }
       return {
         ...session,
-        phase: transition(session.phase, "INVESTIGATING"),
-        activeClueId: null,
-        lastUnlockedEvidenceId: null,
-        clueFeedback: null,
+        phase: "INVESTIGATING",
+        lastRevealedEvidenceId: null,
       };
     }
 
-    case "ACTIVATE_CLUE": {
+    case "TOGGLE_RULE_OUT": {
+      if (!LIVE_PHASES.includes(session.phase)) return session;
+      const suspect = caseData.lineup.suspects.find(
+        (item) => item.id === action.suspectId,
+      );
+      if (!suspect) return session;
+      // A missed accusation is a permanent strike; it can't be un-ruled.
+      if (session.misses.includes(action.suspectId)) return session;
+      const ruledOut = session.ruledOutIds.includes(action.suspectId);
+      return {
+        ...session,
+        ruledOutIds: ruledOut
+          ? session.ruledOutIds.filter((id) => id !== action.suspectId)
+          : [...session.ruledOutIds, action.suspectId],
+        // Ruling out the prime suspect clears the pin.
+        primeSuspectId:
+          !ruledOut && session.primeSuspectId === action.suspectId
+            ? null
+            : session.primeSuspectId,
+      };
+    }
+
+    case "SET_PRIME": {
+      if (!LIVE_PHASES.includes(session.phase)) return session;
+      const suspect = caseData.lineup.suspects.find(
+        (item) => item.id === action.suspectId,
+      );
+      if (!suspect) return session;
+      if (
+        session.ruledOutIds.includes(action.suspectId) ||
+        session.misses.includes(action.suspectId)
+      ) {
+        return session;
+      }
+      if (session.primeSuspectId === action.suspectId) {
+        // Unpin.
+        return { ...session, primeSuspectId: null };
+      }
+      return {
+        ...session,
+        primeSuspectId: action.suspectId,
+        theories: appendTheory(session.theories, suspect.label),
+      };
+    }
+
+    case "OPEN_ACCUSE": {
       if (
         session.phase !== "INVESTIGATING" &&
-        session.phase !== "EVIDENCE_REVEALED" &&
-        session.phase !== "THEORY_CREATED" &&
-        session.phase !== "CLUE_ACTIVE"
+        session.phase !== "EXHIBIT_REVEALED"
       ) {
         return session;
       }
-      const entry = session.clueProgress.find(
-        (item) => item.clueId === action.clueId,
-      );
-      if (!entry || entry.status === "locked" || entry.status === "solved") {
-        return session;
-      }
-      return {
-        ...session,
-        phase: transition(session.phase, "CLUE_ACTIVE"),
-        activeClueId: action.clueId,
-        lastUnlockedEvidenceId: null,
-        clueFeedback: null,
-      };
+      return { ...session, phase: "ACCUSING", lastRevealedEvidenceId: null };
     }
 
-    case "SET_ASIDE_CLUE": {
-      if (session.phase !== "CLUE_ACTIVE" || !session.activeClueId) {
-        return session;
-      }
-      const clueProgress = refreshAvailability(
-        session.clueProgress.map((entry) =>
-          entry.clueId === session.activeClueId &&
-          entry.status !== "solved"
-            ? { ...entry, status: "skipped" as const }
-            : entry,
-        ),
-      );
-      return {
-        ...session,
-        phase: transition(session.phase, "INVESTIGATING"),
-        clueProgress,
-        activeClueId: null,
-        clueFeedback: null,
-      };
+    case "CANCEL_ACCUSE": {
+      if (session.phase !== "ACCUSING") return session;
+      return { ...session, phase: "INVESTIGATING" };
     }
 
-    case "RECORD_THEORY": {
+    case "ACCUSE": {
+      if (session.phase !== "ACCUSING") return session;
+      const suspect = caseData.lineup.suspects.find(
+        (item) => item.id === action.suspectId,
+      );
+      if (!suspect) return session;
       if (
-        session.phase === "CASE_COMPLETE" ||
-        session.phase === "REVEAL" ||
-        session.phase === "CASE_INTRO"
+        session.ruledOutIds.includes(action.suspectId) ||
+        session.misses.includes(action.suspectId)
       ) {
         return session;
       }
-      const theories = appendTheory(session.theories, action.text);
-      if (theories === session.theories) return session;
+
+      const correct = caseData.lineup.answerSuspectId === action.suspectId;
+      if (correct) {
+        return {
+          ...session,
+          phase: "CASE_COMPLETE",
+          solved: true,
+          solvedOnExhibit: session.revealedCount,
+          theories: appendTheory(session.theories, suspect.label),
+          completedAt: Date.now(),
+        };
+      }
+
+      const misses = [...session.misses, action.suspectId];
+      if (misses.length >= MAX_MISSES) {
+        return {
+          ...session,
+          phase: "CASE_COLD",
+          misses,
+          ruledOutIds: [...session.ruledOutIds, action.suspectId],
+          primeSuspectId:
+            session.primeSuspectId === action.suspectId
+              ? null
+              : session.primeSuspectId,
+          solvedOnExhibit: session.revealedCount,
+          completedAt: Date.now(),
+        };
+      }
+      // Wrong accusation: the suspect is struck out, the case stays open.
       return {
         ...session,
-        theories,
-        phase:
-          session.phase === "SOLVING"
-            ? session.phase
-            : transition(session.phase, "THEORY_CREATED"),
+        phase: "INVESTIGATING",
+        misses,
+        ruledOutIds: [...session.ruledOutIds, action.suspectId],
+        primeSuspectId:
+          session.primeSuspectId === action.suspectId
+            ? null
+            : session.primeSuspectId,
       };
     }
 
     case "USE_HINT": {
-      if (session.phase === "CASE_COMPLETE" || session.phase === "REVEAL") {
-        return session;
-      }
+      if (!LIVE_PHASES.includes(session.phase)) return session;
       if (session.hintsUsed >= caseData.hints.length) return session;
       return { ...session, hintsUsed: session.hintsUsed + 1 };
     }
 
-    case "OPEN_SOLVE": {
-      if (
-        session.phase !== "INVESTIGATING" &&
-        session.phase !== "CLUE_ACTIVE" &&
-        session.phase !== "THEORY_CREATED"
-      ) {
+    case "VIEW_REVEAL": {
+      if (session.phase !== "CASE_COMPLETE" && session.phase !== "CASE_COLD") {
         return session;
       }
-      return {
-        ...session,
-        phase: transition(session.phase, "SOLVING"),
-        finalFeedback: null,
-      };
-    }
-
-    case "CANCEL_SOLVE": {
-      if (session.phase !== "SOLVING") return session;
-      return {
-        ...session,
-        phase: transition(session.phase, "INVESTIGATING"),
-        finalFeedback: null,
-      };
-    }
-
-    case "SUBMIT_FINAL_ANSWER": {
-      if (session.phase !== "SOLVING") return session;
-      const trimmed = action.answer.trim();
-      if (!trimmed) return session;
-
-      if (answerMatches(trimmed, caseData.answer)) {
-        return {
-          ...session,
-          phase: transition(session.phase, "CASE_COMPLETE"),
-          finalAnswer: trimmed,
-          solved: true,
-          finalFeedback: "correct",
-          completedAt: Date.now(),
-        };
-      }
-      // Wrong final answer: record it, return to the investigation.
-      return {
-        ...session,
-        phase: transition(session.phase, "INVESTIGATING"),
-        wrongFinalGuesses: [...session.wrongFinalGuesses, trimmed],
-        finalFeedback: "incorrect",
-      };
-    }
-
-    case "VIEW_REVEAL": {
-      if (session.phase !== "CASE_COMPLETE") return session;
-      return { ...session, phase: transition(session.phase, "REVEAL") };
-    }
-
-    case "CLEAR_FEEDBACK": {
-      if (!session.clueFeedback && !session.finalFeedback) return session;
-      return { ...session, clueFeedback: null, finalFeedback: null };
+      return { ...session, phase: "REVEAL" };
     }
 
     default:
       return session;
   }
 }
+
+/** Suspects still standing (not ruled out, not missed). */
+export function remainingSuspects(
+  caseData: CaseData,
+  session: GameSession,
+): string[] {
+  return caseData.lineup.suspects
+    .filter(
+      (suspect) =>
+        !session.ruledOutIds.includes(suspect.id) &&
+        !session.misses.includes(suspect.id),
+    )
+    .map((suspect) => suspect.id);
+}
+
+export { suspectLabel };

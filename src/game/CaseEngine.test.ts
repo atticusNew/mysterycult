@@ -1,19 +1,19 @@
 /**
- * Full playthrough of the game state machine using the structural dummy
- * case — proves the core loop works end-to-end without any real content:
- * intro → clue → evidence → theory → wrong final answer → continue →
- * correct final answer → CASE CLOSED → reveal.
+ * Full playthrough of the line-up game loop using the structural dummy
+ * case: intro → free exhibit → rule-outs → prime suspect → wrong
+ * accusation (case stays open) → correct accusation → reveal.
  */
 import { describe, expect, it } from "vitest";
 import { dummyCase } from "../test/dummyCase";
 import {
   createSession,
   gameReducer,
+  MAX_MISSES,
   type GameAction,
   type GameSession,
 } from "./CaseEngine";
 import { buildCaseReveal } from "./RevealEngine";
-import { computeScore, SCORING } from "./ScoringEngine";
+import { buildShareText, computeScore, SCORING } from "./ScoringEngine";
 
 function run(session: GameSession, ...actions: GameAction[]): GameSession {
   const caseData = dummyCase();
@@ -23,108 +23,132 @@ function run(session: GameSession, ...actions: GameAction[]): GameSession {
   );
 }
 
-describe("CaseEngine full playthrough", () => {
+describe("CaseEngine line-up playthrough", () => {
   const caseData = dummyCase();
 
-  it("starts in CASE_INTRO and activates the first clue", () => {
+  it("starts in CASE_INTRO and flips the first exhibit free", () => {
     let session = createSession(caseData);
     expect(session.phase).toBe("CASE_INTRO");
     session = run(session, { type: "BEGIN_INVESTIGATION" });
-    expect(session.phase).toBe("CLUE_ACTIVE");
-    expect(session.activeClueId).toBe("clue_001");
+    expect(session.phase).toBe("EXHIBIT_REVEALED");
+    expect(session.revealedCount).toBe(1);
+    expect(session.lastRevealedEvidenceId).toBe("ev_1");
   });
 
-  it("rejects a wrong clue answer and counts the attempt", () => {
-    let session = run(createSession(caseData), { type: "BEGIN_INVESTIGATION" });
-    session = run(session, { type: "SUBMIT_CLUE_ANSWER", answer: "nope" });
-    expect(session.phase).toBe("CLUE_ACTIVE");
-    expect(session.clueFeedback).toBe("incorrect");
-    expect(session.clueProgress[0].wrongAttempts).toBe(1);
-    expect(session.unlockedEvidenceIds).toHaveLength(0);
-  });
-
-  it("solving a clue unlocks its evidence (and only its evidence)", () => {
-    let session = run(createSession(caseData), { type: "BEGIN_INVESTIGATION" });
-    session = run(session, {
-      type: "SUBMIT_CLUE_ANSWER",
-      answer: "Clue Answer One",
-    });
-    expect(session.phase).toBe("CLUE_SOLVED");
-    session = run(session, { type: "REVEAL_EVIDENCE" });
-    expect(session.phase).toBe("EVIDENCE_REVEALED");
-    expect(session.unlockedEvidenceIds).toEqual(["evidence_001"]);
-    expect(session.lastUnlockedEvidenceId).toBe("evidence_001");
-  });
-
-  it("accepts clue answer aliases", () => {
-    let session = run(createSession(caseData), { type: "BEGIN_INVESTIGATION" });
-    session = run(session, { type: "SUBMIT_CLUE_ANSWER", answer: "answer one" });
-    expect(session.phase).toBe("CLUE_SOLVED");
-  });
-
-  it("records and revises theories without ending the case", () => {
+  it("flips exhibits in authored order and stops at the end", () => {
     let session = run(
       createSession(caseData),
       { type: "BEGIN_INVESTIGATION" },
-      { type: "SUBMIT_CLUE_ANSWER", answer: "answer one" },
-      { type: "REVEAL_EVIDENCE" },
+      { type: "CONTINUE_INVESTIGATION" },
+      { type: "FLIP_EXHIBIT" },
+      { type: "CONTINUE_INVESTIGATION" },
+      { type: "FLIP_EXHIBIT" },
       { type: "CONTINUE_INVESTIGATION" },
     );
-    session = run(session, { type: "RECORD_THEORY", text: "First theory" });
-    expect(session.phase).toBe("THEORY_CREATED");
-    expect(session.theories).toHaveLength(1);
-    session = run(session, { type: "RECORD_THEORY", text: "Second theory" });
-    expect(session.theories).toHaveLength(2);
-    // Repeating the current theory is a no-op.
-    session = run(session, { type: "RECORD_THEORY", text: "second theory" });
-    expect(session.theories).toHaveLength(2);
+    expect(session.revealedCount).toBe(3);
+    const before = session;
+    session = run(session, { type: "FLIP_EXHIBIT" });
+    expect(session).toBe(before); // no more exhibits
   });
 
-  it("a wrong final answer does NOT destroy the case", () => {
+  it("rule-outs are free and reversible; misses are permanent", () => {
     let session = run(
       createSession(caseData),
       { type: "BEGIN_INVESTIGATION" },
-      { type: "SUBMIT_CLUE_ANSWER", answer: "answer one" },
-      { type: "REVEAL_EVIDENCE" },
       { type: "CONTINUE_INVESTIGATION" },
-      { type: "OPEN_SOLVE" },
-      { type: "SUBMIT_FINAL_ANSWER", answer: "Wrong Guess" },
+      { type: "TOGGLE_RULE_OUT", suspectId: "s2" },
+    );
+    expect(session.ruledOutIds).toEqual(["s2"]);
+    session = run(session, { type: "TOGGLE_RULE_OUT", suspectId: "s2" });
+    expect(session.ruledOutIds).toEqual([]);
+  });
+
+  it("marking a prime suspect records a theory", () => {
+    let session = run(
+      createSession(caseData),
+      { type: "BEGIN_INVESTIGATION" },
+      { type: "CONTINUE_INVESTIGATION" },
+      { type: "SET_PRIME", suspectId: "s3" },
+    );
+    expect(session.primeSuspectId).toBe("s3");
+    expect(session.theories.map((theory) => theory.text)).toEqual([
+      "Suspect Three",
+    ]);
+    session = run(session, { type: "SET_PRIME", suspectId: "s1" });
+    expect(session.theories.map((theory) => theory.text)).toEqual([
+      "Suspect Three",
+      "Suspect One",
+    ]);
+  });
+
+  it("a wrong accusation strikes the suspect but keeps the case open", () => {
+    let session = run(
+      createSession(caseData),
+      { type: "BEGIN_INVESTIGATION" },
+      { type: "CONTINUE_INVESTIGATION" },
+      { type: "OPEN_ACCUSE" },
+      { type: "ACCUSE", suspectId: "s2" },
     );
     expect(session.phase).toBe("INVESTIGATING");
     expect(session.solved).toBe(false);
-    expect(session.wrongFinalGuesses).toEqual(["Wrong Guess"]);
-    // Player can keep investigating: next clue is available.
-    session = run(session, { type: "ACTIVATE_CLUE", clueId: "clue_002" });
-    expect(session.phase).toBe("CLUE_ACTIVE");
-    expect(session.activeClueId).toBe("clue_002");
+    expect(session.misses).toEqual(["s2"]);
+    expect(session.ruledOutIds).toContain("s2");
+    // Missed suspects can't be restored or accused again.
+    const before = session;
+    session = run(session, { type: "TOGGLE_RULE_OUT", suspectId: "s2" });
+    expect(session).toBe(before);
   });
 
-  it("a clue can be set aside and returned to later", () => {
+  it("three misses send the case cold", () => {
     let session = run(
       createSession(caseData),
       { type: "BEGIN_INVESTIGATION" },
-      { type: "SET_ASIDE_CLUE" },
+      { type: "CONTINUE_INVESTIGATION" },
+      { type: "OPEN_ACCUSE" },
+      { type: "ACCUSE", suspectId: "s2" },
+      { type: "OPEN_ACCUSE" },
+      { type: "ACCUSE", suspectId: "s3" },
+      { type: "OPEN_ACCUSE" },
+      { type: "ACCUSE", suspectId: "s4" },
     );
-    expect(session.phase).toBe("INVESTIGATING");
-    expect(session.clueProgress[0].status).toBe("skipped");
-    // Setting aside clue 1 unlocks clue 2.
-    expect(session.clueProgress[1].status).toBe("available");
-    session = run(session, { type: "ACTIVATE_CLUE", clueId: "clue_001" });
-    expect(session.activeClueId).toBe("clue_001");
+    expect(session.misses).toHaveLength(MAX_MISSES);
+    expect(session.phase).toBe("CASE_COLD");
+    expect(session.solved).toBe(false);
+    session = run(session, { type: "VIEW_REVEAL" });
+    expect(session.phase).toBe("REVEAL");
   });
 
-  it("locked clues cannot be activated", () => {
-    let session = run(createSession(caseData), { type: "BEGIN_INVESTIGATION" });
-    expect(session.clueProgress[2].status).toBe("locked");
-    const before = session;
-    session = run(session, { type: "ACTIVATE_CLUE", clueId: "clue_003" });
-    expect(session).toBe(before);
+  it("the correct accusation closes the case and builds the reveal", () => {
+    let session = run(
+      createSession(caseData),
+      { type: "BEGIN_INVESTIGATION" },
+      { type: "CONTINUE_INVESTIGATION" },
+      { type: "FLIP_EXHIBIT" },
+      { type: "CONTINUE_INVESTIGATION" },
+      { type: "SET_PRIME", suspectId: "s1" },
+      { type: "OPEN_ACCUSE" },
+      { type: "ACCUSE", suspectId: "s1" },
+    );
+    expect(session.phase).toBe("CASE_COMPLETE");
+    expect(session.solved).toBe(true);
+    expect(session.solvedOnExhibit).toBe(2);
+
+    session = run(session, { type: "VIEW_REVEAL" });
+    const reveal = buildCaseReveal(caseData, session);
+    expect(reveal.finalAnswer).toBe("Suspect One");
+    expect(reveal.exhibits).toHaveLength(3);
+    expect(reveal.exhibits[0].seenByPlayer).toBe(true);
+    expect(reveal.exhibits[2].seenByPlayer).toBe(false);
+    // Intended eliminations surface in the reveal.
+    expect(reveal.exhibits[0].eliminates).toContain("Suspect Two");
+    expect(reveal.theories[reveal.theories.length - 1].wasCorrect).toBe(true);
   });
 
   it("hints reveal sequentially and are capped", () => {
     let session = run(
       createSession(caseData),
       { type: "BEGIN_INVESTIGATION" },
+      { type: "CONTINUE_INVESTIGATION" },
       { type: "USE_HINT" },
       { type: "USE_HINT" },
       { type: "USE_HINT" },
@@ -132,55 +156,47 @@ describe("CaseEngine full playthrough", () => {
     expect(session.hintsUsed).toBe(2); // dummy case has 2 hints
   });
 
-  it("the correct final answer completes the case and builds the reveal", () => {
-    let session = run(
+  it("scoring rewards early, clean solves", () => {
+    const clean = run(
       createSession(caseData),
       { type: "BEGIN_INVESTIGATION" },
-      { type: "SUBMIT_CLUE_ANSWER", answer: "answer one" },
-      { type: "REVEAL_EVIDENCE" },
       { type: "CONTINUE_INVESTIGATION" },
-      { type: "RECORD_THEORY", text: "placeholder final answer" },
-      { type: "OPEN_SOLVE" },
-      { type: "SUBMIT_FINAL_ANSWER", answer: "the placeholder final answer" },
+      { type: "OPEN_ACCUSE" },
+      { type: "ACCUSE", suspectId: "s1" },
     );
-    expect(session.phase).toBe("CASE_COMPLETE");
-    expect(session.solved).toBe(true);
+    expect(computeScore(clean).total).toBe(SCORING.base);
 
-    session = run(session, { type: "VIEW_REVEAL" });
-    expect(session.phase).toBe("REVEAL");
-
-    const reveal = buildCaseReveal(caseData, session);
-    expect(reveal.finalAnswer).toBe("Placeholder Final Answer");
-    expect(reveal.summary).toBe("Placeholder answer explanation.");
-    expect(reveal.chain).toHaveLength(3);
-    expect(reveal.chain[0].solvedByPlayer).toBe(true);
-    expect(reveal.chain[0].evidence?.id).toBe("evidence_001");
-    expect(reveal.chain[0].explanation).toBe(
-      "Placeholder clue-to-evidence one.",
+    const messy = run(
+      createSession(caseData),
+      { type: "BEGIN_INVESTIGATION" },
+      { type: "CONTINUE_INVESTIGATION" },
+      { type: "FLIP_EXHIBIT" },
+      { type: "CONTINUE_INVESTIGATION" },
+      { type: "USE_HINT" },
+      { type: "OPEN_ACCUSE" },
+      { type: "ACCUSE", suspectId: "s2" },
+      { type: "OPEN_ACCUSE" },
+      { type: "ACCUSE", suspectId: "s1" },
     );
-    expect(reveal.theories[0].wasCorrect).toBe(true);
+    expect(computeScore(messy).total).toBe(
+      SCORING.base -
+        SCORING.perExtraExhibit -
+        SCORING.perMiss -
+        SCORING.perHint,
+    );
   });
 
-  it("scoring deducts for mistakes, hints and evidence needed", () => {
+  it("share text is spoiler-free", () => {
     const session = run(
       createSession(caseData),
       { type: "BEGIN_INVESTIGATION" },
-      { type: "SUBMIT_CLUE_ANSWER", answer: "wrong" },
-      { type: "SUBMIT_CLUE_ANSWER", answer: "answer one" },
-      { type: "REVEAL_EVIDENCE" },
       { type: "CONTINUE_INVESTIGATION" },
-      { type: "USE_HINT" },
-      { type: "OPEN_SOLVE" },
-      { type: "SUBMIT_FINAL_ANSWER", answer: "wrong final" },
-      { type: "OPEN_SOLVE" },
-      { type: "SUBMIT_FINAL_ANSWER", answer: "Placeholder Final Answer" },
+      { type: "OPEN_ACCUSE" },
+      { type: "ACCUSE", suspectId: "s1" },
     );
-    const score = computeScore(session);
-    expect(score.total).toBe(
-      SCORING.base -
-        SCORING.wrongClueAnswer -
-        SCORING.hintUsed -
-        SCORING.wrongFinalGuess,
-    );
+    const share = buildShareText(caseData, session);
+    expect(share).toContain("Structural Test Case");
+    expect(share).not.toContain("Suspect One");
+    expect(share).toContain("Exhibit I");
   });
 });

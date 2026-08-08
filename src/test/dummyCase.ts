@@ -1,5 +1,5 @@
 /**
- * A purely structural dummy case for automated tests.
+ * A purely structural dummy case for automated tests (game v2).
  *
  * Deliberately contains NO real Cultural Mystery content — placeholder
  * strings only. It exists to prove the infrastructure works end to end
@@ -10,19 +10,19 @@ import { parseCase } from "../data/schema";
 
 export const DUMMY_CASE_JSON = {
   id: "case_structural_test",
-  version: 1,
+  version: 2,
   title: "Structural Test Case",
   question: "Placeholder mystery question?",
   answer: {
-    primary: "Placeholder Final Answer",
-    aliases: ["placeholder answer", "the placeholder final answer"],
+    primary: "Suspect One",
+    aliases: ["suspect one"],
   },
   type: "other",
   category: "test",
   entityId: "placeholder_entity",
   entity: {
     id: "placeholder_entity",
-    name: "Placeholder Final Answer",
+    name: "Suspect One",
     type: "other",
     recognition: "broad",
     longevity: "high",
@@ -30,47 +30,30 @@ export const DUMMY_CASE_JSON = {
     eras: ["placeholder era"],
     domains: ["placeholder domain a", "placeholder domain b"],
   },
-  clues: [
-    {
-      id: "clue_001",
-      type: "text",
-      prompt: "Placeholder clue prompt one.",
-      answer: { primary: "Clue Answer One", aliases: ["answer one"] },
-      evidenceId: "evidence_001",
-      stage: "opening",
-      authorNotes: { connection: "Placeholder connection note one." },
-    },
-    {
-      id: "clue_002",
-      type: "text",
-      prompt: "Placeholder clue prompt two.",
-      answer: { primary: "Clue Answer Two", aliases: ["answer two"] },
-      evidenceId: "evidence_002",
-      stage: "middle",
-      authorNotes: { connection: "Placeholder connection note two." },
-    },
-    {
-      id: "clue_003",
-      type: "text",
-      prompt: "Placeholder clue prompt three.",
-      answer: { primary: "Clue Answer Three", aliases: [] },
-      evidenceId: "evidence_003",
-      stage: "final",
-      authorNotes: {},
-    },
-  ],
+  lineup: {
+    answerSuspectId: "s1",
+    suspects: [
+      { id: "s1", label: "Suspect One", whyPlausible: "The answer.", eliminatedBy: [] },
+      { id: "s2", label: "Suspect Two", whyPlausible: "Placeholder decoy two.", eliminatedBy: ["ev_1"] },
+      { id: "s3", label: "Suspect Three", whyPlausible: "Placeholder decoy three.", eliminatedBy: ["ev_2"] },
+      { id: "s4", label: "Suspect Four", whyPlausible: "Placeholder decoy four.", eliminatedBy: ["ev_2"] },
+      { id: "s5", label: "Suspect Five", whyPlausible: "Placeholder decoy five.", eliminatedBy: ["ev_3"] },
+      { id: "s6", label: "Suspect Six", whyPlausible: "Placeholder decoy six.", eliminatedBy: ["ev_3"] }
+    ],
+  },
+  clues: [],
   evidence: [
     {
-      id: "evidence_001",
+      id: "ev_1",
       type: "text",
-      content: "Placeholder evidence one",
+      content: "Placeholder exhibit one",
       caption: null,
       diagnosticity: "low",
       relatedEntities: ["placeholder_entity"],
       authorNotes: { meaning: "Placeholder meaning one." },
     },
     {
-      id: "evidence_002",
+      id: "ev_2",
       type: "number",
       content: "1234",
       caption: null,
@@ -79,7 +62,7 @@ export const DUMMY_CASE_JSON = {
       authorNotes: { meaning: "Placeholder meaning two." },
     },
     {
-      id: "evidence_003",
+      id: "ev_3",
       type: "quote",
       content: "Placeholder conclusive quote",
       caption: null,
@@ -92,16 +75,16 @@ export const DUMMY_CASE_JSON = {
     {
       id: "path_a",
       name: "Placeholder route A",
-      startingPoint: "clue_001",
-      nodes: ["clue_001", "evidence_001"],
-      target: "Placeholder Final Answer",
+      startingPoint: "Placeholder start A",
+      nodes: ["ev_1", "ev_2"],
+      target: "Suspect One",
     },
     {
       id: "path_b",
       name: "Placeholder route B",
-      startingPoint: "clue_002",
-      nodes: ["clue_002", "evidence_002"],
-      target: "Placeholder Final Answer",
+      startingPoint: "Placeholder start B",
+      nodes: ["ev_3"],
+      target: "Suspect One",
     },
   ],
   hints: [
@@ -110,10 +93,7 @@ export const DUMMY_CASE_JSON = {
   ],
   reveal: {
     summary: "Placeholder answer explanation.",
-    clueExplanations: [
-      { clueId: "clue_001", explanation: "Placeholder clue-to-evidence one." },
-      { clueId: "clue_002", explanation: "Placeholder clue-to-evidence two." },
-    ],
+    clueExplanations: [],
     evidenceToAnswer: "Placeholder evidence-to-answer explanation.",
     majorConnections: ["Placeholder connection"],
     alternatePaths: ["Placeholder alternate path"],
@@ -125,24 +105,16 @@ export const DUMMY_CASE_JSON = {
         id: "entry_1",
         domain: "placeholder domain a",
         description: "Placeholder entry point one",
-        clueId: "clue_001",
+        clueId: null,
       },
       {
         id: "entry_2",
         domain: "placeholder domain b",
         description: "Placeholder entry point two",
-        clueId: "clue_002",
+        clueId: null,
       },
     ],
-    hypotheses: [
-      {
-        id: "hypothesis_1",
-        hypothesis: "Placeholder plausible hypothesis",
-        supportingEvidence: "evidence_001",
-        weakeningEvidence: "evidence_002",
-        resolution: "Placeholder resolution",
-      },
-    ],
+    hypotheses: [],
     notes: "Structural test case. Not a real mystery.",
   },
 };

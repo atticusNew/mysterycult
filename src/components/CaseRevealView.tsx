@@ -1,33 +1,50 @@
 /**
- * The full CASE CLOSED reveal (spec §22): answer, explanation, the
- * clue → evidence → answer chain, connections, alternate paths, the
- * player's theory history and the score breakdown.
+ * The full post-case reveal (game v2): the answer, the explanation, and —
+ * exhibit by exhibit — what each piece meant and which suspects it was
+ * designed to eliminate.
  */
+import { useState } from "react";
 import type { CaseRevealView as RevealData } from "../game/RevealEngine";
+import { romanNumeral } from "../game/ScoringEngine";
 import EvidenceCard from "./EvidenceCard";
 
 interface Props {
   reveal: RevealData;
   onExit: () => void;
   exitLabel?: string;
+  shareText?: string;
 }
 
-export default function CaseRevealView({ reveal, onExit, exitLabel }: Props) {
+export default function CaseRevealView({
+  reveal,
+  onExit,
+  exitLabel,
+  shareText,
+}: Props) {
+  const [copied, setCopied] = useState(false);
+
   return (
     <div className="shell shell--flush">
       <div className="case-topbar">
-        <span className="kicker">Case Reveal</span>
+        <span className="kicker">The reveal</span>
         <button className="btn btn--ghost btn--small" onClick={onExit}>
           {exitLabel ?? "Done"}
         </button>
       </div>
 
-      <span className="stamp">Case Closed</span>
-      <h1 className="display" style={{ marginTop: 18 }}>
+      <span
+        className={`verdict ${reveal.solved ? "verdict--solved" : "verdict--cold"}`}
+      >
+        {reveal.solved ? "Case closed" : "The case went cold"}
+      </span>
+      <h1 className="display" style={{ marginTop: 14 }}>
         {reveal.finalAnswer || "—"}
       </h1>
+      <p className="badge" style={{ display: "block", marginTop: 6 }}>
+        {reveal.result.toUpperCase()}
+      </p>
       {reveal.summary ? (
-        <p className="prose" style={{ fontSize: 16 }}>
+        <p className="prose" style={{ fontSize: 16, marginTop: 14 }}>
           {reveal.summary}
         </p>
       ) : null}
@@ -35,10 +52,7 @@ export default function CaseRevealView({ reveal, onExit, exitLabel }: Props) {
       {reveal.ohMoment ? (
         <div className="section">
           <span className="kicker kicker--dim">The moment</span>
-          <p
-            className="case-question"
-            style={{ marginTop: 8 }}
-          >
+          <p className="case-question" style={{ marginTop: 8 }}>
             {reveal.ohMoment}
           </p>
         </div>
@@ -46,26 +60,29 @@ export default function CaseRevealView({ reveal, onExit, exitLabel }: Props) {
 
       <div className="section">
         <div className="section-head">
-          <span className="kicker kicker--dim">How the case fit together</span>
+          <span className="kicker kicker--dim">Exhibit by exhibit</span>
         </div>
         <div className="reveal-chain">
-          {reveal.chain.map((item, index) => (
-            <div className="reveal-item" key={item.clueId}>
-              <span className="badge">
-                CLUE {index + 1}
-                {item.solvedByPlayer ? " · SOLVED" : " · UNSOLVED"}
-              </span>
-              <p style={{ margin: "6px 0 0", fontFamily: "var(--serif)" }}>
-                {item.prompt || "—"}
-              </p>
-              <div className="arrow">→ {item.clueAnswer || "—"}</div>
-              {item.evidence ? (
-                <EvidenceCard evidence={item.evidence} index={index} />
-              ) : null}
-              {item.explanation || item.evidenceMeaning ? (
-                <div className="exp">
-                  {item.explanation ?? item.evidenceMeaning}
-                </div>
+          {reveal.exhibits.map((item, index) => (
+            <div className="reveal-item" key={item.evidence.id}>
+              <div className="reveal-item-head">
+                <span className="badge">
+                  EXHIBIT {romanNumeral(index + 1)}
+                  {item.seenByPlayer ? "" : " · NEVER FLIPPED"}
+                </span>
+              </div>
+              <EvidenceCard evidence={item.evidence} index={index} />
+              {item.meaning ? <p className="exp">{item.meaning}</p> : null}
+              {item.eliminates.length > 0 ? (
+                <p className="eliminates">
+                  Rules out:{" "}
+                  {item.eliminates.map((label, i) => (
+                    <span key={label}>
+                      {i > 0 ? ", " : ""}
+                      <s>{label}</s>
+                    </span>
+                  ))}
+                </p>
               ) : null}
             </div>
           ))}
@@ -74,15 +91,15 @@ export default function CaseRevealView({ reveal, onExit, exitLabel }: Props) {
 
       {reveal.evidenceToAnswer ? (
         <div className="section">
-          <span className="kicker kicker--dim">Why the evidence pointed here</span>
+          <span className="kicker kicker--dim">Why it could only be one</span>
           <p className="prose">{reveal.evidenceToAnswer}</p>
         </div>
       ) : null}
 
       {reveal.majorConnections.length > 0 ? (
         <div className="section">
-          <span className="kicker kicker--dim">Major connections</span>
-          <ul className="pill-list">
+          <span className="kicker kicker--dim">The connections</span>
+          <ul className="fact-list">
             {reveal.majorConnections.map((connection) => (
               <li key={connection}>{connection}</li>
             ))}
@@ -90,35 +107,22 @@ export default function CaseRevealView({ reveal, onExit, exitLabel }: Props) {
         </div>
       ) : null}
 
-      {reveal.alternatePaths.length > 0 ? (
+      {reveal.theories.length > 0 ? (
         <div className="section">
-          <span className="kicker kicker--dim">Other legitimate routes</span>
-          <ul className="pill-list">
-            {reveal.alternatePaths.map((path) => (
-              <li key={path}>{path}</li>
+          <span className="kicker kicker--dim">Your suspects, in order</span>
+          <ul className="fact-list">
+            {reveal.theories.map((theory, index) => (
+              <li
+                key={theory.id}
+                className={theory.wasCorrect ? "correct" : ""}
+              >
+                {index + 1}. {theory.text}
+                {theory.wasCorrect ? " ✓" : ""}
+              </li>
             ))}
           </ul>
         </div>
       ) : null}
-
-      <div className="section">
-        <span className="kicker kicker--dim">Your theories</span>
-        {reveal.theories.length === 0 ? (
-          <p className="prose">You never recorded a theory.</p>
-        ) : (
-          <ul className="theory-history theory-history--dark">
-            {reveal.theories.map((theory, index) => (
-              <li key={theory.id} className={theory.wasCorrect ? "correct" : ""}>
-                <span className="n">{index + 1}.</span>
-                <span>
-                  {theory.text}
-                  {theory.wasCorrect ? " ✓" : ""}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
 
       <div className="section">
         <span className="kicker kicker--dim">Score</span>
@@ -126,9 +130,7 @@ export default function CaseRevealView({ reveal, onExit, exitLabel }: Props) {
           {reveal.score.lines.map((line) => (
             <li key={line.label}>
               <span>{line.label}</span>
-              <span className="amt">
-                {line.amount > 0 ? line.amount : line.amount}
-              </span>
+              <span className="amt">{line.amount}</span>
             </li>
           ))}
         </ul>
@@ -138,9 +140,28 @@ export default function CaseRevealView({ reveal, onExit, exitLabel }: Props) {
         </div>
       </div>
 
-      <button className="btn btn--primary btn--block" onClick={onExit}>
-        {exitLabel ?? "Done"}
-      </button>
+      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+        {shareText ? (
+          <button
+            className="btn"
+            style={{ flex: 1 }}
+            onClick={async () => {
+              await navigator.clipboard?.writeText(shareText);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1500);
+            }}
+          >
+            {copied ? "Copied" : "Share result"}
+          </button>
+        ) : null}
+        <button
+          className="btn btn--primary"
+          style={{ flex: 1 }}
+          onClick={onExit}
+        >
+          {exitLabel ?? "Done"}
+        </button>
+      </div>
     </div>
   );
 }

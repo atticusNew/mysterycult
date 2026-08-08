@@ -1,23 +1,25 @@
 /**
- * CasePlayer — the complete player experience for one case.
+ * CasePlayer (game v2) — the daily line-up investigation.
  *
- * Used by both the daily game (/play) and the Case Workshop's Preview mode.
- * It renders ONLY player-safe data: no diagnosticity, no author notes, no
- * related entities, no investigation paths (spec §43). Editorial metadata
- * appears only in the final reveal, via the RevealEngine.
+ * One decision loop: study the exhibits, work the suspect board, then
+ * FLIP another exhibit or ACCUSE. Renders only player-safe data; editorial
+ * metadata appears solely in the final reveal.
  */
-import { useMemo, useReducer, useState } from "react";
+import { useReducer, useState } from "react";
 import type { CaseData } from "../models/types";
 import {
   createSession,
   gameReducer,
+  MAX_MISSES,
   type GameAction,
 } from "../game/CaseEngine";
-import { orderedClues } from "../game/ClueEngine";
 import { unlockedPlayerEvidence } from "../game/EvidenceEngine";
-import { currentTheory } from "../game/HypothesisEngine";
 import { buildCaseReveal } from "../game/RevealEngine";
-import { computeScore } from "../game/ScoringEngine";
+import {
+  buildShareText,
+  resultLine,
+  romanNumeral,
+} from "../game/ScoringEngine";
 import EvidenceCard from "../components/EvidenceCard";
 import CaseRevealView from "../components/CaseRevealView";
 
@@ -34,30 +36,33 @@ export default function CasePlayer({
   onExit,
   exitLabel,
 }: Props) {
-  const [session, rawDispatch] = useReducer(
+  const [session, dispatch] = useReducer(
     (state: ReturnType<typeof createSession>, action: GameAction) =>
       gameReducer(caseData, state, action),
     caseData,
     createSession,
   );
-  const dispatch = rawDispatch;
-
-  const [clueInput, setClueInput] = useState("");
-  const [theoryInput, setTheoryInput] = useState("");
-  const [finalInput, setFinalInput] = useState("");
-  const [showTheoryHistory, setShowTheoryHistory] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showHints, setShowHints] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  const clues = useMemo(() => orderedClues(caseData), [caseData]);
-  const unlockedEvidence = unlockedPlayerEvidence(
+  const revealedEvidence = unlockedPlayerEvidence(
     caseData,
-    session.unlockedEvidenceIds,
+    caseData.evidence.slice(0, session.revealedCount).map((item) => item.id),
   );
-  const activeClue = clues.find((clue) => clue.id === session.activeClueId);
-  const theory = currentTheory(session.theories);
-  const solvedCount = session.clueProgress.filter(
-    (entry) => entry.status === "solved",
-  ).length;
+  const totalExhibits = caseData.evidence.length;
+  const remaining = caseData.lineup.suspects.filter(
+    (suspect) =>
+      !session.ruledOutIds.includes(suspect.id) &&
+      !session.misses.includes(suspect.id),
+  );
+  const selected = caseData.lineup.suspects.find(
+    (suspect) => suspect.id === selectedId,
+  );
+
+  function act(action: GameAction) {
+    dispatch(action);
+  }
 
   // ----------------------------------------------------------------- REVEAL
   if (session.phase === "REVEAL") {
@@ -66,33 +71,52 @@ export default function CasePlayer({
         reveal={buildCaseReveal(caseData, session)}
         onExit={onExit}
         exitLabel={exitLabel}
+        shareText={buildShareText(caseData, session)}
       />
     );
   }
 
-  // ---------------------------------------------------------- CASE_COMPLETE
-  if (session.phase === "CASE_COMPLETE") {
-    const score = computeScore(session);
+  // ------------------------------------------------- COMPLETE / COLD screen
+  if (session.phase === "CASE_COMPLETE" || session.phase === "CASE_COLD") {
+    const reveal = buildCaseReveal(caseData, session);
     return (
       <div className="shell">
         <div className="fullpage">
-          <span className="stamp">Case Closed</span>
-          <h1 className="display">{caseData.answer.primary}</h1>
-          <p className="prose">
-            Solved with {solvedCount} of {clues.length} clues,{" "}
-            {session.unlockedEvidenceIds.length} pieces of evidence and{" "}
-            {session.theories.length}{" "}
-            {session.theories.length === 1 ? "theory" : "theories"}.
-          </p>
-          <div className="score-total" style={{ maxWidth: 280 }}>
-            <span>Score</span>
-            <span className="amt">{score.total}</span>
+          <span
+            className={`verdict ${session.solved ? "verdict--solved" : "verdict--cold"}`}
+          >
+            {session.solved ? "Case closed" : "The case went cold"}
+          </span>
+          <h1 className="display">{reveal.finalAnswer}</h1>
+          <p className="prose">{resultLine(session)}</p>
+          <div className="result-tiles" aria-hidden>
+            {Array.from({ length: totalExhibits }).map((_, index) => (
+              <span
+                key={index}
+                className={`tile ${index < session.revealedCount ? "tile--used" : ""}`}
+              />
+            ))}
+            {session.misses.map((id) => (
+              <span key={id} className="tile tile--miss" />
+            ))}
           </div>
           <button
             className="btn btn--primary btn--block"
-            onClick={() => dispatch({ type: "VIEW_REVEAL" })}
+            onClick={() => act({ type: "VIEW_REVEAL" })}
           >
-            View the full reveal
+            See how it fit together
+          </button>
+          <button
+            className="btn btn--block"
+            onClick={async () => {
+              await navigator.clipboard?.writeText(
+                buildShareText(caseData, session),
+              );
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1500);
+            }}
+          >
+            {copied ? "Copied" : "Share result"}
           </button>
         </div>
       </div>
@@ -104,27 +128,30 @@ export default function CasePlayer({
     return (
       <div className="shell">
         <div className="case-topbar">
-          <span className="kicker">{caseNumber ?? "Case File"}</span>
+          <span className="kicker">{caseNumber ?? "Case"}</span>
           <button className="btn btn--ghost btn--small" onClick={onExit}>
             {exitLabel ?? "Exit"}
           </button>
         </div>
         <div className="fullpage">
-          <span className="kicker kicker--dim">A cultural mystery</span>
+          <span className="kicker kicker--dim">
+            {caseData.category || "Daily case"}
+          </span>
           <h1 className="display">{caseData.title || "Untitled Case"}</h1>
           <p className="case-question">
-            {caseData.question || "What are we looking for?"}
+            {caseData.question || "Whose story is the evidence telling?"}
           </p>
           <p className="prose">
-            Solve clues to unlock evidence. Work out why each piece matters.
-            Record a theory, revise it as the picture changes — then close the
-            case.
+            {caseData.lineup.suspects.length} suspects.{" "}
+            {totalExhibits} exhibits. Every exhibit truly connects to the
+            answer — work out how, rule suspects out, and accuse as early as
+            you dare. The first exhibit is free.
           </p>
           <button
             className="btn btn--primary btn--block"
-            onClick={() => dispatch({ type: "BEGIN_INVESTIGATION" })}
+            onClick={() => act({ type: "BEGIN_INVESTIGATION" })}
           >
-            Open the case file
+            Open the case
           </button>
         </div>
       </div>
@@ -132,252 +159,166 @@ export default function CasePlayer({
   }
 
   // ------------------------------------------------------------- MAIN BOARD
-  const justSolvedClue = clues.find(
-    (clue) => clue.id === session.lastSolvedClueId,
-  );
-  const justUnlockedEvidence = session.lastUnlockedEvidenceId
-    ? unlockedEvidence.find(
-        (item) => item.id === session.lastUnlockedEvidenceId,
+  const justRevealed = session.lastRevealedEvidenceId
+    ? revealedEvidence.find(
+        (item) => item.id === session.lastRevealedEvidenceId,
       )
     : undefined;
   const revealedHints = caseData.hints.slice(0, session.hintsUsed);
+  const canFlip = session.revealedCount < totalExhibits;
 
   return (
     <div className="shell">
-      {/* header */}
       <div className="case-topbar">
-        <span className="kicker">{caseNumber ?? "Case File"}</span>
-        <button className="btn btn--ghost btn--small" onClick={onExit}>
-          {exitLabel ?? "Exit"}
-        </button>
+        <span className="kicker">{caseNumber ?? "Case"}</span>
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          {session.misses.length > 0 ? (
+            <span className="miss-meter" aria-label="misses">
+              {Array.from({ length: MAX_MISSES }).map((_, index) => (
+                <span
+                  key={index}
+                  className={index < session.misses.length ? "m m--used" : "m"}
+                />
+              ))}
+            </span>
+          ) : null}
+          <button className="btn btn--ghost btn--small" onClick={onExit}>
+            {exitLabel ?? "Exit"}
+          </button>
+        </div>
       </div>
+
       <header className="case-header">
         <h1>{caseData.title || "Untitled Case"}</h1>
         <p className="case-question">
-          {caseData.question || "What are we looking for?"}
+          {caseData.question || "Whose story is the evidence telling?"}
         </p>
       </header>
 
-      {/* final answer feedback (wrong guess keeps the case open) */}
-      {session.finalFeedback === "incorrect" ? (
-        <div className="feedback feedback--bad">
-          That isn't it. The case remains open — keep investigating.
-        </div>
-      ) : null}
-
-      {/* EVIDENCE */}
+      {/* EXHIBITS */}
       <section className="section">
         <div className="section-head">
-          <span className="kicker kicker--dim">Evidence</span>
+          <span className="kicker kicker--dim">Exhibits</span>
           <span className="badge">
-            {unlockedEvidence.length} / {caseData.evidence.length} UNLOCKED
+            {session.revealedCount} of {totalExhibits}
           </span>
         </div>
-        {caseData.evidence.length === 0 ? (
-          <div className="evidence-locked" style={{ minHeight: 70 }}>
-            NO EVIDENCE IN THIS CASE
-          </div>
+        {totalExhibits === 0 ? (
+          <div className="empty-note">This case has no exhibits.</div>
         ) : (
-          <div className="evidence-grid">
-            {unlockedEvidence.map((item, index) => (
+          <div className="exhibit-stack">
+            {revealedEvidence.map((item, index) => (
               <EvidenceCard
                 key={item.id}
                 evidence={item}
                 index={index}
-                highlight={item.id === session.lastUnlockedEvidenceId}
-                style={{ animationDelay: `${Math.min(index * 70, 400)}ms` }}
+                style={{ animationDelay: `${Math.min(index * 60, 300)}ms` }}
               />
             ))}
-            {Array.from({
-              length: caseData.evidence.length - unlockedEvidence.length,
-            }).map((_, index) => (
-              <div className="evidence-locked" key={`locked_${index}`}>
-                <span className="redact" />
-                <span className="redact" />
-                <span className="redact" />
-              </div>
-            ))}
+            {canFlip ? (
+              <button
+                className="exhibit-next"
+                onClick={() => act({ type: "FLIP_EXHIBIT" })}
+              >
+                <span className="exhibit-next-label">
+                  Exhibit {romanNumeral(session.revealedCount + 1)}
+                </span>
+                <span className="exhibit-next-action">Flip it</span>
+              </button>
+            ) : null}
           </div>
         )}
       </section>
 
-      {/* YOUR THEORY */}
+      {/* THE LINE-UP */}
       <section className="section">
         <div className="section-head">
-          <span className="kicker kicker--dim">Your theory</span>
-          {session.theories.length > 1 ? (
-            <button
-              className="btn btn--ghost btn--small"
-              onClick={() => setShowTheoryHistory((value) => !value)}
-            >
-              {showTheoryHistory ? "Hide history" : "History"}
-            </button>
-          ) : null}
+          <span className="kicker kicker--dim">The line-up</span>
+          <span className="badge">{remaining.length} remain</span>
         </div>
-        <div className="theory-panel">
-          <div className="theory-current">
-            {theory ? (
-              theory.text
-            ) : (
-              <span className="placeholder">No theory yet. What could it be?</span>
-            )}
-          </div>
-          <form
-            className="answer-row"
-            onSubmit={(event) => {
-              event.preventDefault();
-              if (!theoryInput.trim()) return;
-              dispatch({ type: "RECORD_THEORY", text: theoryInput });
-              setTheoryInput("");
-            }}
-          >
-            <input
-              className="input"
-              placeholder="I think this is…"
-              value={theoryInput}
-              onChange={(event) => setTheoryInput(event.target.value)}
-            />
-            <button className="btn" type="submit" disabled={!theoryInput.trim()}>
-              {theory ? "Update" : "Record"}
-            </button>
-          </form>
-          {showTheoryHistory && session.theories.length > 0 ? (
-            <ul className="theory-history">
-              {session.theories.map((entry, index) => (
-                <li key={entry.id}>
-                  <span className="n">{index + 1}.</span>
-                  <span>{entry.text}</span>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-        </div>
-      </section>
-
-      {/* INVESTIGATION / CLUES */}
-      <section className="section">
-        <div className="section-head">
-          <span className="kicker kicker--dim">Investigation</span>
-          <span className="badge">
-            {solvedCount} / {clues.length} CLUES SOLVED
-          </span>
-        </div>
-
-        {clues.length === 0 ? (
-          <div className="evidence-locked" style={{ minHeight: 70 }}>
-            NO CLUES IN THIS CASE
-          </div>
-        ) : (
-          <>
-            <div className="clue-tabs">
-              {clues.map((clue, index) => {
-                const progress = session.clueProgress.find(
-                  (entry) => entry.clueId === clue.id,
-                );
-                const status = progress?.status ?? "locked";
-                const isActive = session.activeClueId === clue.id;
-                const className = [
-                  "clue-tab",
-                  isActive ? "clue-tab--active" : "",
-                  status === "solved" ? "clue-tab--solved" : "",
-                  status === "locked" ? "clue-tab--locked" : "",
+        <div className="suspect-grid">
+          {caseData.lineup.suspects.map((suspect) => {
+            const ruledOut =
+              session.ruledOutIds.includes(suspect.id) ||
+              session.misses.includes(suspect.id);
+            const missed = session.misses.includes(suspect.id);
+            const prime = session.primeSuspectId === suspect.id;
+            const isSelected = selectedId === suspect.id;
+            return (
+              <button
+                key={suspect.id}
+                className={[
+                  "suspect",
+                  ruledOut ? "suspect--out" : "",
+                  missed ? "suspect--missed" : "",
+                  prime ? "suspect--prime" : "",
+                  isSelected ? "suspect--selected" : "",
                 ]
                   .filter(Boolean)
-                  .join(" ");
-                return (
-                  <button
-                    key={clue.id}
-                    className={className}
-                    disabled={status === "locked" || status === "solved"}
-                    onClick={() =>
-                      dispatch({ type: "ACTIVATE_CLUE", clueId: clue.id })
-                    }
-                  >
-                    {status === "solved" ? "✓" : ""} CLUE {index + 1}
-                  </button>
-                );
-              })}
-            </div>
-
-            {activeClue && session.phase === "CLUE_ACTIVE" ? (
-              <div
-                className={`clue-card${
-                  session.clueFeedback === "incorrect" ? " clue-card--shake" : ""
-                }`}
-                key={`${activeClue.id}:${
-                  session.clueProgress.find(
-                    (entry) => entry.clueId === activeClue.id,
-                  )?.wrongAttempts ?? 0
-                }`}
+                  .join(" ")}
+                onClick={() =>
+                  setSelectedId(isSelected ? null : suspect.id)
+                }
               >
-                <span className="kicker kicker--dim">
-                  Clue {clues.indexOf(activeClue) + 1}
-                </span>
-                <p className="clue-prompt">{activeClue.prompt || "—"}</p>
-                <form
-                  className="answer-row"
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    if (!clueInput.trim()) return;
-                    dispatch({
-                      type: "SUBMIT_CLUE_ANSWER",
-                      answer: clueInput,
-                    });
-                    setClueInput("");
+                {prime ? <span className="prime-dot" aria-hidden /> : null}
+                <span className="suspect-label">{suspect.label}</span>
+                {missed ? <span className="suspect-note">accused</span> : null}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* selected suspect action bar */}
+        {selected ? (
+          <div className="suspect-actions">
+            <span className="suspect-actions-name">{selected.label}</span>
+            <div className="suspect-actions-buttons">
+              {!session.misses.includes(selected.id) ? (
+                <button
+                  className="btn btn--small"
+                  onClick={() => {
+                    act({ type: "TOGGLE_RULE_OUT", suspectId: selected.id });
+                    setSelectedId(null);
                   }}
                 >
-                  <input
-                    className="input"
-                    placeholder="Your answer"
-                    value={clueInput}
-                    onChange={(event) => setClueInput(event.target.value)}
-                    autoFocus
-                  />
+                  {session.ruledOutIds.includes(selected.id)
+                    ? "Restore"
+                    : "Rule out"}
+                </button>
+              ) : null}
+              {!session.ruledOutIds.includes(selected.id) &&
+              !session.misses.includes(selected.id) ? (
+                <>
                   <button
-                    className="btn btn--primary"
-                    type="submit"
-                    disabled={!clueInput.trim()}
+                    className="btn btn--small"
+                    onClick={() => {
+                      act({ type: "SET_PRIME", suspectId: selected.id });
+                      setSelectedId(null);
+                    }}
                   >
-                    Submit
+                    {session.primeSuspectId === selected.id
+                      ? "Unpin"
+                      : "Prime suspect"}
                   </button>
-                </form>
-                {session.clueFeedback === "incorrect" ? (
-                  <div className="feedback feedback--bad">
-                    Not quite. Look at it from another angle.
-                  </div>
-                ) : null}
-                <div style={{ marginTop: 12 }}>
                   <button
-                    className="btn btn--ghost btn--small"
-                    onClick={() => dispatch({ type: "SET_ASIDE_CLUE" })}
+                    className="btn btn--small btn--accuse"
+                    onClick={() => act({ type: "OPEN_ACCUSE" })}
                   >
-                    Set this clue aside for now
+                    Accuse…
                   </button>
-                </div>
-              </div>
-            ) : session.phase === "INVESTIGATING" ||
-              session.phase === "THEORY_CREATED" ? (
-              <div className="clue-card">
-                <p className="prose" style={{ margin: 0 }}>
-                  {session.clueProgress.some(
-                    (entry) =>
-                      entry.status === "available" || entry.status === "skipped",
-                  )
-                    ? "Pick a clue above to keep investigating — or close the case if you know the answer."
-                    : "Every clue is solved. Study the evidence, then close the case."}
-                </p>
-              </div>
-            ) : null}
-          </>
-        )}
+                </>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
       </section>
 
-      {/* revealed hints */}
+      {/* hints */}
       {revealedHints.length > 0 && showHints ? (
         <section className="section">
           <span className="kicker kicker--dim">Hints</span>
           {revealedHints.map((hint) => (
-            <div className="feedback feedback--hint" key={hint.id}>
+            <div className="hint-note" key={hint.id}>
               {hint.text}
             </div>
           ))}
@@ -387,119 +328,90 @@ export default function CasePlayer({
       {/* dock */}
       <div className="dock">
         <div className="dock-inner">
-          <button
-            className="btn"
-            disabled={
-              caseData.hints.length === 0 ||
-              (showHints && session.hintsUsed >= caseData.hints.length)
-            }
-            onClick={() => {
-              setShowHints(true);
-              if (session.hintsUsed < caseData.hints.length) {
-                dispatch({ type: "USE_HINT" });
-              }
-            }}
-          >
-            Hint
-            {caseData.hints.length > 0
-              ? ` (${caseData.hints.length - session.hintsUsed} left)`
-              : ""}
-          </button>
+          {caseData.hints.length > 0 ? (
+            <button
+              className="btn"
+              disabled={showHints && session.hintsUsed >= caseData.hints.length}
+              onClick={() => {
+                setShowHints(true);
+                if (session.hintsUsed < caseData.hints.length) {
+                  act({ type: "USE_HINT" });
+                }
+              }}
+            >
+              Hint ({caseData.hints.length - session.hintsUsed})
+            </button>
+          ) : null}
           <button
             className="btn btn--primary"
-            onClick={() => dispatch({ type: "OPEN_SOLVE" })}
+            onClick={() => act({ type: "OPEN_ACCUSE" })}
           >
-            Solve case
+            Accuse
           </button>
         </div>
       </div>
 
-      {/* CLUE_SOLVED interstitial */}
-      {session.phase === "CLUE_SOLVED" && justSolvedClue ? (
-        <div className="overlay">
-          <div className="sheet">
-            <span className="kicker">Clue solved</span>
-            <h2>{justSolvedClue.answer.primary}</h2>
-            <p className="prose">
-              {justSolvedClue.evidenceId &&
-              !session.unlockedEvidenceIds.includes(justSolvedClue.evidenceId)
-                ? "This unlocks a new piece of evidence."
-                : "Correct."}
-            </p>
-            <button
-              className="btn btn--primary btn--block"
-              onClick={() => dispatch({ type: "REVEAL_EVIDENCE" })}
-            >
-              {justSolvedClue.evidenceId ? "Open the evidence" : "Continue"}
-            </button>
-          </div>
-        </div>
-      ) : null}
-
-      {/* EVIDENCE_REVEALED interstitial */}
-      {session.phase === "EVIDENCE_REVEALED" && justUnlockedEvidence ? (
-        <div className="overlay">
-          <div className="sheet">
-            <span className="kicker">Evidence unlocked</span>
+      {/* EXHIBIT_REVEALED interstitial */}
+      {session.phase === "EXHIBIT_REVEALED" && justRevealed ? (
+        <div
+          className="overlay"
+          onClick={() => act({ type: "CONTINUE_INVESTIGATION" })}
+        >
+          <div className="sheet" onClick={(event) => event.stopPropagation()}>
+            <span className="kicker">
+              Exhibit {romanNumeral(session.revealedCount)}
+            </span>
             <div style={{ margin: "14px 0" }}>
               <EvidenceCard
-                evidence={justUnlockedEvidence}
-                index={unlockedEvidence.length - 1}
-                highlight
+                evidence={justRevealed}
+                index={session.revealedCount - 1}
               />
             </div>
-            <p className="prose">Why are you being shown this?</p>
+            <p className="prose">Who does this rule out?</p>
             <button
               className="btn btn--primary btn--block"
-              onClick={() => dispatch({ type: "CONTINUE_INVESTIGATION" })}
+              onClick={() => act({ type: "CONTINUE_INVESTIGATION" })}
             >
-              Add to the case file
+              Work the board
             </button>
           </div>
         </div>
       ) : null}
 
-      {/* SOLVING overlay */}
-      {session.phase === "SOLVING" ? (
-        <div className="overlay">
-          <div className="sheet">
-            <span className="kicker">Solve the case</span>
-            <h2>{caseData.question || "What are we looking for?"}</h2>
+      {/* ACCUSING overlay */}
+      {session.phase === "ACCUSING" ? (
+        <div className="overlay" onClick={() => act({ type: "CANCEL_ACCUSE" })}>
+          <div className="sheet" onClick={(event) => event.stopPropagation()}>
+            <span className="kicker">Make an accusation</span>
+            <h2>
+              {caseData.question || "Whose story is the evidence telling?"}
+            </h2>
             <p className="prose">
-              Commit to a final answer. If you're wrong, the case stays open.
+              Accusing on Exhibit {romanNumeral(Math.max(session.revealedCount, 1))}.
+              A wrong accusation is a strike — {MAX_MISSES - session.misses.length}{" "}
+              left.
             </p>
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                if (!finalInput.trim()) return;
-                dispatch({ type: "SUBMIT_FINAL_ANSWER", answer: finalInput });
-                setFinalInput("");
-              }}
+            <div className="accuse-list">
+              {remaining.map((suspect) => (
+                <button
+                  key={suspect.id}
+                  className="accuse-option"
+                  onClick={() => act({ type: "ACCUSE", suspectId: suspect.id })}
+                >
+                  {suspect.label}
+                  {session.primeSuspectId === suspect.id ? (
+                    <span className="accuse-prime">prime</span>
+                  ) : null}
+                </button>
+              ))}
+            </div>
+            <button
+              className="btn btn--ghost btn--block"
+              style={{ marginTop: 10 }}
+              onClick={() => act({ type: "CANCEL_ACCUSE" })}
             >
-              <input
-                className="input"
-                placeholder={theory ? theory.text : "Your final answer"}
-                value={finalInput}
-                onChange={(event) => setFinalInput(event.target.value)}
-                autoFocus
-              />
-              <div className="answer-row" style={{ marginTop: 12 }}>
-                <button
-                  className="btn btn--ghost"
-                  type="button"
-                  onClick={() => dispatch({ type: "CANCEL_SOLVE" })}
-                >
-                  Keep investigating
-                </button>
-                <button
-                  className="btn btn--primary"
-                  type="submit"
-                  disabled={!finalInput.trim()}
-                >
-                  Close the case
-                </button>
-              </div>
-            </form>
+              Keep investigating
+            </button>
           </div>
         </div>
       ) : null}

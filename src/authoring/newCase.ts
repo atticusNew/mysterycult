@@ -8,12 +8,11 @@
 import template from "../data/cases/case_template.json";
 import type {
   CaseData,
-  Clue,
   EntryPoint,
   Evidence,
   Hint,
-  HypothesisNote,
   InvestigationPath,
+  Suspect,
 } from "../models/types";
 import { parseCase } from "../data/schema";
 
@@ -33,15 +32,12 @@ export function blankCase(): CaseData {
   return { ...caseData, id: uid("case") };
 }
 
-export function blankClue(): Clue {
+export function blankSuspect(): Suspect {
   return {
-    id: uid("clue"),
-    type: "text",
-    prompt: "",
-    answer: { primary: "", aliases: [] },
-    evidenceId: null,
-    stage: "opening",
-    authorNotes: {},
+    id: uid("suspect"),
+    label: "",
+    whyPlausible: "",
+    eliminatedBy: [],
   };
 }
 
@@ -59,16 +55,6 @@ export function blankEvidence(): Evidence {
 
 export function blankEntryPoint(): EntryPoint {
   return { id: uid("entry"), domain: "", description: "", clueId: null };
-}
-
-export function blankHypothesis(): HypothesisNote {
-  return {
-    id: uid("hypothesis"),
-    hypothesis: "",
-    supportingEvidence: "",
-    weakeningEvidence: "",
-    resolution: "",
-  };
 }
 
 export function blankPath(): InvestigationPath {

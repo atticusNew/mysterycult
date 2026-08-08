@@ -24,34 +24,26 @@ Entry Point 1:
 Entry Point 2:
 Entry Point 3:
 
-CLUES
+THE LINE-UP  (answer + 7–11 decoys)
 
-Clue:
-Answer:
-Aliases:
-Linked Evidence:
-Stage:
+Suspect:
+Why Plausible:
+Ruled Out By (exhibit):
 
-EVIDENCE
+EXHIBITS  (flip order; keep the smoking gun last)
 
 Type:
 Content:
-Diagnosticity:
+Diagnosticity:  LOW / MEDIUM / HIGH / CONCLUSIVE
 Related Entities:
 Why It Matters:
-
-HYPOTHESES
-
-Hypothesis:
-Supporting Evidence:
-Weakening Evidence:
-Resolution:
+Rules Out:
 
 INVESTIGATION PATHS
 
 Path:
 Starting Point:
-Evidence:
+Exhibits:
 Target:
 
 HINTS
@@ -63,8 +55,7 @@ Hint 3:
 REVEAL
 
 Answer Explanation:
-Clue → Evidence:
-Evidence → Answer:
+Exhibit → Answer:
 Major Connections:
 Alternate Paths:
 "OH!" Moment:

@@ -11,7 +11,7 @@ function templateCase(): CaseData {
   return caseData;
 }
 
-describe("validateCase", () => {
+describe("validateCase (line-up)", () => {
   it("the well-formed dummy case has no errors", () => {
     const report = validateCase(dummyCase());
     expect(report.errors).toHaveLength(0);
@@ -23,7 +23,7 @@ describe("validateCase", () => {
     const codes = report.warnings.map((warning) => warning.code);
     expect(codes).toContain("missing_final_answer");
     expect(codes).toContain("missing_question");
-    expect(codes).toContain("no_clues");
+    expect(codes).toContain("no_suspects");
     expect(codes).toContain("no_evidence");
     expect(codes).toContain("too_few_entry_points");
     expect(codes).toContain("single_investigation_path");
@@ -33,102 +33,90 @@ describe("validateCase", () => {
 
   it("flags structural corruption as errors", () => {
     const broken = dummyCase();
-    broken.clues[0] = { ...broken.clues[0], evidenceId: "evidence_missing" };
-    broken.clues[1] = { ...broken.clues[1], id: broken.clues[2].id };
+    broken.lineup.suspects[1] = {
+      ...broken.lineup.suspects[1],
+      eliminatedBy: ["ev_missing"],
+    };
+    broken.lineup.answerSuspectId = "s_nonexistent";
     const report = validateCase(broken);
     const codes = report.errors.map((error) => error.code);
-    expect(codes).toContain("broken_evidence_link");
-    expect(codes).toContain("duplicate_clue_id");
+    expect(codes).toContain("broken_elimination_link");
+    expect(codes).toContain("answer_not_on_board");
   });
 
-  it("warns when a clue gives away the final answer", () => {
-    const leaky = dummyCase();
-    leaky.clues[0] = {
-      ...leaky.clues[0],
-      prompt: "This one involves Placeholder Final Answer somehow.",
-    };
-    const report = validateCase(leaky);
+  it("warns about a thin suspect pool", () => {
+    const thin = dummyCase();
+    thin.lineup.suspects = thin.lineup.suspects.slice(0, 3);
+    const report = validateCase(thin);
     expect(report.warnings.map((warning) => warning.code)).toContain(
-      "clue_gives_away_answer",
+      "too_few_suspects",
     );
   });
 
-  it("warns when a clue's answer IS the final answer", () => {
-    const leaky = dummyCase();
-    leaky.clues[0] = {
-      ...leaky.clues[0],
-      answer: { primary: "Placeholder Final Answer", aliases: [] },
+  it("warns about unkillable and undocumented decoys", () => {
+    const sloppy = dummyCase();
+    sloppy.lineup.suspects[1] = {
+      ...sloppy.lineup.suspects[1],
+      whyPlausible: "",
+      eliminatedBy: [],
     };
-    const report = validateCase(leaky);
+    const report = validateCase(sloppy);
+    const codes = report.warnings.map((warning) => warning.code);
+    expect(codes).toContain("undocumented_suspect");
+    expect(codes).toContain("unkillable_suspect");
+  });
+
+  it("warns when an exhibit does no elimination work", () => {
+    const idle = dummyCase();
+    idle.lineup.suspects = idle.lineup.suspects.map((suspect) => ({
+      ...suspect,
+      eliminatedBy: suspect.eliminatedBy.filter((id) => id !== "ev_2"),
+    }));
+    // Keep other suspects killable so we isolate the exhibit warning.
+    idle.lineup.suspects[2].eliminatedBy = ["ev_1"];
+    idle.lineup.suspects[3].eliminatedBy = ["ev_3"];
+    const report = validateCase(idle);
     expect(report.warnings.map((warning) => warning.code)).toContain(
-      "clue_answer_is_final_answer",
+      "evidence_eliminates_nobody",
     );
   });
 
-  it("warns when non-conclusive evidence contains the final answer", () => {
+  it("warns when the smoking gun is not last or the opening is too hot", () => {
+    const early = dummyCase();
+    early.evidence[0] = { ...early.evidence[0], diagnosticity: "conclusive" };
+    const report = validateCase(early);
+    const codes = report.warnings.map((warning) => warning.code);
+    expect(codes).toContain("conclusive_too_early");
+    expect(codes).toContain("opening_too_diagnostic");
+  });
+
+  it("warns when a non-conclusive exhibit contains the answer", () => {
     const leaky = dummyCase();
-    leaky.evidence[0] = {
-      ...leaky.evidence[0],
-      content: "placeholder final answer",
-    };
+    leaky.evidence[0] = { ...leaky.evidence[0], content: "suspect one" };
     const report = validateCase(leaky);
     expect(report.warnings.map((warning) => warning.code)).toContain(
       "evidence_gives_away_answer",
     );
   });
 
-  it("warns about missing diagnosticity coverage", () => {
-    const flat = dummyCase();
-    flat.evidence = flat.evidence.map((item) => ({
-      ...item,
-      diagnosticity: "medium" as const,
-    }));
-    const report = validateCase(flat);
-    const codes = report.warnings.map((warning) => warning.code);
-    expect(codes).toContain("no_low_diagnosticity");
-    expect(codes).toContain("no_high_diagnosticity");
-    expect(codes).toContain("no_conclusive_evidence");
+  it("warns when the answer is marked as eliminated", () => {
+    const contradictory = dummyCase();
+    contradictory.lineup.suspects[0] = {
+      ...contradictory.lineup.suspects[0],
+      eliminatedBy: ["ev_1"],
+    };
+    const report = validateCase(contradictory);
+    expect(report.warnings.map((warning) => warning.code)).toContain(
+      "answer_marked_eliminated",
+    );
   });
 
-  it("warns when the entity does not match the final answer", () => {
+  it("warns when the entity does not match the answer", () => {
     const mismatched = dummyCase();
     mismatched.entity = { ...mismatched.entity!, name: "Different Entity" };
     const report = validateCase(mismatched);
     expect(report.warnings.map((warning) => warning.code)).toContain(
       "entity_answer_mismatch",
     );
-  });
-
-  it("warns when the suspect pool is too small", () => {
-    const thin = dummyCase();
-    thin.editorial = { ...thin.editorial, hypotheses: [] };
-    const report = validateCase(thin);
-    expect(report.warnings.map((warning) => warning.code)).toContain(
-      "too_few_hypotheses",
-    );
-  });
-
-  it("warns when the smoking gun arrives too early", () => {
-    const early = dummyCase();
-    // Move the conclusive evidence onto an opening-stage clue.
-    early.clues[0] = { ...early.clues[0], evidenceId: "evidence_003" };
-    early.clues[2] = { ...early.clues[2], evidenceId: "evidence_001" };
-    const report = validateCase(early);
-    expect(report.warnings.map((warning) => warning.code)).toContain(
-      "conclusive_too_early",
-    );
-  });
-
-  it("warns about duplicate clues and evidence", () => {
-    const dupes = dummyCase();
-    dupes.clues[1] = { ...dupes.clues[1], prompt: dupes.clues[0].prompt };
-    dupes.evidence[1] = {
-      ...dupes.evidence[1],
-      content: dupes.evidence[0].content,
-    };
-    const report = validateCase(dupes);
-    const codes = report.warnings.map((warning) => warning.code);
-    expect(codes).toContain("duplicate_clues");
-    expect(codes).toContain("duplicate_evidence");
   });
 });
