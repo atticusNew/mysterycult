@@ -69,6 +69,78 @@ function parseLines(value: string): string[] {
     .filter(Boolean);
 }
 
+/**
+ * Comma-separated list input. Keeps the raw text the author is typing in
+ * local state (so commas/spaces aren't stripped mid-keystroke) and only
+ * normalizes the display when the field loses focus.
+ */
+function CsvInput({
+  value,
+  onChange,
+  placeholder,
+  disabled,
+}: {
+  value: string[];
+  onChange: (list: string[]) => void;
+  placeholder?: string;
+  disabled?: boolean;
+}) {
+  const joined = csv(value);
+  const [text, setText] = useState(joined);
+  const [focused, setFocused] = useState(false);
+  useEffect(() => {
+    if (!focused) setText(joined);
+  }, [joined, focused]);
+  return (
+    <input
+      className="input"
+      value={text}
+      placeholder={placeholder}
+      disabled={disabled}
+      onFocus={() => setFocused(true)}
+      onBlur={() => {
+        setFocused(false);
+        setText(csv(parseCsv(text)));
+      }}
+      onChange={(event) => {
+        setText(event.target.value);
+        onChange(parseCsv(event.target.value));
+      }}
+    />
+  );
+}
+
+/** One-item-per-line textarea with the same free-typing behaviour as CsvInput. */
+function LinesTextarea({
+  value,
+  onChange,
+}: {
+  value: string[];
+  onChange: (list: string[]) => void;
+}) {
+  const joined = lines(value);
+  const [text, setText] = useState(joined);
+  const [focused, setFocused] = useState(false);
+  useEffect(() => {
+    if (!focused) setText(joined);
+  }, [joined, focused]);
+  return (
+    <textarea
+      className="textarea"
+      value={text}
+      onFocus={() => setFocused(true)}
+      onBlur={() => {
+        setFocused(false);
+        setText(lines(parseLines(text)));
+      }}
+      onChange={(event) => {
+        setText(event.target.value);
+        onChange(parseLines(event.target.value));
+      }}
+    />
+  );
+}
+
 function Field({
   label,
   hint,
@@ -325,16 +397,10 @@ export default function WorkshopEditor() {
             label="Answer aliases"
             hint="Comma-separated accepted variants."
           >
-            <input
-              className="input"
-              value={csv(caseData.answer.aliases)}
-              onChange={(event) =>
-                update({
-                  answer: {
-                    ...caseData.answer,
-                    aliases: parseCsv(event.target.value),
-                  },
-                })
+            <CsvInput
+              value={caseData.answer.aliases}
+              onChange={(aliases) =>
+                update({ answer: { ...caseData.answer, aliases } })
               }
             />
           </Field>
@@ -460,33 +526,21 @@ export default function WorkshopEditor() {
         </div>
         <div className="form-row">
           <Field label="Domains" hint="Comma-separated, e.g. music, film, history.">
-            <input
-              className="input"
-              value={csv(caseData.entity?.domains ?? [])}
-              onChange={(event) =>
+            <CsvInput
+              value={caseData.entity?.domains ?? []}
+              onChange={(domains) =>
                 caseData.entity &&
-                update({
-                  entity: {
-                    ...caseData.entity,
-                    domains: parseCsv(event.target.value),
-                  },
-                })
+                update({ entity: { ...caseData.entity, domains } })
               }
               disabled={!caseData.entity}
             />
           </Field>
           <Field label="Eras" hint="Comma-separated, e.g. 1970s, 1980s.">
-            <input
-              className="input"
-              value={csv(caseData.entity?.eras ?? [])}
-              onChange={(event) =>
+            <CsvInput
+              value={caseData.entity?.eras ?? []}
+              onChange={(eras) =>
                 caseData.entity &&
-                update({
-                  entity: {
-                    ...caseData.entity,
-                    eras: parseCsv(event.target.value),
-                  },
-                })
+                update({ entity: { ...caseData.entity, eras } })
               }
               disabled={!caseData.entity}
             />
@@ -673,15 +727,11 @@ export default function WorkshopEditor() {
                 />
               </Field>
               <Field label="Accepted aliases" hint="Comma-separated.">
-                <input
-                  className="input"
-                  value={csv(clue.answer.aliases)}
-                  onChange={(event) =>
+                <CsvInput
+                  value={clue.answer.aliases}
+                  onChange={(aliases) =>
                     updateClue(index, {
-                      answer: {
-                        ...clue.answer,
-                        aliases: parseCsv(event.target.value),
-                      },
+                      answer: { ...clue.answer, aliases },
                     })
                   }
                 />
@@ -911,13 +961,10 @@ export default function WorkshopEditor() {
                 />
               </Field>
               <Field label="Related entities" hint="Comma-separated. Editorial only.">
-                <input
-                  className="input"
-                  value={csv(item.relatedEntities)}
-                  onChange={(event) =>
-                    updateEvidence(index, {
-                      relatedEntities: parseCsv(event.target.value),
-                    })
+                <CsvInput
+                  value={item.relatedEntities}
+                  onChange={(relatedEntities) =>
+                    updateEvidence(index, { relatedEntities })
                   }
                 />
               </Field>
@@ -1326,30 +1373,18 @@ export default function WorkshopEditor() {
         </Field>
         <div className="form-row">
           <Field label="Major cultural connections" hint="One per line.">
-            <textarea
-              className="textarea"
-              value={lines(caseData.reveal.majorConnections)}
-              onChange={(event) =>
-                update({
-                  reveal: {
-                    ...caseData.reveal,
-                    majorConnections: parseLines(event.target.value),
-                  },
-                })
+            <LinesTextarea
+              value={caseData.reveal.majorConnections}
+              onChange={(majorConnections) =>
+                update({ reveal: { ...caseData.reveal, majorConnections } })
               }
             />
           </Field>
           <Field label="Alternate paths" hint="One per line.">
-            <textarea
-              className="textarea"
-              value={lines(caseData.reveal.alternatePaths)}
-              onChange={(event) =>
-                update({
-                  reveal: {
-                    ...caseData.reveal,
-                    alternatePaths: parseLines(event.target.value),
-                  },
-                })
+            <LinesTextarea
+              value={caseData.reveal.alternatePaths}
+              onChange={(alternatePaths) =>
+                update({ reveal: { ...caseData.reveal, alternatePaths } })
               }
             />
           </Field>
