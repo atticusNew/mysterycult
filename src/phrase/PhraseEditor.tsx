@@ -265,9 +265,12 @@ export default function PhraseEditor() {
       <section className="ws-section">
         <h2>Questions</h2>
         <p className="section-note">
-          Self-contained trivia; never name the connection. Each question
-          unlocks one letter — rare letters on easy questions, vowels and
-          workhorses on hard ones. One attempt each in play.
+          Self-contained trivia; never name the connection. AT MOST ONE answer
+          may come from inside the work's own story (setting, subject) — the
+          rest must connect laterally (people, production, sideways history),
+          or the theme announces itself by question two. Each question unlocks
+          one letter: rare letters on easy questions, vowels and workhorses on
+          hard ones. One attempt each in play.
         </p>
         {puzzle.questions.map((question, index) => (
           <div className="item-card" key={question.id}>

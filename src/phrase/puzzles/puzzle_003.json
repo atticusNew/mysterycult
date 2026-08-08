@@ -19,14 +19,14 @@
       "connectionNote": "The story's beating heart — and its most famous scene is the city burning."
     },
     {
-      "id": "q_war",
-      "prompt": "Which American war ended at Appomattox Court House in 1865?",
+      "id": "q_oz",
+      "prompt": "Ruby slippers, a yellow brick road and flying monkeys — which 1939 film?",
       "answer": {
-        "primary": "The Civil War",
-        "aliases": ["civil war", "american civil war", "the american civil war", "us civil war"]
+        "primary": "The Wizard of Oz",
+        "aliases": ["wizard of oz", "the wizard of oz 1939", "oz"]
       },
       "letter": "E",
-      "connectionNote": "The backdrop of the whole saga, from the barbecue at Twelve Oaks to the ruin of Tara."
+      "connectionNote": "The lateral link: Victor Fleming walked off The Wizard of Oz mid-production to take over this film — and directed both of 1939's twin monuments."
     },
     {
       "id": "q_king",
@@ -60,10 +60,10 @@
     }
   ],
   "reveal": {
-    "summary": "Gone with the Wind. A city, a war, a king, a barrier-breaking Oscar and a one-novel author — every answer orbits the same epic: Atlanta burning, the Civil War, Clark Gable's exit line, Hattie McDaniel's historic win, and Margaret Mitchell's only book. Frankly, my dear, I don't give a damn.",
+    "summary": "Gone with the Wind. A city, a rival masterpiece, a king, a barrier-breaking Oscar and a one-novel author — every answer orbits the same epic: Atlanta burning, Victor Fleming arriving straight from Oz to direct it, Clark Gable's exit line, Hattie McDaniel's historic win, and Margaret Mitchell's only book. Frankly, my dear, I don't give a damn.",
     "ohMoment": "The line almost didn't survive: 'damn' ran afoul of the Production Code, and the studio seriously considered 'Frankly, my dear, I don't care.' The censors blinked — and the American Film Institute later crowned the original the greatest movie quote of all time."
   },
   "editorial": {
-    "notes": "Canonical-phrase rule applied: trimmed to the exact famous form (no trailing 'about it'), because players type from memory. Letter curve: R(2) → E(2) → N(3) → D(3) → A(4); full success reveals 14 of 27 letters (52%)."
+    "notes": "Canonical-phrase rule applied: trimmed to the exact famous form (no trailing 'about it'), because players type from memory. ONE-TIGHT-ANCHOR RULE: only Atlanta comes from inside the story; the other four answers connect laterally (shared director, cast, Oscar history, authorship) so the theme doesn't announce itself by question two. Letter curve: R(2) → E(2) → N(3) → D(3) → A(4); full success reveals 14 of 27 letters (52%)."
   }
 }
