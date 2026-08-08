@@ -12,6 +12,7 @@ import { listPublishedCases, unpublishCase } from "../data/caseLibrary";
 import { parseCase } from "../data/schema";
 import jonStewartTestCase from "../data/cases/case_jon_stewart_test.json";
 import caseTwo from "../data/cases/case_002.json";
+import caseThree from "../data/cases/case_003.json";
 
 export default function Workshop() {
   const navigate = useNavigate();
@@ -83,6 +84,9 @@ export default function Workshop() {
         </button>
         <button className="btn" onClick={() => handleLoadBundled(caseTwo)}>
           Load test case #002
+        </button>
+        <button className="btn" onClick={() => handleLoadBundled(caseThree)}>
+          Load test case #003
         </button>
       </div>
 

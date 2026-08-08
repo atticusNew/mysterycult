@@ -7,6 +7,7 @@ import { describe, expect, it } from "vitest";
 import template from "./cases/case_template.json";
 import jonStewartCase from "./cases/case_jon_stewart_test.json";
 import caseTwo from "./cases/case_002.json";
+import caseThree from "./cases/case_003.json";
 import { parseCase } from "./schema";
 import { validateCase } from "../authoring/CaseValidator";
 
@@ -30,6 +31,31 @@ describe("shipped case files", () => {
   it("the Jon Stewart test case parses and validates cleanly", () => {
     const caseData = expectClean(jonStewartCase);
     expect(caseData.lineup.suspects.length).toBeGreaterThanOrEqual(8);
+  });
+
+  it("case #003 parses and validates cleanly", () => {
+    const caseData = expectClean(caseThree);
+    expect(caseData.lineup.suspects.length).toBe(6);
+    const conclusive = caseData.evidence.filter(
+      (item) => item.diagnosticity === "conclusive",
+    );
+    expect(conclusive).toHaveLength(1);
+    expect(caseData.evidence[caseData.evidence.length - 1].id).toBe(
+      conclusive[0].id,
+    );
+    caseData.lineup.suspects
+      .filter((suspect) => suspect.id !== caseData.lineup.answerSuspectId)
+      .forEach((suspect) => {
+        expect(suspect.eliminatedBy.length).toBeGreaterThan(0);
+      });
+    const answer = caseData.lineup.suspects.find(
+      (suspect) => suspect.id === caseData.lineup.answerSuspectId,
+    )!;
+    const surname = answer.label.split(" ").pop()!.toLowerCase();
+    expect(caseData.id.toLowerCase()).not.toContain(surname);
+    caseData.evidence.forEach((item) => {
+      expect(item.content.toLowerCase().includes(surname)).toBe(false);
+    });
   });
 
   it("case #002 parses and validates cleanly", () => {

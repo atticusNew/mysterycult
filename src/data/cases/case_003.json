@@ -1,0 +1,212 @@
+{
+  "id": "case_003",
+  "version": 2,
+  "title": "Case #003",
+  "question": "Whose story is this?",
+  "answer": {
+    "primary": "Hedy Lamarr",
+    "aliases": ["hedy lamarr", "hedy lamar", "hedwig kiesler"]
+  },
+  "type": "person",
+  "category": "Golden-age Hollywood",
+  "entityId": "hedy_lamarr",
+  "entity": {
+    "id": "hedy_lamarr",
+    "name": "Hedy Lamarr",
+    "type": "person",
+    "recognition": "moderate",
+    "longevity": "high",
+    "connectionDensity": "high",
+    "eras": ["1930s", "1940s", "1950s", "2000s", "2010s"],
+    "domains": ["film", "science", "technology", "history", "women's history"]
+  },
+  "lineup": {
+    "answerSuspectId": "s_hedy",
+    "suspects": [
+      {
+        "id": "s_marilyn",
+        "label": "Marilyn Monroe",
+        "whyPlausible": "The designed trap. The Oscar-snub exhibit reads as HER famous injustice — never nominated, the era's face of beauty. Players who tap her on that exhibit lose.",
+        "eliminatedBy": ["ev_escape"]
+      },
+      {
+        "id": "s_audrey",
+        "label": "Audrey Hepburn",
+        "whyPlausible": "European, wartime childhood, a second act of serious purpose (UNICEF) — the 'more than an actress' shape fits her beautifully.",
+        "eliminatedBy": ["ev_oscars", "ev_patent"]
+      },
+      {
+        "id": "s_hedy",
+        "label": "Hedy Lamarr",
+        "whyPlausible": "The answer. Vienna-born, fled an arms-dealer husband, billed as the most beautiful woman in the world, never nominated for anything — and co-invented frequency hopping at a drafting table after shooting hours.",
+        "eliminatedBy": []
+      },
+      {
+        "id": "s_grace",
+        "label": "Grace Kelly",
+        "whyPlausible": "The other impossibly glamorous European story — except hers runs the opposite direction: she married INTO a palace.",
+        "eliminatedBy": ["ev_oscars", "ev_escape"]
+      },
+      {
+        "id": "s_rita",
+        "label": "Rita Hayworth",
+        "whyPlausible": "The 1940s pin-up whose image was literally on the first postwar atomic bomb test — a real beauty-meets-weapons echo that keeps her plausible deep into the case.",
+        "eliminatedBy": ["ev_vienna"]
+      },
+      {
+        "id": "s_liz",
+        "label": "Elizabeth Taylor",
+        "whyPlausible": "MGM royalty with a famous second act off-screen (activism, business) — the arc fits until the dates don't.",
+        "eliminatedBy": ["ev_oscars", "ev_patent"]
+      }
+    ]
+  },
+  "clues": [],
+  "evidence": [
+    {
+      "id": "ev_piano",
+      "type": "image",
+      "content": "/assets/cases/case003/piano.jpg",
+      "caption": "Self-playing. Eighty-eight notes.",
+      "diagnosticity": "low",
+      "relatedEntities": ["george_antheil", "hedy_lamarr"],
+      "authorNotes": {
+        "meaning": "Pure atmosphere — and the strangest possible opener for a board of actresses. It is actually the mechanism at the heart of her invention: she and composer George Antheil used the player-piano principle to make a radio signal hop between 88 frequencies, like keys. Nobody should see that coming."
+      }
+    },
+    {
+      "id": "ev_vienna",
+      "type": "location",
+      "content": "VIENNA",
+      "caption": null,
+      "diagnosticity": "low",
+      "relatedEntities": ["vienna", "hedy_lamarr"],
+      "authorNotes": {
+        "meaning": "The birthplace. It quietly retires Rita Hayworth — a Brooklyn-born dancer from a Spanish dance dynasty has no Vienna chapter — while keeping every 'European elegance' theory alive."
+      }
+    },
+    {
+      "id": "ev_oscars",
+      "type": "text",
+      "content": "NO OSCAR. NOT EVEN A NOMINATION.",
+      "caption": null,
+      "diagnosticity": "medium",
+      "relatedEntities": ["academy_awards", "marilyn_monroe", "hedy_lamarr"],
+      "authorNotes": {
+        "meaning": "The trap, sprung. Everyone thinks of Marilyn — the era's most famous snub. But it also silently executes the winners: Audrey (1954), Grace (1955) and Liz (twice) all hold statuettes. Two women on this board were never nominated. Only one of them holds a patent."
+      }
+    },
+    {
+      "id": "ev_escape",
+      "type": "text",
+      "content": "1937: SHE FLED HER HUSBAND — AN ARMS DEALER — AND SAILED FOR HOLLYWOOD",
+      "caption": null,
+      "diagnosticity": "medium",
+      "relatedEntities": ["fritz_mandl", "hedy_lamarr"],
+      "authorNotes": {
+        "meaning": "The biography turns specific: a young wife listening to munitions men talk torpedoes at her own dinner table, then escaping the marriage and the continent. This kills the Marilyn theory (she was eleven in 1937, an ocean away) and Grace's — whose story runs the opposite way, marrying into a palace."
+      }
+    },
+    {
+      "id": "ev_patent",
+      "type": "text",
+      "content": "U.S. PATENT 2,292,387 — 'SECRET COMMUNICATION SYSTEM,' AUGUST 1942",
+      "caption": "Filed under her married name.",
+      "diagnosticity": "high",
+      "relatedEntities": ["frequency_hopping", "george_antheil", "hedy_lamarr"],
+      "authorNotes": {
+        "meaning": "The invention itself: a frequency-hopping guidance system for Allied torpedoes, designed to be unjammable — the dinner-table intelligence turned against its source. The date finishes the children of the board: Audrey was thirteen in 1942, Liz was ten. The piano from Exhibit I suddenly means something."
+      }
+    },
+    {
+      "id": "ev_hall",
+      "type": "text",
+      "content": "NATIONAL INVENTORS HALL OF FAME, CLASS OF 2014",
+      "caption": null,
+      "diagnosticity": "conclusive",
+      "relatedEntities": ["national_inventors_hall_of_fame", "hedy_lamarr"],
+      "authorNotes": {
+        "meaning": "The smoking gun. Exactly one golden-age movie star is in the National Inventors Hall of Fame — inducted fourteen years after her death, for the idea whose descendants sit in every pocket."
+      }
+    }
+  ],
+  "investigationPaths": [
+    {
+      "id": "path_invention",
+      "name": "The invention route",
+      "startingPoint": "The player piano and the patent",
+      "nodes": ["ev_piano", "ev_patent", "ev_hall"],
+      "target": "Hedy Lamarr"
+    },
+    {
+      "id": "path_biography",
+      "name": "The biography route",
+      "startingPoint": "Vienna and the 1937 escape",
+      "nodes": ["ev_vienna", "ev_escape"],
+      "target": "Hedy Lamarr"
+    },
+    {
+      "id": "path_recognition",
+      "name": "The recognition route",
+      "startingPoint": "No Oscar — then a stranger honor",
+      "nodes": ["ev_oscars", "ev_hall"],
+      "target": "Hedy Lamarr"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint_1",
+      "text": "Two women on this board were famously never nominated. Only one of them holds a patent."
+    },
+    {
+      "id": "hint_2",
+      "text": "The piano isn't for playing. Count what it holds — eighty-eight — and ask what else could hop between eighty-eight positions."
+    },
+    {
+      "id": "hint_3",
+      "text": "Put Vienna, the arms dealer's dinner table, and the torpedo patent into one life."
+    }
+  ],
+  "reveal": {
+    "summary": "Hedy Lamarr. Born Hedwig Kiesler in Vienna in 1914, she was married at nineteen to Fritz Mandl, an arms dealer who talked torpedo guidance over dinner. In 1937 she fled the marriage and sailed for Hollywood, where MGM billed her as the most beautiful woman in the world. During the war, at a drafting table after shooting hours, she and avant-garde composer George Antheil designed a 'Secret Communication System' — a torpedo guidance signal that hopped between 88 frequencies like the notes of a player piano, so it couldn't be jammed. Patent 2,292,387, August 1942. The Navy shelved it; the idea outlived them all, echoing in the spread-spectrum radio inside Bluetooth, GPS and Wi-Fi. She never won an Oscar. She was never even nominated. In 2014, the National Inventors Hall of Fame inducted her.",
+    "clueExplanations": [],
+    "evidenceToAnswer": "The board narrows honestly: the piano keeps everyone alive and means nothing until Exhibit V. Vienna retires Rita. The Oscar line tempts you toward Marilyn — the one tap that loses — while silently executing the three winners. The 1937 escape belongs to no American childhood and runs opposite to Grace's fairy tale. The 1942 patent finishes the children of the board. And only one movie star is in the Inventors Hall of Fame.",
+    "majorConnections": [
+      "The player piano → 88 keys → 88 hopping frequencies (co-inventor: composer George Antheil)",
+      "Fritz Mandl's dinner table → torpedo talk → the knowledge she turned against the Axis",
+      "U.S. Patent 2,292,387 (1942) → spread-spectrum radio → Bluetooth, GPS, Wi-Fi",
+      "'The most beautiful woman in the world' → the billing that buried the inventor for fifty years",
+      "No Oscar nomination, ever → National Inventors Hall of Fame, 2014"
+    ],
+    "alternatePaths": [
+      "Invention first: the piano plus the patent",
+      "Biography first: Vienna plus the 1937 escape",
+      "Recognition first: the missing Oscar plus the strange hall of fame"
+    ],
+    "ohMoment": "The most beautiful woman in the world spent her nights at a drafting table — and the idea she patented to sink U-boats is in your pocket right now. The piano was never a piano."
+  },
+  "editorial": {
+    "entryPoints": [
+      {
+        "id": "entry_film",
+        "domain": "Golden-age Hollywood",
+        "description": "The board itself is the doorway for film lovers; the Oscar exhibit speaks their language.",
+        "clueId": "ev_oscars"
+      },
+      {
+        "id": "entry_science",
+        "domain": "Science & technology",
+        "description": "The patent number and frequency hopping are solvable by tech-minded players with zero Hollywood knowledge.",
+        "clueId": "ev_patent"
+      },
+      {
+        "id": "entry_history",
+        "domain": "WWII & women's history",
+        "description": "The 1937 escape and the 2014 recognition tell a history story that needs no film trivia.",
+        "clueId": "ev_escape"
+      }
+    ],
+    "hypotheses": [],
+    "notes": "SUSPECT FUNNEL (6 tiles): the piano is pure atmosphere and pays off at Exhibit V; Vienna retires Rita; the Oscar exhibit is the designed trap (reads as Marilyn's famous snub) while silently killing the three winners; the escape kills Marilyn and Grace; the patent's date finishes Audrey and Liz; the Hall of Fame is the smoking gun. The answer is deliberately NOT the most famous name on the board — Marilyn, Audrey, Liz and Grace all out-fame her, which is the point: recognition arrives with the evidence, not before it. TRAP PATTERN: 'the famous injustice belongs to someone else too.'"
+  }
+}
