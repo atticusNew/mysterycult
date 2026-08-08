@@ -1,0 +1,212 @@
+{
+  "id": "case_005",
+  "version": 2,
+  "title": "Case #005",
+  "question": "What are we looking at?",
+  "answer": {
+    "primary": "Highlander",
+    "aliases": ["highlander", "the highlander", "highlander 1986"]
+  },
+  "type": "film",
+  "category": "Cult cinema",
+  "entityId": "highlander_film",
+  "entity": {
+    "id": "highlander_film",
+    "name": "Highlander",
+    "type": "film",
+    "recognition": "moderate",
+    "longevity": "high",
+    "connectionDensity": "high",
+    "eras": ["1980s", "1990s", "2000s", "2010s", "2020s"],
+    "domains": ["film", "music", "television", "fantasy", "cult culture"]
+  },
+  "lineup": {
+    "answerSuspectId": "s_highlander",
+    "suspects": [
+      {
+        "id": "s_terminator",
+        "label": "The Terminator",
+        "whyPlausible": "The moment two eras appear in one story, time travel screams Terminator — the organic first trap. 1984 and 2029 in one film.",
+        "eliminatedBy": ["ev_casting"]
+      },
+      {
+        "id": "s_flash",
+        "label": "Flash Gordon",
+        "whyPlausible": "The designed trap's destination: when the Queen soundtrack flips, savvy players remember Queen famously scored Flash Gordon. They're right about the band — and wrong about the film.",
+        "eliminatedBy": ["ev_mtv"]
+      },
+      {
+        "id": "s_highlander",
+        "label": "Highlander",
+        "whyPlausible": "The answer. The glen, the four-century span, the Queen soundtrack, the gloriously wrong casting, the music-video director — and six words everyone knows.",
+        "eliminatedBy": []
+      },
+      {
+        "id": "s_conan",
+        "label": "Conan the Barbarian",
+        "whyPlausible": "Swords, mist and myth read Conan as easily as anything — until the story refuses to stay in one century.",
+        "eliminatedBy": ["ev_years"]
+      },
+      {
+        "id": "s_princessbride",
+        "label": "The Princess Bride",
+        "whyPlausible": "The beloved 80s sword fantasy with the era's most quotable lines — a magnet for anyone playing the 'iconic tagline' angle.",
+        "eliminatedBy": ["ev_queen"]
+      },
+      {
+        "id": "s_excalibur",
+        "label": "Excalibur",
+        "whyPlausible": "Misty British hills, ancient blades, destiny — the most literal fit for the opening exhibit.",
+        "eliminatedBy": ["ev_years"]
+      }
+    ]
+  },
+  "clues": [],
+  "evidence": [
+    {
+      "id": "ev_glen",
+      "type": "image",
+      "content": "/assets/cases/case005/glen.jpg",
+      "caption": "Where it begins. Not where it ends.",
+      "diagnosticity": "low",
+      "relatedEntities": ["scottish_highlands", "glenfinnan", "highlander_film"],
+      "authorNotes": {
+        "meaning": "Pure atmosphere: misty hills and a loch fit Excalibur, Conan, any sword myth. It is Glenfinnan country — where the story starts in 1536. The caption is the whole game in eight words: this story does not stay here."
+      }
+    },
+    {
+      "id": "ev_years",
+      "type": "date",
+      "content": "1536 → 1985",
+      "caption": "One story. Both ends.",
+      "diagnosticity": "medium",
+      "relatedEntities": ["time_span", "highlander_film"],
+      "authorNotes": {
+        "meaning": "Four and a half centuries in one film. Conan and Excalibur die here — both live entirely in their ancient worlds. And the trap springs organically: two eras in one story makes players reach for The Terminator, whose time-jump is the most famous in cinema."
+      }
+    },
+    {
+      "id": "ev_queen",
+      "type": "text",
+      "content": "AN ORIGINAL SOUNDTRACK BY QUEEN",
+      "caption": null,
+      "diagnosticity": "medium",
+      "relatedEntities": ["queen_band", "flash_gordon", "highlander_film"],
+      "authorNotes": {
+        "meaning": "The designed trap. Players who know their Queen jump to Flash Gordon — the band's famous 1980 score — and they're not wrong about the history, only the film: Queen scored BOTH movies on this board. 'Princes of the Universe,' 'Who Wants to Live Forever.' The Princess Bride dies quietly here (Mark Knopfler, no Queen)."
+      }
+    },
+    {
+      "id": "ev_casting",
+      "type": "text",
+      "content": "THE SCOTSMAN WAS PLAYED BY A FRENCHMAN. HIS EGYPTIAN MENTOR — BY A SCOT.",
+      "caption": null,
+      "diagnosticity": "high",
+      "relatedEntities": ["christopher_lambert", "sean_connery", "highlander_film"],
+      "authorNotes": {
+        "meaning": "The most gloriously backwards casting of the decade: Christopher Lambert, a Frenchman, as the Highlander; Sean Connery, Scotland itself, as Juan Sánchez-Villalobos Ramírez, an Egyptian posing as a Spaniard. No such absurdity exists in The Terminator — it dies here."
+      }
+    },
+    {
+      "id": "ev_mtv",
+      "type": "text",
+      "content": "ITS DIRECTOR MADE THE FIRST MUSIC VIDEO EVER PLAYED ON MTV",
+      "caption": "August 1, 1981, 12:01 a.m.",
+      "diagnosticity": "high",
+      "relatedEntities": ["russell_mulcahy", "video_killed_the_radio_star", "highlander_film"],
+      "authorNotes": {
+        "meaning": "Russell Mulcahy directed 'Video Killed the Radio Star' — the video that launched MTV — and brought that exact visual grammar to the film. Flash Gordon (directed by Mike Hodges, no music-video history) finally dies, and the trap is fully broken."
+      }
+    },
+    {
+      "id": "ev_tagline",
+      "type": "quote",
+      "content": "There can be only one.",
+      "caption": null,
+      "diagnosticity": "conclusive",
+      "relatedEntities": ["the_quickening", "highlander_film"],
+      "authorNotes": {
+        "meaning": "The smoking gun: six words that everyone has heard, whether or not they know where from. One search settles it — and the reveal gets to enjoy the irony that a film about there being only one spawned four sequels and a TV series."
+      }
+    }
+  ],
+  "investigationPaths": [
+    {
+      "id": "path_music",
+      "name": "The music route",
+      "startingPoint": "Queen and the MTV director",
+      "nodes": ["ev_queen", "ev_mtv"],
+      "target": "Highlander"
+    },
+    {
+      "id": "path_story",
+      "name": "The story route",
+      "startingPoint": "The glen and the four centuries",
+      "nodes": ["ev_glen", "ev_years"],
+      "target": "Highlander"
+    },
+    {
+      "id": "path_trivia",
+      "name": "The casting route",
+      "startingPoint": "The backwards accents",
+      "nodes": ["ev_casting", "ev_tagline"],
+      "target": "Highlander"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint_1",
+      "text": "Queen scored two films on this board. Only one of them also spans four centuries."
+    },
+    {
+      "id": "hint_2",
+      "text": "Follow the director: MTV played his video first."
+    },
+    {
+      "id": "hint_3",
+      "text": "The tagline is six words. You already know it."
+    }
+  ],
+  "reveal": {
+    "summary": "Highlander. It opens in the misty glens of 1536 Scotland and ends in a 1985 New York parking garage, because Connor MacLeod cannot die. Queen wrote the soundtrack — 'Princes of the Universe,' and 'Who Wants to Live Forever' for the century-crossing love story — six years after scoring the other film on this board, Flash Gordon. The casting was gloriously backwards: Frenchman Christopher Lambert as the Scot, Sean Connery as the Egyptian mentor with the Edinburgh accent. Director Russell Mulcahy had made 'Video Killed the Radio Star,' the first video MTV ever aired, and shot the film like the world's longest, best music video. It flopped in theaters, conquered video stores, and its six-word tagline outgrew the movie: there can be only one — followed, inevitably, by four sequels and a television series.",
+    "clueExplanations": [],
+    "evidenceToAnswer": "The funnel: the glen fits every sword myth on the board; the 1536→1985 span kills the single-era epics while luring you toward The Terminator; the Queen soundtrack is a fair trap — the band really did score Flash Gordon too; the backwards casting belongs to no other film; the MTV-director fact finishes Flash Gordon; and the six-word tagline can only be one thing.",
+    "majorConnections": [
+      "Queen → scored both Flash Gordon (1980) and this film (1986) — the board's designed trap",
+      "'Who Wants to Live Forever' → written for the film's century-spanning love story",
+      "Russell Mulcahy → 'Video Killed the Radio Star' → the first video on MTV → the film's visual style",
+      "Christopher Lambert (French) as the Scot; Sean Connery (Scottish) as the Egyptian",
+      "'There can be only one' → four sequels and a TV series anyway"
+    ],
+    "alternatePaths": [
+      "Music first: Queen plus the MTV director",
+      "Story first: the glen plus the four-century span",
+      "Trivia first: the backwards casting plus the tagline"
+    ],
+    "ohMoment": "You were right that Queen scored it — you just picked the wrong film. The moment the four centuries and the backwards accents line up, six words finish it: there can be only one."
+  },
+  "editorial": {
+    "entryPoints": [
+      {
+        "id": "entry_music",
+        "domain": "Music",
+        "description": "Queen and the birth of MTV give music fans two doorways with zero film-nerd knowledge required.",
+        "clueId": "ev_queen"
+      },
+      {
+        "id": "entry_film",
+        "domain": "Cult film",
+        "description": "The casting absurdity and the tagline are legend among genre fans — instant recognition.",
+        "clueId": "ev_casting"
+      },
+      {
+        "id": "entry_story",
+        "domain": "History & myth",
+        "description": "The glen and the 1536→1985 span read as a story puzzle needing no pop-culture recall at all.",
+        "clueId": "ev_years"
+      }
+    ],
+    "hypotheses": [],
+    "notes": "SUSPECT FUNNEL (6 tiles): the glen is atmosphere; the four-century span kills Conan and Excalibur while organically luring players toward The Terminator; the Queen exhibit is the designed trap — factually fair, since Queen scored Flash Gordon AND the answer; the backwards-casting exhibit kills The Terminator; the MTV-director exhibit kills Flash Gordon; the tagline is the smoking gun. The answer is NOT the most famous film on its board (The Terminator and The Princess Bride out-fame it). TRAP PATTERN: 'the connection is real — you've attached it to the wrong suspect' (same DNA as Case #002's Whitney trap)."
+  }
+}

@@ -171,7 +171,7 @@ export default function CasePlayer({
   );
 
   return (
-    <div className="shell">
+    <div className="shell shell--flush">
       <div className="case-topbar">
         <span className="kicker">{caseNumber ?? "Case"}</span>
         <span style={{ display: "flex", gap: 6 }}>
@@ -271,7 +271,6 @@ export default function CasePlayer({
       <section className="section">
         <div className="section-head">
           <span className="kicker kicker--dim">The line-up</span>
-          <span className="badge">{remaining.length} REMAIN</span>
         </div>
 
         {accusing ? (
@@ -314,6 +313,30 @@ export default function CasePlayer({
             );
           })}
         </div>
+
+        {/* actions live inline under the board */}
+        {!accusing ? (
+          <div className="action-row">
+            {caseData.hints.length > 0 ? (
+              <button
+                className="btn"
+                disabled={session.hintsUsed >= MAX_HINTS}
+                onClick={() => {
+                  setShowHints(true);
+                  act({ type: "USE_HINT" });
+                }}
+              >
+                {session.hintsUsed >= MAX_HINTS ? "Hint used" : "Hint"}
+              </button>
+            ) : null}
+            <button
+              className="btn btn--accuse-solid"
+              onClick={() => act({ type: "OPEN_ACCUSE" })}
+            >
+              Accuse
+            </button>
+          </div>
+        ) : null}
       </section>
 
       {/* hints */}
@@ -327,41 +350,6 @@ export default function CasePlayer({
           ))}
         </section>
       ) : null}
-
-      {/* dock */}
-      <div className="dock">
-        <div className="dock-inner">
-          {accusing ? (
-            <button
-              className="btn"
-              onClick={() => act({ type: "CANCEL_ACCUSE" })}
-            >
-              Keep investigating
-            </button>
-          ) : (
-            <>
-              {caseData.hints.length > 0 ? (
-                <button
-                  className="btn"
-                  disabled={session.hintsUsed >= MAX_HINTS}
-                  onClick={() => {
-                    setShowHints(true);
-                    act({ type: "USE_HINT" });
-                  }}
-                >
-                  {session.hintsUsed >= MAX_HINTS ? "Hint used" : "Hint"}
-                </button>
-              ) : null}
-              <button
-                className="btn btn--accuse-solid"
-                onClick={() => act({ type: "OPEN_ACCUSE" })}
-              >
-                Accuse
-              </button>
-            </>
-          )}
-        </div>
-      </div>
 
       {/* how to play */}
       {showHelp ? (

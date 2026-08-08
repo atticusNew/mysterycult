@@ -828,46 +828,21 @@ h3 {
   color: var(--ink);
 }
 
-/* ------------------------------------------------------------------ dock */
+/* ------------------------------------------------------------ action row */
 
-.dock {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 26px 16px calc(14px + env(safe-area-inset-bottom));
+/* inline actions under the board, NYT-game style */
+.action-row {
   display: flex;
   justify-content: center;
-  z-index: 20;
-  pointer-events: none;
+  gap: 10px;
+  margin-top: 22px;
 }
 
-/* floating control bar, clearly separated from the page */
-.dock-inner {
-  pointer-events: auto;
-  width: 100%;
-  max-width: 528px;
-  display: flex;
-  gap: 8px;
-  background: var(--card);
-  border-radius: 999px;
-  padding: 8px;
-  box-shadow: var(--shadow-md), 0 0 0 1px var(--line);
-}
-
-.dock-inner .btn {
-  flex: 1;
+.action-row .btn {
+  min-width: 130px;
   padding-top: 14px;
   padding-bottom: 14px;
   font-size: 16px;
-}
-
-.dock-inner .btn:not(.btn--accuse-solid) {
-  background: transparent;
-}
-
-.dock-inner .btn:not(.btn--accuse-solid):hover {
-  background: var(--tile);
 }
 
 /* --------------------------------------------------------------- overlays */

@@ -10,6 +10,7 @@ import jonStewartCase from "./cases/case_jon_stewart_test.json";
 import caseTwo from "./cases/case_002.json";
 import caseThree from "./cases/case_003.json";
 import caseFour from "./cases/case_004.json";
+import caseFive from "./cases/case_005.json";
 import { parseCase } from "./schema";
 import { validateCase } from "../authoring/CaseValidator";
 import type { CaseData } from "../models/types";
@@ -76,5 +77,9 @@ describe("shipped case files", () => {
 
   it("case #004 validates cleanly and satisfies the funnel", () => {
     expectFunnel(expectClean(caseFour));
+  });
+
+  it("case #005 validates cleanly and satisfies the funnel", () => {
+    expectFunnel(expectClean(caseFive));
   });
 });
