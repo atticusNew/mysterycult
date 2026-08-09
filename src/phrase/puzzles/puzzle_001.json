@@ -1,7 +1,7 @@
 {
   "id": "phrase_001",
   "version": 1,
-  "title": "ThroughLines #001",
+  "title": "ThruLines #001",
   "phrase": "There can be only one",
   "connection": {
     "primary": "Highlander",
@@ -12,6 +12,7 @@
       "highlander the movie"
     ]
   },
+  "genre": "Movie",
   "questions": [
     {
       "id": "q_band",

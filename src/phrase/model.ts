@@ -11,7 +11,7 @@
  */
 import type { AnswerSpec } from "../models/types";
 
-export const PHRASE_GAME_TITLE = "ThroughLines";
+export const PHRASE_GAME_TITLE = "ThruLines";
 export const CURRENT_PUZZLE_VERSION = 1;
 
 export interface PhraseQuestion {
@@ -50,6 +50,8 @@ export interface PhrasePuzzle {
   phrase: string;
   /** The entity connecting the questions and the phrase. Bonus target. */
   connection: AnswerSpec;
+  /** Player-visible genre pill (Movie, TV Show, Song…). Sets the arena. */
+  genre: string;
   /** Question ORDER matters: question k reveals letter positions k, k+5, … */
   questions: PhraseQuestion[];
   /** Purchasable hints (10 points each). Empty string = hint not offered. */
@@ -139,6 +141,7 @@ export function parsePuzzle(raw: unknown): PuzzleParseResult {
     title: asString(raw.title),
     phrase: asString(raw.phrase),
     connection: parseAnswerSpec(raw.connection),
+    genre: asString(raw.genre),
     questions,
     hints: {
       category: asString(hintsRecord.category),
@@ -206,6 +209,7 @@ export function blankPuzzle(): PhrasePuzzle {
     title: "New Puzzle",
     phrase: "",
     connection: { primary: "", aliases: [] },
+    genre: "",
     questions: [blankQuestion(), blankQuestion(), blankQuestion(), blankQuestion(), blankQuestion()],
     hints: { category: "", decade: "" },
     reveal: { summary: "", ohMoment: "" },

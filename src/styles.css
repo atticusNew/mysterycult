@@ -894,8 +894,37 @@ h3 {
 }
 
 .fhead .score-chip {
-  font-size: 11px;
-  padding: 4px 9px;
+  font-size: 12px;
+  padding: 5px 11px;
+  background: var(--gold);
+  color: var(--ink);
+  box-shadow: 0 1px 4px rgba(233, 185, 73, 0.4);
+}
+
+.fhead-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.genre-pill {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: var(--ink);
+  color: var(--bg);
+  border-radius: 999px;
+  padding: 3px 9px;
+  flex-shrink: 0;
+}
+
+/* solve-mode focus: everything but tiles + keyboard steps back */
+.dim {
+  opacity: 0.35;
+  transition: opacity 0.2s ease;
 }
 
 /* answers under the board */
@@ -962,14 +991,25 @@ h3 {
   transform: scale(0.96);
 }
 
+/* five cells: the odd one out spans the full bottom row */
+.cat-grid .cat-cell:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
 .cat-cell--ok {
-  filter: saturate(0.45) brightness(1.02);
-  opacity: 0.7;
+  filter: saturate(0.35);
+  opacity: 0.75;
+}
+
+.cat-cell--ok .cat-cell-name,
+.cat-cell--bad .cat-cell-name {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
 }
 
 .cat-cell--bad {
   filter: grayscale(0.85);
-  opacity: 0.5;
+  opacity: 0.55;
 }
 
 .cat-cell-name {
@@ -979,8 +1019,27 @@ h3 {
 }
 
 .cat-cell-state {
-  font-size: 14px;
   flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+}
+
+.cat-cell--ok .cat-cell-state {
+  color: var(--green);
+}
+
+.cat-cell--bad .cat-cell-state {
+  color: var(--red);
+}
+
+.cat-cell:not(.cat-cell--ok):not(.cat-cell--bad) .cat-cell-state {
+  display: none;
 }
 
 /* focused question card — categories step aside */
@@ -998,10 +1057,16 @@ h3 {
 }
 
 .focus-question {
+  flex: 1;
   margin: 0;
-  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 17px;
   font-weight: 500;
-  line-height: 1.4;
+  line-height: 1.45;
+  padding: 0 10px;
 }
 
 /* toast */
@@ -1151,8 +1216,8 @@ h3 {
 }
 
 .kb-key--go {
-  background: var(--ink);
-  color: var(--bg);
+  background: var(--green);
+  color: #fff;
 }
 
 .kb-key--go:disabled {
@@ -1282,6 +1347,27 @@ h3 {
 
 .phrase-board--dense .pword {
   gap: 3px;
+}
+
+/* very long phrases (48+ letters) */
+.phrase-board--ultra {
+  gap: 5px 10px;
+}
+
+.phrase-board--ultra .ptile {
+  width: 17px;
+  height: 23px;
+  font-size: 12px;
+  border-radius: 4px;
+}
+
+.phrase-board--ultra .pword {
+  gap: 2px;
+}
+
+.phrase-board--ultra .ppunct {
+  font-size: 16px;
+  padding-bottom: 2px;
 }
 
 .mode-row {
@@ -1476,14 +1562,20 @@ h3 {
 }
 
 .qchip--solve {
-  background: transparent;
-  box-shadow: inset 0 0 0 1.5px var(--red) !important;
+  background: var(--card);
+  box-shadow: var(--shadow-sm), inset 0 0 0 2px var(--red) !important;
   color: var(--red);
 }
 
 .qchip--solve-active {
   background: var(--red);
   color: #fff;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.qchip--solve:disabled {
+  cursor: default;
+  opacity: 0.7;
 }
 
 .qchip--tempt {
@@ -1510,15 +1602,23 @@ h3 {
   cursor: default;
 }
 
-/* the theme button — the primary goal */
+/* the goal + bonus buttons: solid, opaque, one axis */
+.mode-row .qchip {
+  flex: 1;
+  max-width: 240px;
+  padding: 11px 10px;
+  border-radius: 12px;
+  opacity: 1;
+}
+
 .qchip--theme {
   background: var(--gold);
   color: var(--ink);
-  box-shadow: 0 2px 8px rgba(233, 185, 73, 0.35);
+  box-shadow: var(--shadow-sm) !important;
 }
 
 .qchip--theme:hover:not(:disabled) {
-  filter: brightness(1.05);
+  filter: brightness(1.04);
 }
 
 .qchip--theme-active {

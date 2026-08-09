@@ -4,6 +4,10 @@ import demoPuzzleTwo from "./puzzles/puzzle_002.json";
 import demoPuzzleThree from "./puzzles/puzzle_003.json";
 import demoPuzzleFour from "./puzzles/puzzle_004.json";
 import demoPuzzleFive from "./puzzles/puzzle_005.json";
+import demoPuzzleSix from "./puzzles/puzzle_006.json";
+import demoPuzzleSeven from "./puzzles/puzzle_007.json";
+import demoPuzzleEight from "./puzzles/puzzle_008.json";
+import demoPuzzleNine from "./puzzles/puzzle_009.json";
 import template from "./puzzles/puzzle_template.json";
 import { parsePuzzle } from "./model";
 import {
@@ -259,6 +263,10 @@ describe("shipped puzzles", () => {
       demoPuzzleThree,
       demoPuzzleFour,
       demoPuzzleFive,
+      demoPuzzleSix,
+      demoPuzzleSeven,
+      demoPuzzleEight,
+      demoPuzzleNine,
     ].forEach((raw) => {
       const { puzzle: parsed, errors } = parsePuzzle(raw);
       expect(errors).toHaveLength(0);

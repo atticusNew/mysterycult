@@ -1,7 +1,7 @@
 {
   "id": "phrase_005",
   "version": 1,
-  "title": "ThroughLines #005",
+  "title": "ThruLines #005",
   "phrase": "How come you never take me to the airport anymore?",
   "connection": {
     "primary": "When Harry Met Sally",
@@ -12,6 +12,7 @@
       "whms"
     ]
   },
+  "genre": "Movie",
   "questions": [
     {
       "id": "q_deli",

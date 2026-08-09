@@ -1,0 +1,106 @@
+{
+  "id": "phrase_009",
+  "version": 1,
+  "title": "ThruLines #009",
+  "phrase": "For well you know that it's a fool who plays it cool",
+  "connection": {
+    "primary": "Hey Jude",
+    "aliases": [
+      "hey jude",
+      "hey jude beatles",
+      "hey jude the beatles"
+    ]
+  },
+  "genre": "Song",
+  "questions": [
+    {
+      "id": "q_bowser",
+      "subject": "Music",
+      "prompt": "Bowser was the greaser frontman of which doo-wop revival group?",
+      "answer": {
+        "primary": "Sha Na Na",
+        "aliases": [
+          "shanana",
+          "sha-na-na",
+          "sha na na na"
+        ]
+      },
+      "letter": "",
+      "factoid": "",
+      "connectionNote": "Na, na, na, na-na-na-na — the most famous coda in music runs four minutes on those syllables."
+    },
+    {
+      "id": "q_split",
+      "subject": "Life",
+      "prompt": "What's it called when a married couple officially calls it quits?",
+      "answer": {
+        "primary": "Divorce",
+        "aliases": [
+          "a divorce",
+          "divorced",
+          "getting divorced"
+        ]
+      },
+      "letter": "",
+      "factoid": "",
+      "connectionNote": "Paul wrote it driving out to comfort five-year-old Julian Lennon during John and Cynthia's divorce."
+    },
+    {
+      "id": "q_golf",
+      "subject": "Sports",
+      "prompt": "What do you yell when a golf ball might hit someone?",
+      "answer": {
+        "primary": "Fore",
+        "aliases": [
+          "fore!",
+          "four"
+        ]
+      },
+      "letter": "",
+      "factoid": "",
+      "connectionNote": "'For well you know…' — the first word of the line on the board is hiding in a golf shout."
+    },
+    {
+      "id": "q_cranston",
+      "subject": "Television",
+      "prompt": "What's the last name of Bryan Cranston's character in Breaking Bad?",
+      "answer": {
+        "primary": "White",
+        "aliases": [
+          "walter white",
+          "mr white"
+        ]
+      },
+      "letter": "",
+      "factoid": "",
+      "connectionNote": "White — recorded in 1968, the same sessions and summer as The White Album."
+    },
+    {
+      "id": "q_beetle",
+      "subject": "Nature",
+      "prompt": "Which insect almost shares its name with the Fab Four?",
+      "answer": {
+        "primary": "Beetle",
+        "aliases": [
+          "a beetle",
+          "beetles",
+          "the beetle"
+        ]
+      },
+      "letter": "",
+      "factoid": "",
+      "connectionNote": "The band itself — one vowel away from the bug, on purpose."
+    }
+  ],
+  "hints": {
+    "category": "",
+    "decade": ""
+  },
+  "reveal": {
+    "summary": "Hey Jude. Sha Na Na is the na-na-na coda, the divorce is the one Paul drove out to soften for little Julian Lennon, 'fore' is the first word of the line on the board, White is the album summer it was born in, and the Beatles are one vowel from the bug. The line itself is the song's quiet center: don't play it cool.",
+    "ohMoment": "The golf shout was the giveaway all along — 'Fore' is the first word of the line you were staring at."
+  },
+  "editorial": {
+    "notes": "Q5 placeholder: author's original was 'A pet parrot might like to sit here' -> PERCH; intended link unconfirmed, swapped for the Beetle question pending the author's explanation. Phrase trimmed at the natural rhyme break ('...plays it cool', 40 letters) so the board stays playable while keeping the FORE hook. Single-line lyric usage noted as acceptable for testing."
+  }
+}

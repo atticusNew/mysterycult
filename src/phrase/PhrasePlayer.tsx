@@ -94,6 +94,7 @@ export default function PhrasePlayer({
   const themeAttemptsLeft = THEME_ATTEMPTS - session.wrongThemes.length;
   const score = liveScore(puzzle, session);
   const dense = letters.length > 30;
+  const ultraDense = letters.length > 48;
   const correctAnswers = puzzle.questions.filter(
     (question) => session.questionStatus[question.id] === "correct",
   );
@@ -255,14 +256,22 @@ export default function PhrasePlayer({
       act({ type: "ANSWER_QUESTION", questionId: question.id, answer: value });
       setValue("");
       setFlash(correct ? "ok" : "bad");
-      if (correct) {
-        advanceTimer.current = window.setTimeout(() => {
+      advanceTimer.current = window.setTimeout(
+        () => {
           setFlash(null);
           const next = nextOpenQuestion(index);
-          setMode(next >= 0 ? { kind: "question", index: next } : { kind: "idle" });
+          // No questions left → straight to the thruline guess.
+          setMode(
+            next >= 0
+              ? { kind: "question", index: next }
+              : session.connectionResult === null
+                ? { kind: "theme" }
+                : { kind: "idle" },
+          );
           advanceTimer.current = null;
-        }, 1100);
-      }
+        },
+        correct ? 1100 : 1400,
+      );
       return;
     }
     if (effectiveMode.kind === "solve") {
@@ -302,7 +311,7 @@ export default function PhrasePlayer({
     const cursorSlot = typed.length;
     return (
       <div
-        className={`phrase-board${dense ? " phrase-board--dense" : ""}${
+        className={`phrase-board${dense ? " phrase-board--dense" : ""}${ultraDense ? " phrase-board--ultra" : ""}${
           shake ? " phrase-board--shake" : ""
         }${!gameOver && !session.solved ? " phrase-board--tappable" : ""}`}
         onClick={
@@ -393,7 +402,7 @@ export default function PhrasePlayer({
     return (
       <div className="shell shell--flush pshell">
         <div className="case-topbar">
-          <span className="kicker">{puzzle.title || "ThroughLines"}</span>
+          <span className="kicker">{puzzle.title || "ThruLines"}</span>
           <span style={{ display: "flex", gap: 6 }}>
             {onRestart ? (
               <button className="icon-round" title="Restart" onClick={onRestart}>
@@ -414,7 +423,7 @@ export default function PhrasePlayer({
           }`}
         >
           {session.connectionResult === "correct"
-            ? "Throughline found"
+            ? "ThruLine found"
             : "It went cold"}
         </span>
         <p className="badge" style={{ display: "block", marginTop: 6 }}>
@@ -426,7 +435,7 @@ export default function PhrasePlayer({
         </div>
 
         <div className="section">
-          <span className="kicker kicker--gold">The throughline</span>
+          <span className="kicker kicker--gold">The thruline</span>
           <h1 className="display" style={{ marginTop: 6 }}>
             {puzzle.connection.primary || "—"}
             {session.connectionResult === "correct" ? " ✓" : ""}
@@ -518,7 +527,7 @@ export default function PhrasePlayer({
           ? "Phrase complete ⭐"
           : `Fill the empty tiles — ${Math.max(hiddenSlots.length - typed.length, 0)} to go`
         : effectiveMode.kind === "theme"
-          ? `The throughline is… (${themeAttemptsLeft} guess${
+          ? `The thruline is… (${themeAttemptsLeft} guess${
               themeAttemptsLeft === 1 ? "" : "es"
             })`
           : activeStatus === "open"
@@ -533,7 +542,12 @@ export default function PhrasePlayer({
       <div className="fstage-inner">
         {/* header */}
         <div className="fhead">
-          <span className="fhead-title">{puzzle.title || "ThroughLines"}</span>
+          <span className="fhead-left">
+            <span className="fhead-title">{puzzle.title || "ThruLines"}</span>
+            {puzzle.genre.trim() ? (
+              <span className="genre-pill">{puzzle.genre}</span>
+            ) : null}
+          </span>
           <span className="fhead-tools">
             <span className="score-chip" key={score}>
               {score}
@@ -568,7 +582,7 @@ export default function PhrasePlayer({
 
         {/* the answers, collecting as you earn them */}
         {correctAnswers.length > 0 ? (
-          <div className="answers-line">
+          <div className={`answers-line${effectiveMode.kind === "solve" ? " dim" : ""}`}>
             <span className="answers-label">Answers</span>
             <span className="answers-items">
               {correctAnswers.map((question) => (
@@ -637,7 +651,7 @@ export default function PhrasePlayer({
           })()
         ) : (
           /* category select — a compact grid, nothing scrolls */
-          <div className="cat-grid">
+          <div className={`cat-grid${effectiveMode.kind === "solve" ? " dim" : ""}`}>
             {puzzle.questions.map((question, index) => {
               const status = session.questionStatus[question.id];
               const color = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
@@ -680,7 +694,7 @@ export default function PhrasePlayer({
             >
               {session.connectionResult === "correct"
                 ? `${puzzle.connection.primary} ✓`
-                : `Throughline${
+                : `ThruLine${
                     mode.kind === "theme" ? ` · ${themeAttemptsLeft} left` : " +50"
                   }`}
             </button>
@@ -735,12 +749,8 @@ export default function PhrasePlayer({
             </div>
           ))}
           <div className="kb-row">
-            <button
-              className="kb-key kb-key--wide kb-key--go"
-              disabled={!canSubmit}
-              onClick={() => pressKey("ENTER")}
-            >
-              ENTER
+            <button className="kb-key kb-key--wide" onClick={() => pressKey("BACK")}>
+              ⌫
             </button>
             <button
               className="kb-key kb-key--space"
@@ -748,8 +758,12 @@ export default function PhrasePlayer({
             >
               ␣
             </button>
-            <button className="kb-key kb-key--wide" onClick={() => pressKey("BACK")}>
-              ⌫
+            <button
+              className="kb-key kb-key--wide kb-key--go"
+              disabled={!canSubmit}
+              onClick={() => pressKey("ENTER")}
+            >
+              ENTER
             </button>
           </div>
         </div>
@@ -769,7 +783,7 @@ export default function PhrasePlayer({
                 attempt each — correct answers light up letters in the phrase.
               </li>
               <li>
-                <strong>Find the throughline — that's the win.</strong> All
+                <strong>Find the thruline — that's the win.</strong> All
                 five answers and the phrase share one secret.{" "}
                 {THEME_ATTEMPTS} guesses, +50.
               </li>

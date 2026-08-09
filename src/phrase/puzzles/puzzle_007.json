@@ -1,0 +1,104 @@
+{
+  "id": "phrase_007",
+  "version": 1,
+  "title": "ThruLines #007",
+  "phrase": "They're not scared of you. They're scared of what you represent to 'em.",
+  "connection": {
+    "primary": "Easy Rider",
+    "aliases": [
+      "easy rider",
+      "easy rider 1969",
+      "easy rider movie"
+    ]
+  },
+  "genre": "Movie",
+  "questions": [
+    {
+      "id": "q_producer",
+      "subject": "Music",
+      "prompt": "Which music producer created the 'Wall of Sound'?",
+      "answer": {
+        "primary": "Phil Spector",
+        "aliases": [
+          "spector",
+          "philip spector"
+        ]
+      },
+      "letter": "",
+      "factoid": "",
+      "connectionNote": "Spector actually appears in the film — he plays the drug dealer in the opening deal."
+    },
+    {
+      "id": "q_bogart",
+      "subject": "Old Hollywood",
+      "prompt": "What's the last name of Casablanca star Humphrey?",
+      "answer": {
+        "primary": "Bogart",
+        "aliases": [
+          "humphrey bogart"
+        ]
+      },
+      "letter": "",
+      "factoid": "",
+      "connectionNote": "'Don't Bogart Me' is on the soundtrack — the slang for hogging a joint comes from Bogart's dangling cigarette."
+    },
+    {
+      "id": "q_bikes",
+      "subject": "Transportation",
+      "prompt": "Chopper, hog and cruiser are all types of what?",
+      "answer": {
+        "primary": "Motorcycles",
+        "aliases": [
+          "motorcycle",
+          "motorbikes",
+          "bikes"
+        ]
+      },
+      "letter": "",
+      "factoid": "",
+      "connectionNote": "The whole film is the ride — Captain America's chopper is the most famous motorcycle in movie history."
+    },
+    {
+      "id": "q_cemetery",
+      "subject": "Words",
+      "prompt": "What's another word for a cemetery?",
+      "answer": {
+        "primary": "Graveyard",
+        "aliases": [
+          "a graveyard",
+          "graveyards",
+          "burial ground"
+        ]
+      },
+      "letter": "",
+      "factoid": "",
+      "connectionNote": "The New Orleans cemetery sequence — shot in St. Louis Cemetery No. 1, which banned filming afterward."
+    },
+    {
+      "id": "q_birthplace",
+      "subject": "Literature",
+      "prompt": "In which city was Interview with the Vampire author Anne Rice born?",
+      "answer": {
+        "primary": "New Orleans",
+        "aliases": [
+          "new orleans louisiana",
+          "nola"
+        ]
+      },
+      "letter": "",
+      "factoid": "",
+      "connectionNote": "The destination: Wyatt and Billy are riding to Mardi Gras in New Orleans."
+    }
+  ],
+  "hints": {
+    "category": "",
+    "decade": ""
+  },
+  "reveal": {
+    "summary": "Easy Rider. A producer who's in the movie, the slang on its soundtrack, the machines it rides, the graveyard it trips through, and the city it's riding toward. The line is Jack Nicholson's campfire speech about freedom — the movie's whole thesis in two sentences.",
+    "ohMoment": "Phil Spector wasn't a music question — he was in the opening scene, selling the coke that pays for the ride."
+  },
+  "editorial": {
+    "notes": "Fact fix applied: Anne Rice wrote Interview with the Vampire (Dracula is Bram Stoker) — prompt corrected accordingly. Phrase is Nicholson's campfire speech; 54 letters, dense tier."
+  }
+}

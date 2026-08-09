@@ -145,12 +145,12 @@ export function validatePuzzle(puzzle: PhrasePuzzle): PuzzleReport {
     }
   });
 
-  if (!puzzle.hints.category.trim()) {
+  if (!puzzle.genre.trim()) {
     issues.push(
       issue(
         "warning",
-        "missing_category_hint",
-        "No category hint authored — that hint button won't appear in play.",
+        "missing_genre",
+        "No genre set (Movie, TV Show, Song…) — the genre pill anchors the search space.",
       ),
     );
   }

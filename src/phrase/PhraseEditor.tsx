@@ -231,6 +231,16 @@ export default function PhraseEditor() {
             onChange={(event) => update({ phrase: event.target.value })}
           />
         </Field>
+        <Field
+          label="Genre"
+          hint="Player-visible pill that sets the arena: Movie, TV Show, Song…"
+        >
+          <input
+            className="input"
+            value={puzzle.genre}
+            onChange={(event) => update({ genre: event.target.value })}
+          />
+        </Field>
         <div className="form-row">
           <Field label="The connection (bonus answer)">
             <input

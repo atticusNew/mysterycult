@@ -1,0 +1,84 @@
+{
+  "id": "phrase_006",
+  "version": 1,
+  "title": "ThruLines #006",
+  "phrase": "I may be the voice of my generation. Or at least a voice. Of a generation.",
+  "connection": {
+    "primary": "Girls",
+    "aliases": ["girls", "girls hbo", "girls tv show", "hbo girls"]
+  },
+  "genre": "TV Show",
+  "questions": [
+    {
+      "id": "q_drummer",
+      "subject": "Music",
+      "prompt": "Who was the drummer for Bad Company?",
+      "answer": {
+        "primary": "Simon Kirke",
+        "aliases": ["kirke", "simon kirk"]
+      },
+      "letter": "",
+      "factoid": "",
+      "connectionNote": "Kirke — as in his daughter Jemima Kirke, the show's Jessa."
+    },
+    {
+      "id": "q_anchor",
+      "subject": "News",
+      "prompt": "Which news anchor was suspended for falsely claiming his helicopter was hit in Iraq?",
+      "answer": {
+        "primary": "Brian Williams",
+        "aliases": ["williams", "brian william"]
+      },
+      "letter": "",
+      "factoid": "",
+      "connectionNote": "Williams — as in his daughter Allison Williams, the show's Marnie."
+    },
+    {
+      "id": "q_playwright",
+      "subject": "Theater",
+      "prompt": "Which Pulitzer-winning playwright wrote Glengarry Glen Ross?",
+      "answer": {
+        "primary": "David Mamet",
+        "aliases": ["mamet"]
+      },
+      "letter": "",
+      "factoid": "",
+      "connectionNote": "Mamet — as in his daughter Zosia Mamet, the show's Shoshanna."
+    },
+    {
+      "id": "q_beckham",
+      "subject": "Celebrity",
+      "prompt": "What is the first name of David and Victoria Beckham's eldest son?",
+      "answer": {
+        "primary": "Brooklyn",
+        "aliases": ["brooklyn beckham"]
+      },
+      "letter": "",
+      "factoid": "",
+      "connectionNote": "Brooklyn — the borough where the whole show lives."
+    },
+    {
+      "id": "q_ventriloquist",
+      "subject": "Comedy",
+      "prompt": "What's the last name of the Blue Collar Comedy Tour's famous ventriloquist?",
+      "answer": {
+        "primary": "Dunham",
+        "aliases": ["jeff dunham"]
+      },
+      "letter": "",
+      "factoid": "",
+      "connectionNote": "Dunham — as in Lena Dunham, who created the show and said the line."
+    }
+  ],
+  "hints": {
+    "category": "",
+    "decade": ""
+  },
+  "reveal": {
+    "summary": "Girls. A drummer, an anchor, a playwright, a Beckham and a ventriloquist — and four of the five answers are the famous parents (and one borough) behind the cast: Simon Kirke (Jemima), Brian Williams (Allison), David Mamet (Zosia), Lena Dunham's namesake in comedy, and Brooklyn itself. The line is Hannah Horvath's all-time hedge, from the pilot.",
+    "ohMoment": "The answers were the parents all along — the most famous surnames in the credits, hiding in plain sight."
+  },
+  "editorial": {
+    "notes": "Signature construction: every answer is a cast member's famous relative (plus the borough). Phrase trimmed from the full pilot line ('I don't want to freak you out, but…') to the famous kernel so the board stays playable — 56 letters is already the dense tier."
+  }
+}

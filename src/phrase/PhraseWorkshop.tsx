@@ -17,6 +17,10 @@ import demoPuzzleTwo from "./puzzles/puzzle_002.json";
 import demoPuzzleThree from "./puzzles/puzzle_003.json";
 import demoPuzzleFour from "./puzzles/puzzle_004.json";
 import demoPuzzleFive from "./puzzles/puzzle_005.json";
+import demoPuzzleSix from "./puzzles/puzzle_006.json";
+import demoPuzzleSeven from "./puzzles/puzzle_007.json";
+import demoPuzzleEight from "./puzzles/puzzle_008.json";
+import demoPuzzleNine from "./puzzles/puzzle_009.json";
 
 export default function PhraseWorkshop() {
   const navigate = useNavigate();
@@ -74,7 +78,17 @@ export default function PhraseWorkshop() {
         >
           Import JSON
         </button>
-        {[demoPuzzle, demoPuzzleTwo, demoPuzzleThree, demoPuzzleFour, demoPuzzleFive].map((raw, index) => (
+        {[
+          demoPuzzle,
+          demoPuzzleTwo,
+          demoPuzzleThree,
+          demoPuzzleFour,
+          demoPuzzleFive,
+          demoPuzzleSix,
+          demoPuzzleSeven,
+          demoPuzzleEight,
+          demoPuzzleNine,
+        ].map((raw, index) => (
           <button
             key={index}
             className="btn"
@@ -83,7 +97,7 @@ export default function PhraseWorkshop() {
               if (puzzle) openDraft(puzzle);
             }}
           >
-            Load demo #{`00${index + 1}`}
+            Load demo #{String(index + 1).padStart(3, "0")}
           </button>
         ))}
       </div>

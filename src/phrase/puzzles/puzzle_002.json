@@ -1,7 +1,7 @@
 {
   "id": "phrase_002",
   "version": 1,
-  "title": "ThroughLines #002",
+  "title": "ThruLines #002",
   "phrase": "Houston, we have a problem",
   "connection": {
     "primary": "Apollo 13",
@@ -13,6 +13,7 @@
       "the apollo 13 mission"
     ]
   },
+  "genre": "Movie",
   "questions": [
     {
       "id": "q_actor",

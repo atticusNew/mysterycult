@@ -1,7 +1,7 @@
 {
   "id": "phrase_003",
   "version": 1,
-  "title": "ThroughLines #003",
+  "title": "ThruLines #003",
   "phrase": "Frankly, my dear, I don't give a damn",
   "connection": {
     "primary": "Gone with the Wind",
@@ -12,6 +12,7 @@
       "gone with the wind 1939"
     ]
   },
+  "genre": "Movie",
   "questions": [
     {
       "id": "q_city",
