@@ -12,6 +12,7 @@ import {
   unpublishPuzzle,
 } from "./store";
 import demoPuzzle from "./puzzles/puzzle_001.json";
+import { buildTransferUrl } from "../app/transfer";
 import demoPuzzleTwo from "./puzzles/puzzle_002.json";
 import demoPuzzleThree from "./puzzles/puzzle_003.json";
 import demoPuzzleFour from "./puzzles/puzzle_004.json";
@@ -146,6 +147,20 @@ export default function PhraseWorkshop() {
                 >
                   Play
                 </Link>
+                <button
+                  className="btn btn--small"
+                  title="Copy a link that installs this puzzle on another device"
+                  onClick={async () => {
+                    await navigator.clipboard?.writeText(
+                      buildTransferUrl("puzzle", entry.puzzle),
+                    );
+                    alert(
+                      "Link copied. Send it to your phone (AirDrop, Messages, Notes) and open it there.",
+                    );
+                  }}
+                >
+                  Device link
+                </button>
                 <button
                   className="btn btn--small btn--ghost btn--danger"
                   onClick={() => {

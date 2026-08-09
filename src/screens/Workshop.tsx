@@ -11,6 +11,7 @@ import { CASE_WORKSHEET_TEMPLATE } from "../authoring/worksheetTemplate";
 import { listPublishedCases, unpublishCase } from "../data/caseLibrary";
 import { parseCase } from "../data/schema";
 import { isCleanHome, setCleanHome } from "../app/settings";
+import { buildTransferUrl } from "../app/transfer";
 import jonStewartTestCase from "../data/cases/case_jon_stewart_test.json";
 import caseTwo from "../data/cases/case_002.json";
 import caseThree from "../data/cases/case_003.json";
@@ -178,6 +179,20 @@ export default function Workshop() {
                 >
                   Play
                 </Link>
+                <button
+                  className="btn btn--small"
+                  title="Copy a link that installs this case on another device"
+                  onClick={async () => {
+                    await navigator.clipboard?.writeText(
+                      buildTransferUrl("case", entry.caseData),
+                    );
+                    alert(
+                      "Link copied. Send it to your phone (AirDrop, Messages, Notes) and open it there.",
+                    );
+                  }}
+                >
+                  Device link
+                </button>
                 <button
                   className="btn btn--small btn--ghost btn--danger"
                   onClick={() => {

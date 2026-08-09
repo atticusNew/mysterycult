@@ -8,6 +8,7 @@ import PlayPuzzle from "../phrase/PlayPuzzle";
 import PhraseWorkshop from "../phrase/PhraseWorkshop";
 import PhraseEditor from "../phrase/PhraseEditor";
 import PhrasePreview from "../phrase/PhrasePreview";
+import TransferReceive from "../screens/TransferReceive";
 
 export default function App() {
   return (
@@ -28,6 +29,8 @@ export default function App() {
         path="/tagline/workshop/:draftId/preview"
         element={<PhrasePreview />}
       />
+      {/* device-to-device content transfer */}
+      <Route path="/transfer/:kind/:data" element={<TransferReceive />} />
     </Routes>
   );
 }
