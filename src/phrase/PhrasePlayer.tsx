@@ -1,13 +1,12 @@
 /**
- * Tagline player v7 — the locked stage, vertical categories.
+ * Tagline player v8 — zero native inputs.
  *
- * Layout (top to bottom, all locked, nothing ever scrolls the page):
- *   board → five full-width category rows stacked vertically (the question
- *   reveals INSIDE the row you tap) → Solve/Theme buttons → the input.
+ * The OS keyboard is never invoked: a built-in game keyboard lives at the
+ * bottom of a fixed stage, so the screen cannot jump — on any device.
+ * Physical keyboards work too (desktop types straight in).
  *
- * The stage is sized AND positioned by the visual viewport, so when the
- * mobile keyboard opens the whole game follows the visible area exactly —
- * board, active question and input all remain on screen.
+ * Layout, all locked: header → board → category rows (question reveals
+ * inside the tapped row) → Solve/Theme → entry line → game keyboard.
  */
 import { useEffect, useMemo, useRef, useState, useReducer } from "react";
 import type { PhrasePuzzle } from "./model";
@@ -37,6 +36,10 @@ const CATEGORY_COLORS = ["#4e7fc4", "#c75d94", "#d97f35", "#8a63b3", "#3f8f7d"];
 /** Delay before tiles cascade, so the ✓ lands first. */
 const CASCADE_DELAY_MS = 300;
 
+const KEY_ROWS = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"];
+const DIGIT_ROW = "1234567890";
+const MAX_ENTRY = 48;
+
 interface Props {
   puzzle: PhrasePuzzle;
   onExit: () => void;
@@ -58,18 +61,16 @@ export default function PhrasePlayer({
   );
   const [mode, setMode] = useState<Mode>({ kind: "idle" });
   const [value, setValue] = useState("");
+  const [digits, setDigits] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [copied, setCopied] = useState(false);
   const [shake, setShake] = useState(false);
   const [flash, setFlash] = useState<"ok" | "bad" | null>(null);
   const [lastBatch, setLastBatch] = useState<number[]>([]);
-  const [viewport, setViewport] = useState<{ h: number; top: number } | null>(
-    null,
-  );
-  const inputRef = useRef<HTMLInputElement>(null);
   const activeRowRef = useRef<HTMLDivElement>(null);
   const prevRevealed = useRef<Set<number>>(new Set());
   const advanceTimer = useRef<number | null>(null);
+  const submitRef = useRef<() => void>(() => {});
 
   const letters = useMemo(() => letterSequence(puzzle.phrase), [puzzle.phrase]);
   const words = useMemo(
@@ -86,36 +87,23 @@ export default function PhrasePlayer({
     [letters.length, session.revealedPositions, session.hintPositions],
   );
   const gameOver = session.phase === "COMPLETE" || session.phase === "COLD";
+  const bonus = session.phase === "BONUS";
   const attemptsLeft = SOLVE_ATTEMPTS - session.wrongSolves.length;
   const score = liveScore(puzzle, session);
   const revealRatio = letters.length > 0 ? revealed.size / letters.length : 0;
   const dense = letters.length > 30;
 
+  const effectiveMode: Mode = bonus ? { kind: "theme" } : mode;
+
   const typed =
-    mode.kind === "solve"
+    effectiveMode.kind === "solve"
       ? value
           .toUpperCase()
           .replace(/[^A-Z]/g, "")
           .slice(0, hiddenSlots.length)
       : "";
 
-  // ---- locked stage: follow the visual viewport exactly -------------------
-  useEffect(() => {
-    if (gameOver) return;
-    const vv = window.visualViewport;
-    if (!vv) return;
-    const update = () => {
-      setViewport({ h: vv.height, top: vv.offsetTop });
-    };
-    update();
-    vv.addEventListener("resize", update);
-    vv.addEventListener("scroll", update);
-    return () => {
-      vv.removeEventListener("resize", update);
-      vv.removeEventListener("scroll", update);
-    };
-  }, [gameOver]);
-
+  // Lock the document while playing.
   useEffect(() => {
     if (gameOver) return;
     const previous = document.body.style.overflow;
@@ -155,16 +143,38 @@ export default function PhrasePlayer({
     };
   }, []);
 
-  // Keep the active row visible inside the stack.
   useEffect(() => {
     activeRowRef.current?.scrollIntoView({ block: "nearest" });
   }, [mode]);
+
+  // Physical keyboards feed the same entry.
+  useEffect(() => {
+    const handler = (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      if (event.key === "Enter") {
+        submitRef.current();
+        return;
+      }
+      if (event.key === "Backspace") {
+        setValue((current) => current.slice(0, -1));
+        return;
+      }
+      if (/^[a-zA-Z0-9 ']$/.test(event.key)) {
+        setValue((current) =>
+          current.length < MAX_ENTRY ? current + event.key : current,
+        );
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   function act(action: PuzzleAction) {
     dispatch(action);
   }
 
   function switchMode(next: Mode) {
+    if (bonus) return; // bonus locks entry to the theme
     if (advanceTimer.current) {
       window.clearTimeout(advanceTimer.current);
       advanceTimer.current = null;
@@ -172,7 +182,6 @@ export default function PhrasePlayer({
     setMode(next);
     setValue("");
     setFlash(null);
-    if (next.kind !== "idle") inputRef.current?.focus();
   }
 
   function nextOpenQuestion(after: number): number {
@@ -201,24 +210,27 @@ export default function PhrasePlayer({
   }
 
   const activeStatus =
-    mode.kind === "question"
-      ? session.questionStatus[puzzle.questions[mode.index].id]
+    effectiveMode.kind === "question"
+      ? session.questionStatus[puzzle.questions[effectiveMode.index].id]
       : "open";
 
   const canSubmit =
-    session.phase === "PLAYING" &&
-    (mode.kind === "solve"
-      ? typed.length === hiddenSlots.length && hiddenSlots.length > 0
-      : mode.kind === "theme"
+    effectiveMode.kind === "solve"
+      ? session.phase === "PLAYING" &&
+        typed.length === hiddenSlots.length &&
+        hiddenSlots.length > 0
+      : effectiveMode.kind === "theme"
         ? value.trim().length > 0 && session.connectionResult === null
-        : mode.kind === "question"
-          ? value.trim().length > 0 && activeStatus === "open"
-          : false);
+        : effectiveMode.kind === "question"
+          ? session.phase === "PLAYING" &&
+            value.trim().length > 0 &&
+            activeStatus === "open"
+          : false;
 
   function submit() {
     if (!canSubmit) return;
-    if (mode.kind === "question") {
-      const index = mode.index;
+    if (effectiveMode.kind === "question") {
+      const index = effectiveMode.index;
       const question = puzzle.questions[index];
       const correct = looseAnswerMatches(value, question.answer);
       act({ type: "ANSWER_QUESTION", questionId: question.id, answer: value });
@@ -232,18 +244,36 @@ export default function PhrasePlayer({
           advanceTimer.current = null;
         }, 1100);
       }
-      inputRef.current?.focus();
       return;
     }
-    if (mode.kind === "solve") {
+    if (effectiveMode.kind === "solve") {
       act({ type: "ATTEMPT_SOLVE", text: assembleGuess() });
       setValue("");
-      inputRef.current?.focus();
       return;
     }
     act({ type: "ATTEMPT_CONNECTION", text: value });
     setValue("");
-    inputRef.current?.focus();
+  }
+  submitRef.current = submit;
+
+  function pressKey(key: string) {
+    if (key === "BACK") {
+      setValue((current) => current.slice(0, -1));
+      return;
+    }
+    if (key === "GO") {
+      submit();
+      return;
+    }
+    if (key === "SPACE") {
+      setValue((current) =>
+        current.length < MAX_ENTRY ? current + " " : current,
+      );
+      return;
+    }
+    setValue((current) =>
+      current.length < MAX_ENTRY ? current + key : current,
+    );
   }
 
   // ------------------------------------------------------------- the board
@@ -312,7 +342,7 @@ export default function PhrasePlayer({
               const slot = hiddenIndex;
               const typedChar = typed[slot] ?? "";
               const isCursor =
-                mode.kind === "solve" && slot === cursorSlot && !gameOver;
+                effectiveMode.kind === "solve" && slot === cursorSlot && !gameOver;
               return (
                 <span
                   className={`ptile${typedChar ? " ptile--typed" : ""}${
@@ -444,232 +474,228 @@ export default function PhrasePlayer({
   }
 
   // -------------------------------------------------------------- PLAYING
+  const entryPlaceholder = bonus
+    ? "Name the theme (+25) — or skip"
+    : effectiveMode.kind === "idle"
+      ? "Pick a category above"
+      : effectiveMode.kind === "solve"
+        ? "Type the phrase into the tiles"
+        : effectiveMode.kind === "theme"
+          ? "The theme is…"
+          : activeStatus === "open"
+            ? "Type your answer — one attempt"
+            : "Pick another category";
+
   return (
-    <div
-      className="fstage"
-      style={
-        viewport
-          ? {
-              height: `${viewport.h}px`,
-              transform: `translateY(${viewport.top}px)`,
-            }
-          : undefined
-      }
-    >
+    <div className="fstage">
       <div className="fstage-inner">
         {/* header */}
-        <div className="pstage-top">
-          <span className="kicker">{puzzle.title || "Tagline"}</span>
-          <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
+        <div className="fhead">
+          <span className="fhead-title">{puzzle.title || "Tagline"}</span>
+          <span className="fhead-tools">
             <span className="score-chip" key={score}>
-              {score} pts
+              {score}
             </span>
             <button
-              className="icon-round"
+              className="icon-round icon-round--sm"
               aria-label="How to play"
               onClick={() => setShowHelp(true)}
             >
               ?
             </button>
             {onRestart ? (
-              <button className="icon-round" title="Restart" onClick={onRestart}>
+              <button
+                className="icon-round icon-round--sm"
+                title="Restart"
+                onClick={onRestart}
+              >
                 ↺
               </button>
             ) : null}
-            <button className="btn btn--ghost btn--small" onClick={onExit}>
-              {exitLabel ?? "Exit"}
+            <button
+              className="icon-round icon-round--sm"
+              title={exitLabel ?? "Exit"}
+              onClick={onExit}
+            >
+              ✕
             </button>
           </span>
         </div>
 
-        {board(false, false)}
+        {board(bonus, bonus)}
 
-        {/* vertical category stack — the question reveals inside the row */}
-        <div className="cat-stack">
-          {puzzle.questions.map((question, index) => {
-            const status = session.questionStatus[question.id];
-            const active = mode.kind === "question" && mode.index === index;
-            const color = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
-            return (
-              <div
-                key={question.id}
-                ref={active ? activeRowRef : undefined}
-                className={`cat-item${active ? " cat-item--active" : ""}${
-                  status === "correct" ? " cat-item--ok" : ""
-                }${status === "wrong" ? " cat-item--bad" : ""}${
-                  active && flash === "ok" ? " cat-item--flash-ok" : ""
-                }${active && flash === "bad" ? " cat-item--flash-bad" : ""}`}
-                onClick={() => switchMode({ kind: "question", index })}
-                role="button"
-                tabIndex={0}
-              >
-                <div className="cat-item-head">
-                  <span className="cat-name" style={{ background: color }}>
-                    {question.subject.trim() || `Question ${index + 1}`}
-                  </span>
-                  <span className="cat-state">
-                    {status === "correct" ? (
-                      <strong className="cat-state--ok">
-                        {question.answer.primary}
-                      </strong>
-                    ) : status === "wrong" ? (
-                      <span className="cat-state--bad">✗</span>
-                    ) : active ? (
-                      ""
-                    ) : (
-                      "+"
-                    )}
-                  </span>
-                </div>
-                {active ? (
-                  <p className="cat-question">
-                    {question.prompt}
-                    {status === "correct" ? (
-                      <strong className="prompt-result prompt-result--ok">
-                        {" "}
-                        ✓ {question.answer.primary}
-                      </strong>
-                    ) : status === "wrong" ? (
-                      <strong className="prompt-result prompt-result--bad">
-                        {" "}
-                        ✗ locked
-                      </strong>
-                    ) : null}
-                  </p>
-                ) : null}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* modes */}
-        <div className="mode-row">
-          <button
-            className={`qchip qchip--solve${
-              mode.kind === "solve" ? " qchip--solve-active" : ""
-            }${revealRatio >= 0.6 && mode.kind !== "solve" ? " qchip--tempt" : ""}`}
-            onClick={() => switchMode({ kind: "solve" })}
-          >
-            Solve the phrase
-          </button>
-          <button
-            className={`qchip qchip--conn${
-              session.connectionResult === "correct" ? " qchip--conn-ok" : ""
-            }${session.connectionResult === "wrong" ? " qchip--bad" : ""}`}
-            disabled={session.connectionResult !== null}
-            onClick={() => switchMode({ kind: "theme" })}
-          >
-            {session.connectionResult === "correct"
-              ? `${puzzle.connection.primary} ✓`
-              : session.connectionResult === "wrong"
-                ? "Theme ✗"
-                : "Theme +25"}
-          </button>
-        </div>
-
-        {mode.kind === "solve" ? (
-          <p className="mode-note">
-            Type the phrase into the tiles — {attemptsLeft} attempt
-            {attemptsLeft === 1 ? "" : "s"} left.
-            {session.wrongSolves.length > 0 ? " Not it — look again." : ""}
-          </p>
-        ) : mode.kind === "theme" ? (
-          <p className="mode-note">
-            One guess: what links all five answers — and the phrase? (+25)
-          </p>
-        ) : null}
-
-        {/* the single input */}
-        <form
-          className="input-bar"
-          onSubmit={(event) => {
-            event.preventDefault();
-            submit();
-          }}
-        >
-          <input
-            ref={inputRef}
-            className="input input-bar-field"
-            placeholder={
-              mode.kind === "idle"
-                ? "Pick a category above"
-                : mode.kind === "solve"
-                  ? "Type the phrase…"
-                  : mode.kind === "theme"
-                    ? "The theme is…"
-                    : activeStatus === "open"
-                      ? "Your answer — one attempt"
-                      : "Pick another category"
-            }
-            value={value}
-            disabled={
-              mode.kind === "idle" ||
-              (mode.kind === "question" && activeStatus !== "open")
-            }
-            onChange={(event) => setValue(event.target.value)}
-            autoCapitalize={mode.kind === "solve" ? "characters" : "words"}
-            autoComplete="off"
-            autoCorrect="off"
-            spellCheck={false}
-          />
-          <button
-            className={`btn ${
-              mode.kind === "solve" ? "btn--accuse-solid" : "btn--primary"
-            }`}
-            type="submit"
-            disabled={!canSubmit}
-          >
-            {mode.kind === "solve" ? "Solve" : mode.kind === "theme" ? "+25" : "Go"}
-          </button>
-        </form>
-      </div>
-
-      {/* bonus crescendo */}
-      {session.phase === "BONUS" ? (
-        <div className="overlay">
-          <div className="sheet">
+        {bonus ? (
+          <div className="solved-strip">
             <span className="verdict verdict--solved">Solved</span>
-            <div style={{ margin: "16px 0" }}>{board(true, true)}</div>
-            <h2>One more thing.</h2>
-            <p className="prose">
-              What's the theme — the link between the phrase and all five
-              answers? (+25)
-            </p>
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                if (!value.trim()) return;
-                act({ type: "ATTEMPT_CONNECTION", text: value });
-                setValue("");
-              }}
+            <span>One more thing — name the theme for +25.</span>
+            <button
+              className="btn btn--small"
+              onClick={() => act({ type: "SKIP_BONUS" })}
             >
-              <input
-                className="input"
-                placeholder="The theme is…"
-                value={value}
-                onChange={(event) => setValue(event.target.value)}
-                autoFocus
-              />
-              <div className="answer-row" style={{ marginTop: 12 }}>
+              Skip
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* vertical category stack */}
+            <div className="cat-stack">
+              {puzzle.questions.map((question, index) => {
+                const status = session.questionStatus[question.id];
+                const active =
+                  mode.kind === "question" && mode.index === index;
+                const color = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
+                return (
+                  <div
+                    key={question.id}
+                    ref={active ? activeRowRef : undefined}
+                    className={`cat-item${active ? " cat-item--active" : ""}${
+                      status === "correct" ? " cat-item--ok" : ""
+                    }${status === "wrong" ? " cat-item--bad" : ""}${
+                      active && flash === "ok" ? " cat-item--flash-ok" : ""
+                    }${active && flash === "bad" ? " cat-item--flash-bad" : ""}`}
+                    onClick={() => switchMode({ kind: "question", index })}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <div className="cat-item-head">
+                      <span className="cat-name" style={{ background: color }}>
+                        {question.subject.trim() || `Question ${index + 1}`}
+                      </span>
+                      <span className="cat-state">
+                        {status === "correct" ? (
+                          <strong className="cat-state--ok">
+                            {question.answer.primary}
+                          </strong>
+                        ) : status === "wrong" ? (
+                          <span className="cat-state--bad">✗</span>
+                        ) : active ? (
+                          ""
+                        ) : (
+                          "+"
+                        )}
+                      </span>
+                    </div>
+                    {active ? (
+                      <p className="cat-question">
+                        {question.prompt}
+                        {status === "correct" ? (
+                          <strong className="prompt-result prompt-result--ok">
+                            {" "}
+                            ✓ {question.answer.primary}
+                          </strong>
+                        ) : status === "wrong" ? (
+                          <strong className="prompt-result prompt-result--bad">
+                            {" "}
+                            ✗ locked
+                          </strong>
+                        ) : null}
+                      </p>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* modes */}
+            <div className="mode-row">
+              <button
+                className={`qchip qchip--solve${
+                  mode.kind === "solve" ? " qchip--solve-active" : ""
+                }${
+                  revealRatio >= 0.6 && mode.kind !== "solve"
+                    ? " qchip--tempt"
+                    : ""
+                }`}
+                onClick={() => switchMode({ kind: "solve" })}
+              >
+                Solve{mode.kind === "solve" ? ` · ${attemptsLeft} left` : ""}
+              </button>
+              <button
+                className={`qchip qchip--conn${
+                  session.connectionResult === "correct" ? " qchip--conn-ok" : ""
+                }${session.connectionResult === "wrong" ? " qchip--bad" : ""}`}
+                disabled={session.connectionResult !== null}
+                onClick={() => switchMode({ kind: "theme" })}
+              >
+                {session.connectionResult === "correct"
+                  ? `${puzzle.connection.primary} ✓`
+                  : session.connectionResult === "wrong"
+                    ? "Theme ✗"
+                    : "Theme +25"}
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* entry line */}
+        <div
+          className={`entry${
+            effectiveMode.kind === "solve" ? " entry--solve" : ""
+          }${effectiveMode.kind === "theme" ? " entry--theme" : ""}`}
+        >
+          <span className={`entry-text${value ? "" : " entry-text--ghost"}`}>
+            {effectiveMode.kind === "solve"
+              ? typed || entryPlaceholder
+              : value || entryPlaceholder}
+          </span>
+          <button
+            className={`btn btn--small ${
+              effectiveMode.kind === "solve"
+                ? "btn--accuse-solid"
+                : "btn--primary"
+            }`}
+            disabled={!canSubmit}
+            onClick={submit}
+          >
+            {effectiveMode.kind === "solve"
+              ? "Solve"
+              : effectiveMode.kind === "theme"
+                ? "+25"
+                : "Go"}
+          </button>
+        </div>
+
+        {/* the game keyboard */}
+        <div className="kb" aria-label="Keyboard">
+          {(digits ? [DIGIT_ROW] : KEY_ROWS).map((row) => (
+            <div className="kb-row" key={row}>
+              {row.split("").map((key) => (
                 <button
-                  className="btn"
-                  type="button"
-                  onClick={() => act({ type: "SKIP_BONUS" })}
+                  key={key}
+                  className="kb-key"
+                  onClick={() => pressKey(key)}
                 >
-                  Skip
+                  {key}
                 </button>
-                <button
-                  className="btn btn--primary"
-                  type="submit"
-                  disabled={!value.trim()}
-                >
-                  Name it (+25)
-                </button>
-              </div>
-            </form>
+              ))}
+            </div>
+          ))}
+          <div className="kb-row">
+            <button
+              className="kb-key kb-key--wide"
+              onClick={() => setDigits((current) => !current)}
+            >
+              {digits ? "ABC" : "123"}
+            </button>
+            <button
+              className="kb-key kb-key--space"
+              onClick={() => pressKey("SPACE")}
+            >
+              ␣
+            </button>
+            <button className="kb-key kb-key--wide" onClick={() => pressKey("BACK")}>
+              ⌫
+            </button>
+            <button
+              className="kb-key kb-key--wide kb-key--go"
+              disabled={!canSubmit}
+              onClick={() => pressKey("GO")}
+            >
+              GO
+            </button>
           </div>
         </div>
-      ) : null}
+      </div>
 
       {/* help */}
       {showHelp ? (
