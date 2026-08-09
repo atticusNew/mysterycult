@@ -90,8 +90,6 @@ export default function PhrasePlayer({
   );
   const gameOver = session.phase === "COMPLETE" || session.phase === "COLD";
   const bonus = session.phase === "BONUS";
-  const attemptsLeft = SOLVE_ATTEMPTS - session.wrongSolves.length;
-  const themeAttemptsLeft = THEME_ATTEMPTS - session.wrongThemes.length;
   const score = liveScore(puzzle, session);
   const dense = letters.length > 30;
   const ultraDense = letters.length > 48;
@@ -519,7 +517,7 @@ export default function PhrasePlayer({
 
   // -------------------------------------------------------------- PLAYING
   const entryGhost = bonus
-    ? `Finish the line (+25) — ${attemptsLeft} attempt${attemptsLeft === 1 ? "" : "s"}`
+    ? "Finish the line (+25)"
     : effectiveMode.kind === "idle"
       ? "Pick a category"
       : effectiveMode.kind === "solve"
@@ -527,11 +525,9 @@ export default function PhrasePlayer({
           ? "Phrase complete ⭐"
           : `Fill the empty tiles — ${Math.max(hiddenSlots.length - typed.length, 0)} to go`
         : effectiveMode.kind === "theme"
-          ? `The thruline is… (${themeAttemptsLeft} guess${
-              themeAttemptsLeft === 1 ? "" : "es"
-            })`
+          ? "The thruline is…"
           : activeStatus === "open"
-            ? "Type your answer — one attempt"
+            ? "Type your answer"
             : "Pick another category";
 
   const showRawValue =
@@ -581,7 +577,7 @@ export default function PhrasePlayer({
         {board(session.solved, midWave)}
 
         {/* the answers, collecting as you earn them */}
-        {correctAnswers.length > 0 ? (
+        {correctAnswers.length > 0 && mode.kind !== "theme" && !bonus ? (
           <div className={`answers-line${effectiveMode.kind === "solve" ? " dim" : ""}`}>
             <span className="answers-label">Answers</span>
             <span className="answers-items">
@@ -703,30 +699,20 @@ export default function PhrasePlayer({
         )}
 
         {/* the goal + the bonus */}
-        {!bonus ? (
+        {!bonus && mode.kind !== "theme" ? (
           <div className={`mode-row${effectiveMode.kind === "solve" && !bonus ? " mode-row--solving" : ""}`}>
             <button
               className={`qchip qchip--theme${
-                mode.kind === "theme" ? " qchip--theme-active" : ""
-              }${
-                correctAnswers.length >= 2 &&
-                mode.kind !== "theme" &&
-                session.connectionResult === null
+                correctAnswers.length >= 2 && session.connectionResult === null
                   ? " qchip--tempt-gold"
                   : ""
               }`}
               disabled={session.connectionResult !== null}
-              onClick={() =>
-                switchMode(
-                  mode.kind === "theme" ? { kind: "idle" } : { kind: "theme" },
-                )
-              }
+              onClick={() => switchMode({ kind: "theme" })}
             >
               {session.connectionResult === "correct"
                 ? `${puzzle.connection.primary} ✓`
-                : mode.kind === "theme"
-                  ? "✕ Cancel"
-                  : "ThruLine +50"}
+                : "ThruLine +50"}
             </button>
             <button
               className={`qchip qchip--solve${
@@ -745,9 +731,7 @@ export default function PhrasePlayer({
                 ? "Phrase ⭐"
                 : session.wrongSolves.length >= SOLVE_ATTEMPTS
                   ? "Phrase ✗"
-                  : mode.kind === "solve"
-                    ? "✕ Cancel"
-                    : "Phrase +25"}
+                  : "Phrase +25"}
             </button>
           </div>
         ) : null}
@@ -765,8 +749,7 @@ export default function PhrasePlayer({
           >
             {showRawValue && value ? value : entryGhost}
           </span>
-          {!bonus &&
-          (effectiveMode.kind === "solve" || effectiveMode.kind === "theme") ? (
+          {!bonus && effectiveMode.kind === "solve" ? (
             <button
               className="icon-round icon-round--sm"
               title="Back"

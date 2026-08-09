@@ -387,7 +387,7 @@ export function puzzleResultLine(
 ): string {
   const total = computePuzzleScore(puzzle, session).total;
   if (session.connectionResult !== "correct") {
-    return `The puzzle went cold · ${total}/100`;
+    return `ThruLine missed · ${total}/100`;
   }
   const used = session.solvedAfterQuestions ?? 0;
   return `${total}/100 · theme after ${used} question${used === 1 ? "" : "s"}`;

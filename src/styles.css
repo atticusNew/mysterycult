@@ -1224,6 +1224,61 @@ h3 {
   color: var(--ink-3);
 }
 
+.final-note {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--green);
+}
+
+.final-x {
+  margin-left: auto;
+}
+
+/* post-win phrase bonus panel */
+.final-panel--won {
+  background: var(--green-soft);
+  box-shadow: inset 0 0 0 2.5px var(--green);
+}
+
+.final-tag--won {
+  background: var(--green);
+  color: #fff;
+}
+
+/* end screen */
+.result-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 10px 0 4px;
+}
+
+.result-score {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  font-family: var(--serif);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.result-score-n {
+  font-size: 64px;
+}
+
+.result-score-d {
+  font-size: 22px;
+  color: var(--ink-3);
+}
+
+.verdict--missed {
+  background: var(--red);
+  color: #fff;
+}
+
 /* solving: the mode buttons step back too */
 .mode-row--solving {
   opacity: 0.35;
