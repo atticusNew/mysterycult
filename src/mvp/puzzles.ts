@@ -18,8 +18,8 @@ function load(raw: unknown): PhrasePuzzle {
 }
 
 export const MVP_PUZZLES: PhrasePuzzle[] = [
-  load(whms),
   load(girls),
+  load(whms),
   load(easyRider),
   load(sixthSense),
   load(heyJude),
@@ -29,8 +29,11 @@ export function getMvpPuzzle(id: string): PhrasePuzzle | null {
   return MVP_PUZZLES.find((puzzle) => puzzle.id === id) ?? null;
 }
 
-/** Today's puzzle: deterministic daily rotation. */
-export function getTodaysMvpPuzzle(now: Date = new Date()): PhrasePuzzle {
-  const dayIndex = Math.floor(now.getTime() / 86_400_000);
-  return MVP_PUZZLES[dayIndex % MVP_PUZZLES.length];
+/**
+ * The featured puzzle testers land on. Pinned to the list's first entry
+ * (Girls — the strongest) for the beta; switch back to daily rotation
+ * when there's a real content calendar.
+ */
+export function getTodaysMvpPuzzle(): PhrasePuzzle {
+  return MVP_PUZZLES[0];
 }
