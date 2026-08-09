@@ -16,6 +16,7 @@ import { buildTransferUrl } from "../app/transfer";
 import demoPuzzleTwo from "./puzzles/puzzle_002.json";
 import demoPuzzleThree from "./puzzles/puzzle_003.json";
 import demoPuzzleFour from "./puzzles/puzzle_004.json";
+import demoPuzzleFive from "./puzzles/puzzle_005.json";
 
 export default function PhraseWorkshop() {
   const navigate = useNavigate();
@@ -73,7 +74,7 @@ export default function PhraseWorkshop() {
         >
           Import JSON
         </button>
-        {[demoPuzzle, demoPuzzleTwo, demoPuzzleThree, demoPuzzleFour].map((raw, index) => (
+        {[demoPuzzle, demoPuzzleTwo, demoPuzzleThree, demoPuzzleFour, demoPuzzleFive].map((raw, index) => (
           <button
             key={index}
             className="btn"

@@ -1,13 +1,13 @@
 /**
- * Tagline player v6 — the locked stage.
+ * Tagline player v7 — the locked stage, vertical categories.
  *
- * The game is a truly fixed viewport: nothing scrolls, ever. The stage
- * resizes itself to the browser's visual viewport, so when the mobile
- * keyboard opens the whole game slides up as one piece.
+ * Layout (top to bottom, all locked, nothing ever scrolls the page):
+ *   board → five full-width category rows stacked vertically (the question
+ *   reveals INSIDE the row you tap) → Solve/Theme buttons → the input.
  *
- * Family-Feud spatial logic, top to bottom: board → earned answers →
- * category pills → Solve/Theme → question panel (reveals beneath the
- * category you tapped) → the single input. Cause above, effect below.
+ * The stage is sized AND positioned by the visual viewport, so when the
+ * mobile keyboard opens the whole game follows the visible area exactly —
+ * board, active question and input all remain on screen.
  */
 import { useEffect, useMemo, useRef, useState, useReducer } from "react";
 import type { PhrasePuzzle } from "./model";
@@ -34,7 +34,7 @@ type Mode =
 /** Trivial Pursuit homage: stable category colors by question position. */
 const CATEGORY_COLORS = ["#4e7fc4", "#c75d94", "#d97f35", "#8a63b3", "#3f8f7d"];
 
-/** Delay before tiles cascade, so the ✓ in the panel lands first. */
+/** Delay before tiles cascade, so the ✓ lands first. */
 const CASCADE_DELAY_MS = 300;
 
 interface Props {
@@ -63,8 +63,11 @@ export default function PhrasePlayer({
   const [shake, setShake] = useState(false);
   const [flash, setFlash] = useState<"ok" | "bad" | null>(null);
   const [lastBatch, setLastBatch] = useState<number[]>([]);
-  const [stageHeight, setStageHeight] = useState<number | null>(null);
+  const [viewport, setViewport] = useState<{ h: number; top: number } | null>(
+    null,
+  );
   const inputRef = useRef<HTMLInputElement>(null);
+  const activeRowRef = useRef<HTMLDivElement>(null);
   const prevRevealed = useRef<Set<number>>(new Set());
   const advanceTimer = useRef<number | null>(null);
 
@@ -86,9 +89,7 @@ export default function PhrasePlayer({
   const attemptsLeft = SOLVE_ATTEMPTS - session.wrongSolves.length;
   const score = liveScore(puzzle, session);
   const revealRatio = letters.length > 0 ? revealed.size / letters.length : 0;
-  const earnedAnswers = puzzle.questions.filter(
-    (question) => session.questionStatus[question.id] === "correct",
-  );
+  const dense = letters.length > 30;
 
   const typed =
     mode.kind === "solve"
@@ -98,14 +99,13 @@ export default function PhrasePlayer({
           .slice(0, hiddenSlots.length)
       : "";
 
-  // ---- fixed viewport: track the visual viewport (keyboard-aware) --------
+  // ---- locked stage: follow the visual viewport exactly -------------------
   useEffect(() => {
     if (gameOver) return;
     const vv = window.visualViewport;
     if (!vv) return;
     const update = () => {
-      setStageHeight(vv.height);
-      window.scrollTo(0, 0);
+      setViewport({ h: vv.height, top: vv.offsetTop });
     };
     update();
     vv.addEventListener("resize", update);
@@ -116,7 +116,6 @@ export default function PhrasePlayer({
     };
   }, [gameOver]);
 
-  // Lock the document while playing.
   useEffect(() => {
     if (gameOver) return;
     const previous = document.body.style.overflow;
@@ -156,6 +155,11 @@ export default function PhrasePlayer({
     };
   }, []);
 
+  // Keep the active row visible inside the stack.
+  useEffect(() => {
+    activeRowRef.current?.scrollIntoView({ block: "nearest" });
+  }, [mode]);
+
   function act(action: PuzzleAction) {
     dispatch(action);
   }
@@ -168,7 +172,7 @@ export default function PhrasePlayer({
     setMode(next);
     setValue("");
     setFlash(null);
-    inputRef.current?.focus();
+    if (next.kind !== "idle") inputRef.current?.focus();
   }
 
   function nextOpenQuestion(after: number): number {
@@ -221,7 +225,6 @@ export default function PhrasePlayer({
       setValue("");
       setFlash(correct ? "ok" : "bad");
       if (correct) {
-        // Let the ✓ land, then move on to the next open category.
         advanceTimer.current = window.setTimeout(() => {
           setFlash(null);
           const next = nextOpenQuestion(index);
@@ -250,7 +253,9 @@ export default function PhrasePlayer({
     const cursorSlot = typed.length;
     return (
       <div
-        className={`phrase-board${shake ? " phrase-board--shake" : ""}`}
+        className={`phrase-board${dense ? " phrase-board--dense" : ""}${
+          shake ? " phrase-board--shake" : ""
+        }`}
         aria-label="Hidden phrase"
       >
         {words.map((word, wordIdx) => (
@@ -439,64 +444,17 @@ export default function PhrasePlayer({
   }
 
   // -------------------------------------------------------------- PLAYING
-  const panel = () => {
-    if (mode.kind === "idle") {
-      return (
-        <p className="qpanel-hint">
-          Pick a category — every answer is a clue to the phrase.
-        </p>
-      );
-    }
-    if (mode.kind === "solve") {
-      return (
-        <>
-          <span className="prompt-tag prompt-tag--solve">Solve</span>
-          <p className="prompt-text">
-            Type the phrase into the tiles — {attemptsLeft} attempt
-            {attemptsLeft === 1 ? "" : "s"} left.
-            {session.wrongSolves.length > 0 ? " Not it — look again." : ""}
-          </p>
-        </>
-      );
-    }
-    if (mode.kind === "theme") {
-      return (
-        <>
-          <span className="prompt-tag prompt-tag--conn">Theme</span>
-          <p className="prompt-text">
-            One guess: what links all five answers — and the phrase? (+25)
-          </p>
-        </>
-      );
-    }
-    const index = mode.index;
-    const question = puzzle.questions[index];
-    const color = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
-    const status = session.questionStatus[question.id];
-    return (
-      <>
-        <span className="prompt-tag" style={{ background: color }}>
-          {question.subject.trim() || `Question ${index + 1}`}
-        </span>
-        <p className="prompt-text">
-          {question.prompt}
-          {status === "correct" ? (
-            <strong className="prompt-result prompt-result--ok">
-              {" "}
-              ✓ {question.answer.primary}
-            </strong>
-          ) : status === "wrong" ? (
-            <strong className="prompt-result prompt-result--bad"> ✗ locked</strong>
-          ) : null}
-        </p>
-      </>
-    );
-  };
-
   return (
     <div
       className="fstage"
-      style={{ height: stageHeight ? `${stageHeight}px` : undefined }}
+      style={
+        viewport
+          ? {
+              height: `${viewport.h}px`,
+              transform: `translateY(${viewport.top}px)`,
+            }
+          : undefined
+      }
     >
       <div className="fstage-inner">
         {/* header */}
@@ -526,40 +484,60 @@ export default function PhrasePlayer({
 
         {board(false, false)}
 
-        {/* earned answers */}
-        {earnedAnswers.length > 0 ? (
-          <div className="achips achips--slim">
-            {earnedAnswers.map((question) => (
-              <span key={question.id} className="achip achip--ok">
-                {question.answer.primary}
-              </span>
-            ))}
-            {session.connectionResult === "correct" ? (
-              <span className="achip achip--conn-ok">
-                {puzzle.connection.primary} ✓
-              </span>
-            ) : null}
-          </div>
-        ) : null}
-
-        {/* categories */}
-        <div className="cat-row">
+        {/* vertical category stack — the question reveals inside the row */}
+        <div className="cat-stack">
           {puzzle.questions.map((question, index) => {
             const status = session.questionStatus[question.id];
             const active = mode.kind === "question" && mode.index === index;
             const color = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
             return (
-              <button
+              <div
                 key={question.id}
-                className={`cat-pill${active ? " cat-pill--active" : ""}${
-                  status === "correct" ? " cat-pill--ok" : ""
-                }${status === "wrong" ? " cat-pill--bad" : ""}`}
-                style={{ background: color }}
+                ref={active ? activeRowRef : undefined}
+                className={`cat-item${active ? " cat-item--active" : ""}${
+                  status === "correct" ? " cat-item--ok" : ""
+                }${status === "wrong" ? " cat-item--bad" : ""}${
+                  active && flash === "ok" ? " cat-item--flash-ok" : ""
+                }${active && flash === "bad" ? " cat-item--flash-bad" : ""}`}
                 onClick={() => switchMode({ kind: "question", index })}
+                role="button"
+                tabIndex={0}
               >
-                {question.subject.trim() || `Q${index + 1}`}
-                {status === "correct" ? " ✓" : status === "wrong" ? " ✗" : ""}
-              </button>
+                <div className="cat-item-head">
+                  <span className="cat-name" style={{ background: color }}>
+                    {question.subject.trim() || `Question ${index + 1}`}
+                  </span>
+                  <span className="cat-state">
+                    {status === "correct" ? (
+                      <strong className="cat-state--ok">
+                        {question.answer.primary}
+                      </strong>
+                    ) : status === "wrong" ? (
+                      <span className="cat-state--bad">✗</span>
+                    ) : active ? (
+                      ""
+                    ) : (
+                      "+"
+                    )}
+                  </span>
+                </div>
+                {active ? (
+                  <p className="cat-question">
+                    {question.prompt}
+                    {status === "correct" ? (
+                      <strong className="prompt-result prompt-result--ok">
+                        {" "}
+                        ✓ {question.answer.primary}
+                      </strong>
+                    ) : status === "wrong" ? (
+                      <strong className="prompt-result prompt-result--bad">
+                        {" "}
+                        ✗ locked
+                      </strong>
+                    ) : null}
+                  </p>
+                ) : null}
+              </div>
             );
           })}
         </div>
@@ -589,14 +567,17 @@ export default function PhrasePlayer({
           </button>
         </div>
 
-        {/* question panel — reveals beneath the category you tapped */}
-        <div
-          className={`qpanel${flash === "ok" ? " qpanel--ok" : ""}${
-            flash === "bad" ? " qpanel--bad" : ""
-          }`}
-        >
-          {panel()}
-        </div>
+        {mode.kind === "solve" ? (
+          <p className="mode-note">
+            Type the phrase into the tiles — {attemptsLeft} attempt
+            {attemptsLeft === 1 ? "" : "s"} left.
+            {session.wrongSolves.length > 0 ? " Not it — look again." : ""}
+          </p>
+        ) : mode.kind === "theme" ? (
+          <p className="mode-note">
+            One guess: what links all five answers — and the phrase? (+25)
+          </p>
+        ) : null}
 
         {/* the single input */}
         <form
@@ -697,7 +678,7 @@ export default function PhrasePlayer({
             <span className="kicker">How to play</span>
             <ol className="howto" style={{ marginTop: 14 }}>
               <li>
-                <strong>Pick a category, answer the question.</strong> One
+                <strong>Pick a category, answer its question.</strong> One
                 attempt each — correct answers light up letters.
               </li>
               <li>

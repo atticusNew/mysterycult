@@ -873,48 +873,107 @@ h3 {
   padding: 4px 10px;
 }
 
-/* category pills — Family Feud row */
-.cat-row {
+/* vertical category stack — the question reveals inside the row */
+.cat-stack {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 6px;
-  justify-content: center;
+  padding: 2px 1px;
 }
 
-.cat-pill {
-  appearance: none;
-  border: none;
+.cat-item {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 9px 12px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: box-shadow 0.15s ease;
+}
+
+.cat-item--active {
+  box-shadow: var(--shadow-sm), inset 0 0 0 2px var(--ink);
+}
+
+.cat-item--ok {
+  box-shadow: var(--shadow-sm), inset 0 0 0 2px var(--green);
+}
+
+.cat-item--bad {
+  opacity: 0.65;
+}
+
+.cat-item--flash-ok {
+  box-shadow: var(--shadow-md), inset 0 0 0 3px var(--green);
+}
+
+.cat-item--flash-bad {
+  box-shadow: var(--shadow-md), inset 0 0 0 3px var(--red);
+  animation: shake 0.4s ease;
+}
+
+.cat-item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cat-name {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #fff;
   border-radius: 999px;
-  padding: 8px 13px;
-  cursor: pointer;
-  opacity: 0.92;
-  transition: transform 0.12s var(--bounce), opacity 0.15s ease, filter 0.15s ease;
+  padding: 4px 11px;
 }
 
-.cat-pill:active {
-  transform: scale(0.93);
+.cat-state {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-3);
 }
 
-.cat-pill--active {
-  outline: 2.5px solid var(--ink);
-  outline-offset: 1.5px;
-  opacity: 1;
+.cat-state--ok {
+  color: var(--green);
 }
 
-.cat-pill--ok {
-  filter: saturate(0.4) brightness(1.05);
-  opacity: 0.75;
+.cat-state--bad {
+  color: var(--red);
 }
 
-.cat-pill--bad {
-  filter: grayscale(0.8);
-  opacity: 0.5;
+.cat-question {
+  margin: 8px 2px 2px;
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.mode-note {
+  margin: 0;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+.phrase-board--dense .ptile {
+  width: 20px;
+  height: 27px;
+  font-size: 14px;
+  border-radius: 5px;
+}
+
+.phrase-board--dense {
+  gap: 7px 13px;
+}
+
+.phrase-board--dense .pword {
+  gap: 3px;
 }
 
 .mode-row {

@@ -1,0 +1,83 @@
+{
+  "id": "phrase_005",
+  "version": 1,
+  "title": "Tagline #005",
+  "phrase": "How come you never take me to the airport anymore?",
+  "connection": {
+    "primary": "When Harry Met Sally",
+    "aliases": ["when harry met sally", "when harry met sally 1989", "harry met sally", "whms"]
+  },
+  "questions": [
+    {
+      "id": "q_deli",
+      "subject": "Food",
+      "prompt": "Which New York deli is famous for its pastrami on rye?",
+      "answer": {
+        "primary": "Katz's Deli",
+        "aliases": ["katzs", "katz", "katzs deli", "katz's delicatessen", "katzs delicatessen"]
+      },
+      "letter": "",
+      "factoid": "",
+      "connectionNote": "The table where the most famous scene in the film happens — the deli still hangs a sign over it: 'Hope you have what she had!'"
+    },
+    {
+      "id": "q_remake",
+      "subject": "Movies",
+      "prompt": "Which rom-com was a remake of The Shop Around the Corner?",
+      "answer": {
+        "primary": "You've Got Mail",
+        "aliases": ["youve got mail", "you got mail", "you have got mail"]
+      },
+      "letter": "",
+      "factoid": "",
+      "connectionNote": "Nora Ephron and Meg Ryan, together again — the same pen and the same star, nine years later."
+    },
+    {
+      "id": "q_pie",
+      "subject": "Geography",
+      "prompt": "What is the official state pie of Texas?",
+      "answer": {
+        "primary": "Pecan pie",
+        "aliases": ["pecan", "a pecan pie"]
+      },
+      "letter": "",
+      "factoid": "",
+      "connectionNote": "'Pe-can piiiie' — Harry's silly voice in front of the batting cage is one of the film's most quoted throwaways."
+    },
+    {
+      "id": "q_anniversary",
+      "subject": "Culture",
+      "prompt": "Silk (or linen) marks how many years of marriage?",
+      "answer": {
+        "primary": "12",
+        "aliases": ["twelve", "12 years", "twelve years"]
+      },
+      "letter": "",
+      "factoid": "",
+      "connectionNote": "The story spans twelve years and three months — from the drive out of Chicago to the New Year's Eve kiss."
+    },
+    {
+      "id": "q_author",
+      "subject": "Literature",
+      "prompt": "Who wrote the essay collection 'I Feel Bad About My Neck'?",
+      "answer": {
+        "primary": "Nora Ephron",
+        "aliases": ["ephron", "norah ephron"]
+      },
+      "letter": "",
+      "factoid": "",
+      "connectionNote": "She wrote the screenplay — the whole movie is her voice."
+    }
+  ],
+  "hints": {
+    "category": "A movie",
+    "decade": "The 1980s"
+  },
+  "reveal": {
+    "summary": "When Harry Met Sally. A deli, a remake, a state pie, an anniversary and an essayist — every answer orbits Nora Ephron's 1989 classic: Katz's is where the famous scene happens, You've Got Mail is Ephron and Meg Ryan's reunion, the pecan pie is Harry's joke voice, and twelve years is exactly how long it takes Harry and Sally to figure it out. The phrase is Harry's theory of why he never gets close: because one day someone will ask why you stopped taking them to the airport.",
+    "ohMoment": "You spent the whole puzzle at the table where it happened — question one was Katz's Deli. I'll have what she's having."
+  },
+  "editorial": {
+    "notes": "Phrase doctrine: 'confirmable, not guessable' — the airport line is second-tier famous (typeable once the theme clicks) while the iconic line is saved for the reveal wink. Question order ramps toward Ephron, the theme-cracking answer, last. The Katz's question doubles as the iconic scene's location."
+  }
+}

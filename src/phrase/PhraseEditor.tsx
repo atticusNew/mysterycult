@@ -336,6 +336,18 @@ export default function PhraseEditor() {
                 </button>
               </div>
             </div>
+            <Field
+              label="Category"
+              hint="Shown on the row, Trivial Pursuit style — e.g. History, Movies, Food."
+            >
+              <input
+                className="input"
+                value={question.subject}
+                onChange={(event) =>
+                  updateQuestion(index, { subject: event.target.value })
+                }
+              />
+            </Field>
             <Field label="Prompt" hint="Keep it short — it renders as one compact row in play.">
               <textarea
                 className="textarea"
