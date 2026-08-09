@@ -1,81 +1,76 @@
 # Cultural Mystery
 
-A mobile-first daily cultural mystery game — plus the **Case Workshop**, the internal authoring system used to create cases.
+Two mobile-first daily puzzle games plus the internal authoring workshops used to create their content. Everything is data-driven: game code contains no puzzle-specific logic, and all content is JSON.
 
-The full product specification lives at [`MysteryCult/CULTURAL_MYSTERY_SPEC.md`](MysteryCult/CULTURAL_MYSTERY_SPEC.md).
+The original product specification lives at [`MysteryCult/CULTURAL_MYSTERY_SPEC.md`](MysteryCult/CULTURAL_MYSTERY_SPEC.md).
 
-## The core loop (game v2: the line-up)
+## The two games
 
-```
-FLIP EXHIBIT → INTERPRET → RULE OUT SUSPECTS → (flip or accuse?)
-→ ACCUSE → CASE CLOSED → REVEAL → SHARE
-```
+### ThruLines (the current focus, and the MVP)
 
-Each daily case is a closed **line-up** of ~10 suspects (the answer plus designed decoys) and a stack of **exhibits** that flip one at a time. Exhibit I is free; every further flip lowers the potential score. Every exhibit truthfully connects to the answer — the player's job is to see how, and to notice which suspects it kills. Wrong accusations are strikes; three and the case goes cold.
+A hidden phrase — a famous quote or lyric — sits behind a grid of letter tiles. Five general-knowledge questions surround it; every correct answer reveals that answer's letters wherever they appear in the phrase, and every answer is itself a clue pointing at the same source. The real goal is naming the **ThruLine** (the movie, show, or song everything traces back to, worth 50 points); solving the phrase afterward is a 25-point bonus, and each correct question is worth 5.
 
-The design rule is the **suspect funnel**: every early exhibit fits several suspects, each decoy dies on a specific exhibit, and exactly one smoking gun (the single CONCLUSIVE exhibit, kept last) fits only the answer. The engine never explains relationships during play — only the reveal does.
+Key play rules, all enforced in `src/phrase/engine.ts`:
+
+- One guess per question, one guess at the ThruLine, one guess at the phrase.
+- When the last question resolves (right or wrong), the final ThruLine takeover pops automatically.
+- A correct ThruLine drops the player straight into bonus solve mode; a wrong one ends the game.
+- Score is out of 100: 5 × 5 questions + 50 ThruLine + 25 phrase.
+
+The player uses a custom in-game keyboard (no OS keyboard, no viewport jumps) and the whole game fits a phone screen with no scrolling, down to iPhone SE size.
+
+### The Line-Up
+
+A closed line-up of ~10 suspects (the answer plus designed decoys) and a stack of exhibits that flip one at a time. Every exhibit truthfully connects to the answer; each decoy dies on a specific exhibit; exactly one smoking gun fits only the answer. One wrong accusation and the case goes cold. The design rule is the **suspect funnel**, enforced by the validator in `src/authoring/CaseValidator.ts`.
 
 ## Running it
 
 ```bash
 npm install
-npm run dev        # dev server at http://localhost:5173
+npm run dev        # full app (both games + workshops) at http://localhost:5173
+npm run dev:mvp    # ThruLines-only MVP build (what testers see)
 npm test           # engine / validator / import-export tests
-npm run build      # production build
+npm run build      # full production build
+npm run build:mvp  # MVP production build (deployed to Render)
 ```
+
+To play on a phone on the same network, run the dev server with `--host` and open the `Network:` URL Vite prints.
+
+## The MVP build
+
+`npm run build:mvp` produces a stripped, tester-facing build containing only ThruLines: a landing page, a puzzle picker, and the player. No workshops, no Line-Up game, no editor routes — the full app's code is excluded from the bundle via mode-conditional lazy entry points in `src/main.tsx`. The bundled MVP puzzles live in `src/mvp/puzzles.ts`. `render.yaml` is a Render Blueprint that builds and serves it as a static site; pushes to the deployed branch auto-redeploy.
 
 ## Project structure
 
 ```
 src/
-├── app/          Router
-├── models/       Case, Clue, Evidence, Hypothesis, Solution, CulturalEntity
-├── game/         CaseEngine, ClueEngine, EvidenceEngine, HypothesisEngine,
-│                 AnswerEngine, ScoringEngine, RevealEngine, state machine
-├── data/         Case schema + validation, case loader, case library,
-│                 blank case JSON template
-├── authoring/    Case Workshop logic: drafts, validator, JSON import/export,
-│                 blank-case factories, worksheet template
-├── player/       CasePlayer — the complete player experience
+├── app/          Router, settings, device-transfer encoding
+├── phrase/       ThruLines: model, engine (pure reducer), validator, store,
+│                 player, workshop (editor / preview), bundled puzzles JSON
+├── mvp/          ThruLines-only MVP: landing, picker, play screens, bundled puzzles
+├── models/       Line-Up case model: Case, Suspect, Exhibit, CulturalEntity
+├── game/         Line-Up engines: CaseEngine, AnswerEngine, EvidenceEngine,
+│                 ScoringEngine, RevealEngine
+├── data/         Case schema + validation, loader, library, blank template
+├── authoring/    Case Workshop: drafts, validator, JSON import/export, worksheet
+├── player/       CasePlayer — the Line-Up player experience
 ├── components/   EvidenceCard, CaseRevealView
-└── screens/      Home, PlayCase, Workshop, WorkshopEditor, WorkshopPreview
+└── screens/      Home, PlayCase, Workshop screens, TransferReceive
 ```
 
-The game is entirely **data-driven**: cases are JSON documents loaded through `src/data/caseLoader.ts`. No case-specific logic exists in game code.
+`src/game/AnswerEngine.ts` is shared by both games: answer matching is case-, punctuation-, diacritic-, and leading-"The"-insensitive.
 
-## Creating a case (the intended workflow)
+## Authoring
 
-```
-IDEA → CASE WORKSHEET → CASE WORKSHOP → VALIDATION → JSON → PLAYTEST → REVISION → FINAL CASE
-```
+Both games have in-app workshops (full build only, never in the MVP):
 
-1. Open **Case Workshop** from Home (or `/#/workshop`).
-2. Optional: copy the **Blank worksheet** and draft the case on paper first.
-3. Click **New Case** — this creates a draft from the blank case template.
-4. Fill in the sections: Case, Cultural Entity, Entry Points, Clues, Evidence, Hypotheses, Investigation Paths, Hints, Reveal.
-5. **Validate** — structural corruption shows as errors; editorial quality issues show as warnings.
-6. **Preview Case** — plays the draft exactly like the live game (authoring metadata is structurally excluded from the player view).
-7. **Export JSON** (copy or download), or **Publish** to make it playable from Home as Today's Case.
+- **ThruLines Workshop** at `/#/phrase/workshop` — edit the phrase, five questions with categories and aliases, the ThruLine answer, and hints; the validator (`src/phrase/validator.ts`) errors on structural problems and warns on editorial ones (phrase outside the 18–35-letter target band, answers that leak the ThruLine, letters of the phrase no question ever reveals).
+- **Case Workshop** at `/#/workshop` — the Line-Up equivalent, with the suspect-funnel rules checked by `src/authoring/CaseValidator.ts`.
 
-**Import JSON** (in the workshop home or inside the editor) loads any exported case back into the workshop for editing — the pipeline round-trips losslessly.
+Both round-trip losslessly through JSON export/import, and content can be sent between devices with the **Transfer** link (puzzle JSON encoded into a URL, received at `/#/transfer`).
 
-## Case JSON
+Editorial rule learned the hard way: phrases must be **verbatim, famous, canonical lines** — players type what the film actually says, so paraphrases read as wrong answers. Keep phrases in the 18–35-letter band; shorter plays better on small screens.
 
-The blank template lives at `src/data/cases/case_template.json` and loads successfully in the app while representing no real puzzle. See `src/models/types.ts` for the full schema (versioned via the `version` field; current version 1).
+## Content
 
-Player-facing fields: `title`, `question`, `clues` (prompt/answer/aliases), `evidence` (type/content/caption), `hints`, and the `reveal` (post-solve only).
-Editorial-only fields, never shown during gameplay: `diagnosticity`, `relatedEntities`, `authorNotes`, `entity`, `investigationPaths`, `editorial` (entry points, hypothesis map, notes).
-
-Evidence types rendered today: `text`, `image`, `number`, `quote`. The model and card component already accept the future set (`cropped_image`, `date`, `location`, `object`, `logo`, `audio`, `video`, `color`, `symbol`).
-
-## Design principles enforced in code
-
-- **No difficulty levels** — everyone gets the same case; difficulty emerges from knowledge and reasoning.
-- **No grid** — the UI is a case file / evidence dossier, not a puzzle grid.
-- **Theories don't end the case** — recording a hypothesis is gameplay; only "Solve case" commits.
-- **A wrong final answer keeps the case open** — the player returns to investigating.
-- **The engine never explains relationships** — clue→evidence→answer connections appear only in the final reveal.
-
-## Note
-
-There is deliberately **no Case #001** in this repository. The first real case is to be authored manually by the game designer through the Case Workshop.
+Blank templates: `src/phrase/puzzles/puzzle_template.json` and `src/data/cases/case_template.json`. Nine ThruLines demo puzzles ship in `src/phrase/puzzles/`; the five MVP puzzles (Girls featured first) are re-exported through `src/mvp/puzzles.ts`.
