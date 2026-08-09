@@ -980,6 +980,16 @@ h3 {
   font-weight: 600;
 }
 
+.build-stamp {
+  margin-top: 22px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  opacity: 0.55;
+}
+
 .home-footnote {
   margin-top: 34px;
   font-family: var(--mono);

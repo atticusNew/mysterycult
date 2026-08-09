@@ -79,6 +79,8 @@ export default function Home() {
           </Link>
         </div>
       )}
+
+      <span className="build-stamp">build {__BUILD_ID__}</span>
     </div>
   );
 }
