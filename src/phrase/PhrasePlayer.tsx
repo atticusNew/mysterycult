@@ -812,7 +812,8 @@ export default function PhrasePlayer({
               <li>
                 <strong>Find the thruline — that's the win.</strong> All
                 five answers and the phrase share one secret.{" "}
-                {THEME_ATTEMPTS} guesses, +50.
+                {THEME_ATTEMPTS === 1 ? "One guess" : `${THEME_ATTEMPTS} guesses`},
+                +50.
               </li>
               <li>
                 <strong>Bonus: complete the phrase</strong> (+25) — type it, or
