@@ -19,8 +19,24 @@ function buildId(): string {
   return `${commit} · ${time}`;
 }
 
-export default defineConfig({
-  plugins: [react()],
+export default defineConfig(({ mode }) => ({
+  plugins: [
+    react(),
+    {
+      name: "app-title",
+      transformIndexHtml(html: string) {
+        const isMvp = mode === "mvp";
+        return html
+          .replaceAll("%APP_TITLE%", isMvp ? "ThruLines" : "Cultural Mystery")
+          .replaceAll(
+            "%APP_DESCRIPTION%",
+            isMvp
+              ? "Five questions. One hidden line. Find the thruline that connects it all."
+              : "Daily cultural mystery games.",
+          );
+      },
+    },
+  ],
   define: {
     __BUILD_ID__: JSON.stringify(buildId()),
   },
@@ -32,4 +48,4 @@ export default defineConfig({
     environment: "node",
     include: ["src/**/*.test.ts"],
   },
-});
+}));
