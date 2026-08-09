@@ -11,7 +11,7 @@
  */
 import type { AnswerSpec } from "../models/types";
 
-export const PHRASE_GAME_TITLE = "Tagline";
+export const PHRASE_GAME_TITLE = "ThroughLines";
 export const CURRENT_PUZZLE_VERSION = 1;
 
 export interface PhraseQuestion {

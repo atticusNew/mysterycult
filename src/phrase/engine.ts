@@ -197,18 +197,26 @@ export function puzzleReducer(
       if (!action.answer.trim()) return session;
 
       const correct = looseAnswerMatches(action.answer, question.answer);
+      const revealedPositions = correct
+        ? [
+            ...session.revealedPositions,
+            ...stridePositions(puzzle.phrase, puzzle.questions.length, index),
+          ]
+        : session.revealedPositions;
+      // A fully revealed phrase counts as solved — no typing what you can read.
+      const totalLetters = letterSequence(puzzle.phrase).length;
+      const fullyRevealed =
+        totalLetters > 0 &&
+        new Set([...revealedPositions, ...session.hintPositions]).size >=
+          totalLetters;
       return {
         ...session,
         questionStatus: {
           ...session.questionStatus,
           [question.id]: correct ? "correct" : "wrong",
         },
-        revealedPositions: correct
-          ? [
-              ...session.revealedPositions,
-              ...stridePositions(puzzle.phrase, puzzle.questions.length, index),
-            ]
-          : session.revealedPositions,
+        revealedPositions,
+        solved: session.solved || fullyRevealed,
       };
     }
 

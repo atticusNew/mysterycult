@@ -48,7 +48,7 @@ export default function Home() {
         <div className="game-row">
           <div className="game-row-info">
             <h2>{PHRASE_GAME_TITLE}</h2>
-            <p>Earn letters, uncover the phrase.</p>
+            <p>Five clues. One line. One throughline.</p>
           </div>
           {todaysPuzzle ? (
             <button

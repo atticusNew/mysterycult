@@ -143,6 +143,20 @@ describe("puzzle engine v2", () => {
     expect(session.connectionResult).toBe("wrong");
   });
 
+  it("a fully revealed phrase completes itself", () => {
+    let session = createPuzzleSession(data);
+    data.questions.forEach((question) => {
+      session = run(session, {
+        type: "ANSWER_QUESTION",
+        questionId: question.id,
+        answer: question.answer.primary,
+      });
+    });
+    // All stride positions revealed → the phrase bonus is earned, no typing.
+    expect(session.solved).toBe(true);
+    expect(session.phase).toBe("PLAYING"); // throughline still to name
+  });
+
   it("failed phrase attempts lock the bonus but never end the game", () => {
     expect(SOLVE_ATTEMPTS).toBe(2);
     let session = run(
