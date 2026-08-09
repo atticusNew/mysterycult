@@ -14,7 +14,12 @@ export default function MvpLanding() {
 
   return (
     <div className="shell title-screen">
-      <div className="mark" aria-hidden />
+      <div className="mark-tiles" aria-hidden>
+        <span>T</span>
+        <span>H</span>
+        <span>R</span>
+        <span>U</span>
+      </div>
       <h1>{PHRASE_GAME_TITLE}</h1>
       <p className="date">{date}</p>
       <p className="tagline">

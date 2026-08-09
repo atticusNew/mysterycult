@@ -136,13 +136,12 @@ describe("puzzle engine v2", () => {
     expect(session.phase).toBe("COMPLETE");
   });
 
-  it("two wrong theme guesses send the puzzle cold", () => {
-    expect(THEME_ATTEMPTS).toBe(2);
-    const session = run(
-      createPuzzleSession(data),
-      { type: "ATTEMPT_CONNECTION", text: "wrong theme one" },
-      { type: "ATTEMPT_CONNECTION", text: "wrong theme two" },
-    );
+  it("one wrong thruline guess sends the puzzle cold", () => {
+    expect(THEME_ATTEMPTS).toBe(1);
+    const session = run(createPuzzleSession(data), {
+      type: "ATTEMPT_CONNECTION",
+      text: "wrong theme",
+    });
     expect(session.phase).toBe("COLD");
     expect(session.connectionResult).toBe("wrong");
   });
@@ -161,13 +160,12 @@ describe("puzzle engine v2", () => {
     expect(session.phase).toBe("PLAYING"); // throughline still to name
   });
 
-  it("failed phrase attempts lock the bonus but never end the game", () => {
-    expect(SOLVE_ATTEMPTS).toBe(2);
-    let session = run(
-      createPuzzleSession(data),
-      { type: "ATTEMPT_SOLVE", text: "wrong guess one" },
-      { type: "ATTEMPT_SOLVE", text: "wrong guess two" },
-    );
+  it("a failed phrase attempt locks the bonus but never ends the game", () => {
+    expect(SOLVE_ATTEMPTS).toBe(1);
+    let session = run(createPuzzleSession(data), {
+      type: "ATTEMPT_SOLVE",
+      text: "wrong guess",
+    });
     expect(session.phase).toBe("PLAYING");
     const before = session;
     session = run(session, { type: "ATTEMPT_SOLVE", text: data.phrase });

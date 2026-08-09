@@ -98,6 +98,15 @@ export function validatePuzzle(puzzle: PhrasePuzzle): PuzzleReport {
   }
 
   const totalLetters = letterSequence(puzzle.phrase).length;
+  if (totalLetters > 58) {
+    issues.push(
+      issue(
+        "warning",
+        "phrase_long",
+        `The phrase is ${totalLetters} letters — boards over ~58 letters crowd small phones. Pick a shorter line.`,
+      ),
+    );
+  }
   if (
     puzzle.phrase.trim() &&
     puzzle.questions.length > 0 &&

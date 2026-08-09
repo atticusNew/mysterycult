@@ -586,7 +586,7 @@ export default function PhrasePlayer({
             <span className="answers-label">Answers</span>
             <span className="answers-items">
               {correctAnswers.map((question) => (
-                <span key={question.id} className="achip achip--ok">
+                <span key={question.id} className="apill">
                   {question.answer.primary}
                 </span>
               ))}
@@ -606,6 +606,28 @@ export default function PhrasePlayer({
             >
               Skip
             </button>
+          </div>
+        ) : mode.kind === "theme" ? (
+          /* the final round — weight, answers front and center */
+          <div className="final-panel">
+            <div className="final-head">
+              <span className="final-tag">Final</span>
+              <span className="final-title">The ThruLine</span>
+            </div>
+            <p className="final-question">
+              What connects everything{puzzle.genre ? ` — which ${puzzle.genre.toLowerCase()}` : ""}?
+            </p>
+            {correctAnswers.length > 0 ? (
+              <div className="final-answers">
+                {correctAnswers.map((question) => (
+                  <span key={question.id} className="final-answer">
+                    {question.answer.primary}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="final-none">No answers earned — going on instinct.</p>
+            )}
           </div>
         ) : mode.kind === "question" ? (
           /* focused question card — other categories step aside */
@@ -632,20 +654,24 @@ export default function PhrasePlayer({
                     ✕
                   </button>
                 </div>
-                <p className="focus-question">
-                  {question.prompt}
-                  {status === "correct" ? (
-                    <strong className="prompt-result prompt-result--ok">
-                      {" "}
-                      ✓ {question.answer.primary}
-                    </strong>
-                  ) : status === "wrong" ? (
-                    <strong className="prompt-result prompt-result--bad">
-                      {" "}
-                      ✗ locked
-                    </strong>
-                  ) : null}
-                </p>
+                {status === "open" ? (
+                  <p className="focus-question">{question.prompt}</p>
+                ) : (
+                  <div
+                    className={`focus-result ${
+                      status === "correct"
+                        ? "focus-result--ok"
+                        : "focus-result--bad"
+                    }`}
+                  >
+                    <span className="focus-result-mark">
+                      {status === "correct" ? "✓" : "✗"}
+                    </span>
+                    <span className="focus-result-answer">
+                      {question.answer.primary}
+                    </span>
+                  </div>
+                )}
               </div>
             );
           })()
@@ -678,7 +704,7 @@ export default function PhrasePlayer({
 
         {/* the goal + the bonus */}
         {!bonus ? (
-          <div className="mode-row">
+          <div className={`mode-row${effectiveMode.kind === "solve" && !bonus ? " mode-row--solving" : ""}`}>
             <button
               className={`qchip qchip--theme${
                 mode.kind === "theme" ? " qchip--theme-active" : ""
@@ -690,13 +716,17 @@ export default function PhrasePlayer({
                   : ""
               }`}
               disabled={session.connectionResult !== null}
-              onClick={() => switchMode({ kind: "theme" })}
+              onClick={() =>
+                switchMode(
+                  mode.kind === "theme" ? { kind: "idle" } : { kind: "theme" },
+                )
+              }
             >
               {session.connectionResult === "correct"
                 ? `${puzzle.connection.primary} ✓`
-                : `ThruLine${
-                    mode.kind === "theme" ? ` · ${themeAttemptsLeft} left` : " +50"
-                  }`}
+                : mode.kind === "theme"
+                  ? "✕ Cancel"
+                  : "ThruLine +50"}
             </button>
             <button
               className={`qchip qchip--solve${
@@ -705,15 +735,19 @@ export default function PhrasePlayer({
               disabled={
                 session.solved || session.wrongSolves.length >= SOLVE_ATTEMPTS
               }
-              onClick={() => switchMode({ kind: "solve" })}
+              onClick={() =>
+                switchMode(
+                  mode.kind === "solve" ? { kind: "idle" } : { kind: "solve" },
+                )
+              }
             >
               {session.solved
                 ? "Phrase ⭐"
                 : session.wrongSolves.length >= SOLVE_ATTEMPTS
                   ? "Phrase ✗"
-                  : `Phrase +25${
-                      mode.kind === "solve" ? ` · ${attemptsLeft} left` : ""
-                    }`}
+                  : mode.kind === "solve"
+                    ? "✕ Cancel"
+                    : "Phrase +25"}
             </button>
           </div>
         ) : null}
@@ -731,6 +765,16 @@ export default function PhrasePlayer({
           >
             {showRawValue && value ? value : entryGhost}
           </span>
+          {!bonus &&
+          (effectiveMode.kind === "solve" || effectiveMode.kind === "theme") ? (
+            <button
+              className="icon-round icon-round--sm"
+              title="Back"
+              onClick={() => switchMode({ kind: "idle" })}
+            >
+              ✕
+            </button>
+          ) : null}
         </div>
 
         {/* the game keyboard */}

@@ -2,10 +2,14 @@
   "id": "phrase_008",
   "version": 1,
   "title": "ThruLines #008",
-  "phrase": "I thought you meant the other Italian restaurant I asked you to marry me in.",
+  "phrase": "Instead of something I want, can it be something I don't want?",
   "connection": {
     "primary": "The Sixth Sense",
-    "aliases": ["the sixth sense", "sixth sense", "the sixth sense 1999"]
+    "aliases": [
+      "the sixth sense",
+      "sixth sense",
+      "the sixth sense 1999"
+    ]
   },
   "genre": "Movie",
   "questions": [
@@ -15,7 +19,10 @@
       "prompt": "Which US city is nicknamed the City of Brotherly Love?",
       "answer": {
         "primary": "Philadelphia",
-        "aliases": ["philly", "philadelphia pennsylvania"]
+        "aliases": [
+          "philly",
+          "philadelphia pennsylvania"
+        ]
       },
       "letter": "",
       "factoid": "",
@@ -27,7 +34,11 @@
       "prompt": "What's it called when someone abruptly stops answering your texts?",
       "answer": {
         "primary": "Ghosting",
-        "aliases": ["ghosted", "to ghost", "ghost"]
+        "aliases": [
+          "ghosted",
+          "to ghost",
+          "ghost"
+        ]
       },
       "letter": "",
       "factoid": "",
@@ -39,7 +50,10 @@
       "prompt": "Which action film may or may not be a Christmas movie, depending on who you ask?",
       "answer": {
         "primary": "Die Hard",
-        "aliases": ["diehard", "die hard 1988"]
+        "aliases": [
+          "diehard",
+          "die hard 1988"
+        ]
       },
       "letter": "",
       "factoid": "",
@@ -51,7 +65,12 @@
       "prompt": "Macaulay Culkin, Millie Bobby Brown and Shirley Temple are all famous examples of what?",
       "answer": {
         "primary": "Child actors",
-        "aliases": ["child actor", "child stars", "child star", "kid actors"]
+        "aliases": [
+          "child actor",
+          "child stars",
+          "child star",
+          "kid actors"
+        ]
       },
       "letter": "",
       "factoid": "",
@@ -63,7 +82,10 @@
       "prompt": "Which Australian movie is famously wall-to-wall ABBA songs?",
       "answer": {
         "primary": "Muriel's Wedding",
-        "aliases": ["muriels wedding", "muriel wedding"]
+        "aliases": [
+          "muriels wedding",
+          "muriel wedding"
+        ]
       },
       "letter": "",
       "factoid": "",
@@ -75,10 +97,10 @@
     "decade": ""
   },
   "reveal": {
-    "summary": "The Sixth Sense. Philadelphia is the setting, ghosting is the pun, Die Hard is Bruce Willis, the child actors point to Haley Joel Osment, and Muriel's Wedding is Toni Collette before the minivan scene. The line is Anna's — from the anniversary dinner where Malcolm is late in more ways than one.",
+    "summary": "The Sixth Sense. Philadelphia is the setting, ghosting is the pun, Die Hard is Bruce Willis, the child actors point to Haley Joel Osment, and Muriel's Wedding is Toni Collette before the minivan scene. The line is the film's quiet bargaining — asking for the absence of something, which is the whole movie in one sentence.",
     "ohMoment": "Every answer was circling one table in an Italian restaurant — where a wife has dinner alone on her anniversary."
   },
   "editorial": {
-    "notes": "VERBATIM CHECK NEEDED: the restaurant line should be verified against the script before wide release (author to confirm exact wording). 61 letters — dense tier."
+    "notes": "Phrase switched to the author's shorter alternate (48 letters) to fit the mobile board budget. VERBATIM CHECK still needed against the script before wide release."
   }
 }

@@ -16,9 +16,9 @@ import type { PhrasePuzzle } from "./model";
 /** Attempts allowed per question. Tunable. */
 export const QUESTION_ATTEMPTS = 1;
 /** Theme guesses allowed before the puzzle goes cold. THE win condition. */
-export const THEME_ATTEMPTS = 2;
+export const THEME_ATTEMPTS = 1;
 /** Phrase-solve attempts (the bonus). Running out locks it, never colds. */
-export const SOLVE_ATTEMPTS = 2;
+export const SOLVE_ATTEMPTS = 1;
 
 export const PHRASE_SCORING = {
   perQuestion: 5,
