@@ -1,11 +1,13 @@
 /**
- * Tagline player v5 — the pinned stage.
+ * Tagline player v6 — the locked stage.
  *
- * iOS-proof layout: tiles + prompt + the single input are pinned together
- * at the TOP, so when the mobile keyboard scrolls the input into view the
- * puzzle is always right above it. Questions live below as a Trivial
- * Pursuit-style category list; tapping one loads it into the prompt slot.
- * Modes: Question / Solve (type into the tiles) / Theme (+25, once).
+ * The game is a truly fixed viewport: nothing scrolls, ever. The stage
+ * resizes itself to the browser's visual viewport, so when the mobile
+ * keyboard opens the whole game slides up as one piece.
+ *
+ * Family-Feud spatial logic, top to bottom: board → earned answers →
+ * category pills → Solve/Theme → question panel (reveals beneath the
+ * category you tapped) → the single input. Cause above, effect below.
  */
 import { useEffect, useMemo, useRef, useState, useReducer } from "react";
 import type { PhrasePuzzle } from "./model";
@@ -16,6 +18,7 @@ import {
   createPuzzleSession,
   letterSequence,
   liveScore,
+  looseAnswerMatches,
   puzzleReducer,
   puzzleResultLine,
   SOLVE_ATTEMPTS,
@@ -23,12 +26,16 @@ import {
 } from "./engine";
 
 type Mode =
+  | { kind: "idle" }
   | { kind: "question"; index: number }
   | { kind: "solve" }
   | { kind: "theme" };
 
 /** Trivial Pursuit homage: stable category colors by question position. */
 const CATEGORY_COLORS = ["#4e7fc4", "#c75d94", "#d97f35", "#8a63b3", "#3f8f7d"];
+
+/** Delay before tiles cascade, so the ✓ in the panel lands first. */
+const CASCADE_DELAY_MS = 300;
 
 interface Props {
   puzzle: PhrasePuzzle;
@@ -49,14 +56,17 @@ export default function PhrasePlayer({
     puzzle,
     createPuzzleSession,
   );
-  const [mode, setMode] = useState<Mode>({ kind: "question", index: 0 });
+  const [mode, setMode] = useState<Mode>({ kind: "idle" });
   const [value, setValue] = useState("");
   const [showHelp, setShowHelp] = useState(false);
   const [copied, setCopied] = useState(false);
   const [shake, setShake] = useState(false);
+  const [flash, setFlash] = useState<"ok" | "bad" | null>(null);
   const [lastBatch, setLastBatch] = useState<number[]>([]);
+  const [stageHeight, setStageHeight] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const prevRevealed = useRef<Set<number>>(new Set());
+  const advanceTimer = useRef<number | null>(null);
 
   const letters = useMemo(() => letterSequence(puzzle.phrase), [puzzle.phrase]);
   const words = useMemo(
@@ -76,6 +86,9 @@ export default function PhrasePlayer({
   const attemptsLeft = SOLVE_ATTEMPTS - session.wrongSolves.length;
   const score = liveScore(puzzle, session);
   const revealRatio = letters.length > 0 ? revealed.size / letters.length : 0;
+  const earnedAnswers = puzzle.questions.filter(
+    (question) => session.questionStatus[question.id] === "correct",
+  );
 
   const typed =
     mode.kind === "solve"
@@ -84,6 +97,34 @@ export default function PhrasePlayer({
           .replace(/[^A-Z]/g, "")
           .slice(0, hiddenSlots.length)
       : "";
+
+  // ---- fixed viewport: track the visual viewport (keyboard-aware) --------
+  useEffect(() => {
+    if (gameOver) return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => {
+      setStageHeight(vv.height);
+      window.scrollTo(0, 0);
+    };
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, [gameOver]);
+
+  // Lock the document while playing.
+  useEffect(() => {
+    if (gameOver) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [gameOver]);
 
   // Track newly revealed positions for the cascade animation.
   useEffect(() => {
@@ -110,16 +151,23 @@ export default function PhrasePlayer({
       setShowHelp(true);
       localStorage.setItem("cm.tagline.help", "1");
     }
+    return () => {
+      if (advanceTimer.current) window.clearTimeout(advanceTimer.current);
+    };
   }, []);
 
   function act(action: PuzzleAction) {
     dispatch(action);
   }
 
-  /** Switch modes and hand focus to the input inside the user gesture. */
   function switchMode(next: Mode) {
+    if (advanceTimer.current) {
+      window.clearTimeout(advanceTimer.current);
+      advanceTimer.current = null;
+    }
     setMode(next);
     setValue("");
+    setFlash(null);
     inputRef.current?.focus();
   }
 
@@ -159,16 +207,28 @@ export default function PhrasePlayer({
       ? typed.length === hiddenSlots.length && hiddenSlots.length > 0
       : mode.kind === "theme"
         ? value.trim().length > 0 && session.connectionResult === null
-        : value.trim().length > 0 && activeStatus === "open");
+        : mode.kind === "question"
+          ? value.trim().length > 0 && activeStatus === "open"
+          : false);
 
   function submit() {
     if (!canSubmit) return;
     if (mode.kind === "question") {
-      const question = puzzle.questions[mode.index];
+      const index = mode.index;
+      const question = puzzle.questions[index];
+      const correct = looseAnswerMatches(value, question.answer);
       act({ type: "ANSWER_QUESTION", questionId: question.id, answer: value });
       setValue("");
-      const next = nextOpenQuestion(mode.index);
-      setMode(next >= 0 ? { kind: "question", index: next } : { kind: "solve" });
+      setFlash(correct ? "ok" : "bad");
+      if (correct) {
+        // Let the ✓ land, then move on to the next open category.
+        advanceTimer.current = window.setTimeout(() => {
+          setFlash(null);
+          const next = nextOpenQuestion(index);
+          setMode(next >= 0 ? { kind: "question", index: next } : { kind: "solve" });
+          advanceTimer.current = null;
+        }, 1100);
+      }
       inputRef.current?.focus();
       return;
     }
@@ -180,8 +240,6 @@ export default function PhrasePlayer({
     }
     act({ type: "ATTEMPT_CONNECTION", text: value });
     setValue("");
-    const next = nextOpenQuestion(-1);
-    setMode(next >= 0 ? { kind: "question", index: next } : { kind: "solve" });
     inputRef.current?.focus();
   }
 
@@ -234,7 +292,9 @@ export default function PhrasePlayer({
                     className={`ptile ${isHint ? "ptile--hint" : "ptile--shown"}`}
                     style={
                       batchOrder >= 0
-                        ? { animationDelay: `${batchOrder * 70}ms` }
+                        ? {
+                            animationDelay: `${CASCADE_DELAY_MS + batchOrder * 80}ms`,
+                          }
                         : { animation: "none" }
                     }
                     key={charIdx}
@@ -379,7 +439,14 @@ export default function PhrasePlayer({
   }
 
   // -------------------------------------------------------------- PLAYING
-  const promptSlot = () => {
+  const panel = () => {
+    if (mode.kind === "idle") {
+      return (
+        <p className="qpanel-hint">
+          Pick a category — every answer is a clue to the phrase.
+        </p>
+      );
+    }
     if (mode.kind === "solve") {
       return (
         <>
@@ -427,9 +494,12 @@ export default function PhrasePlayer({
   };
 
   return (
-    <div className="pstage">
-      {/* pinned block: everything you need while typing */}
-      <div className="pin">
+    <div
+      className="fstage"
+      style={{ height: stageHeight ? `${stageHeight}px` : undefined }}
+    >
+      <div className="fstage-inner">
+        {/* header */}
         <div className="pstage-top">
           <span className="kicker">{puzzle.title || "Tagline"}</span>
           <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
@@ -456,79 +526,46 @@ export default function PhrasePlayer({
 
         {board(false, false)}
 
-        <div className="prompt-slot">{promptSlot()}</div>
-
-        <form
-          className="input-bar"
-          onSubmit={(event) => {
-            event.preventDefault();
-            submit();
-          }}
-        >
-          <input
-            ref={inputRef}
-            className="input input-bar-field"
-            placeholder={
-              mode.kind === "solve"
-                ? "Type the phrase…"
-                : mode.kind === "theme"
-                  ? "The theme is…"
-                  : activeStatus === "open"
-                    ? "Your answer — one attempt"
-                    : "Pick a category below"
-            }
-            value={value}
-            disabled={mode.kind === "question" && activeStatus !== "open"}
-            onChange={(event) => setValue(event.target.value)}
-            autoCapitalize={mode.kind === "solve" ? "characters" : "words"}
-            autoComplete="off"
-            autoCorrect="off"
-            spellCheck={false}
-          />
-          <button
-            className={`btn ${
-              mode.kind === "solve" ? "btn--accuse-solid" : "btn--primary"
-            }`}
-            type="submit"
-            disabled={!canSubmit}
-          >
-            {mode.kind === "solve" ? "Solve" : mode.kind === "theme" ? "+25" : "Go"}
-          </button>
-        </form>
-      </div>
-
-      {/* the category list */}
-      <div className="qlist">
-        {puzzle.questions.map((question, index) => {
-          const status = session.questionStatus[question.id];
-          const active = mode.kind === "question" && mode.index === index;
-          const color = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
-          return (
-            <button
-              key={question.id}
-              className={`qrow${active ? " qrow--active" : ""}${
-                status === "correct" ? " qrow--ok" : ""
-              }${status === "wrong" ? " qrow--bad" : ""}`}
-              onClick={() => switchMode({ kind: "question", index })}
-            >
-              <span className="qrow-cat" style={{ background: color }}>
-                {question.subject.trim() || `Question ${index + 1}`}
+        {/* earned answers */}
+        {earnedAnswers.length > 0 ? (
+          <div className="achips achips--slim">
+            {earnedAnswers.map((question) => (
+              <span key={question.id} className="achip achip--ok">
+                {question.answer.primary}
               </span>
-              <span className="qrow-state">
-                {status === "correct" ? (
-                  <strong>{question.answer.primary}</strong>
-                ) : status === "wrong" ? (
-                  "✗ locked"
-                ) : (
-                  "tap to answer"
-                )}
+            ))}
+            {session.connectionResult === "correct" ? (
+              <span className="achip achip--conn-ok">
+                {puzzle.connection.primary} ✓
               </span>
-            </button>
-          );
-        })}
+            ) : null}
+          </div>
+        ) : null}
 
-        {/* mode rows */}
-        <div className="qlist-modes">
+        {/* categories */}
+        <div className="cat-row">
+          {puzzle.questions.map((question, index) => {
+            const status = session.questionStatus[question.id];
+            const active = mode.kind === "question" && mode.index === index;
+            const color = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
+            return (
+              <button
+                key={question.id}
+                className={`cat-pill${active ? " cat-pill--active" : ""}${
+                  status === "correct" ? " cat-pill--ok" : ""
+                }${status === "wrong" ? " cat-pill--bad" : ""}`}
+                style={{ background: color }}
+                onClick={() => switchMode({ kind: "question", index })}
+              >
+                {question.subject.trim() || `Q${index + 1}`}
+                {status === "correct" ? " ✓" : status === "wrong" ? " ✗" : ""}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* modes */}
+        <div className="mode-row">
           <button
             className={`qchip qchip--solve${
               mode.kind === "solve" ? " qchip--solve-active" : ""
@@ -551,6 +588,59 @@ export default function PhrasePlayer({
                 : "Theme +25"}
           </button>
         </div>
+
+        {/* question panel — reveals beneath the category you tapped */}
+        <div
+          className={`qpanel${flash === "ok" ? " qpanel--ok" : ""}${
+            flash === "bad" ? " qpanel--bad" : ""
+          }`}
+        >
+          {panel()}
+        </div>
+
+        {/* the single input */}
+        <form
+          className="input-bar"
+          onSubmit={(event) => {
+            event.preventDefault();
+            submit();
+          }}
+        >
+          <input
+            ref={inputRef}
+            className="input input-bar-field"
+            placeholder={
+              mode.kind === "idle"
+                ? "Pick a category above"
+                : mode.kind === "solve"
+                  ? "Type the phrase…"
+                  : mode.kind === "theme"
+                    ? "The theme is…"
+                    : activeStatus === "open"
+                      ? "Your answer — one attempt"
+                      : "Pick another category"
+            }
+            value={value}
+            disabled={
+              mode.kind === "idle" ||
+              (mode.kind === "question" && activeStatus !== "open")
+            }
+            onChange={(event) => setValue(event.target.value)}
+            autoCapitalize={mode.kind === "solve" ? "characters" : "words"}
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
+          />
+          <button
+            className={`btn ${
+              mode.kind === "solve" ? "btn--accuse-solid" : "btn--primary"
+            }`}
+            type="submit"
+            disabled={!canSubmit}
+          >
+            {mode.kind === "solve" ? "Solve" : mode.kind === "theme" ? "+25" : "Go"}
+          </button>
+        </form>
       </div>
 
       {/* bonus crescendo */}

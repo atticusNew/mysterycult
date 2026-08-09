@@ -835,6 +835,130 @@ h3 {
   color: #8a6a14;
 }
 
+/* --------------------------------------------------------- the locked stage */
+
+.fstage {
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--bg);
+  display: flex;
+  justify-content: center;
+  transition: height 0.18s ease-out;
+}
+
+.fstage-inner {
+  width: 100%;
+  max-width: 520px;
+  height: 100%;
+  padding: 10px 14px calc(8px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.fstage-inner .phrase-board {
+  padding: 2px 0;
+  flex-shrink: 0;
+}
+
+.achips--slim {
+  gap: 5px;
+}
+
+.achips--slim .achip {
+  font-size: 10.5px;
+  padding: 4px 10px;
+}
+
+/* category pills — Family Feud row */
+.cat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+.cat-pill {
+  appearance: none;
+  border: none;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff;
+  border-radius: 999px;
+  padding: 8px 13px;
+  cursor: pointer;
+  opacity: 0.92;
+  transition: transform 0.12s var(--bounce), opacity 0.15s ease, filter 0.15s ease;
+}
+
+.cat-pill:active {
+  transform: scale(0.93);
+}
+
+.cat-pill--active {
+  outline: 2.5px solid var(--ink);
+  outline-offset: 1.5px;
+  opacity: 1;
+}
+
+.cat-pill--ok {
+  filter: saturate(0.4) brightness(1.05);
+  opacity: 0.75;
+}
+
+.cat-pill--bad {
+  filter: grayscale(0.8);
+  opacity: 0.5;
+}
+
+.mode-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.mode-row .qchip {
+  padding: 8px 16px;
+}
+
+/* the question panel — reveals beneath the tapped category */
+.qpanel {
+  min-height: 72px;
+  background: var(--card);
+  border-radius: 14px;
+  padding: 11px 14px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+  justify-content: center;
+  transition: box-shadow 0.2s ease;
+}
+
+.qpanel--ok {
+  box-shadow: var(--shadow-sm), inset 0 0 0 2.5px var(--green);
+}
+
+.qpanel--bad {
+  box-shadow: var(--shadow-sm), inset 0 0 0 2.5px var(--red);
+  animation: shake 0.4s ease;
+}
+
+.qpanel-hint {
+  margin: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 14px;
+  color: var(--ink-3);
+}
+
 /* ------------------------------------------------- the single-input stage */
 
 .pstage {
