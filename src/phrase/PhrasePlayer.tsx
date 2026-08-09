@@ -692,8 +692,12 @@ export default function PhrasePlayer({
                     <span className="focus-result-mark">
                       {status === "correct" ? "✓" : "✗"}
                     </span>
+                    {/* A miss never shows the real answer — answers ARE the
+                        clues, so revealing one is the same as earning it. */}
                     <span className="focus-result-answer">
-                      {question.answer.primary}
+                      {status === "correct"
+                        ? question.answer.primary
+                        : "Not it — answer at the reveal"}
                     </span>
                   </div>
                 )}
