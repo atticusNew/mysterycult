@@ -76,20 +76,22 @@
       "connectionNote": "White — recorded in 1968, the same sessions and summer as The White Album."
     },
     {
-      "id": "q_beetle",
-      "subject": "Nature",
-      "prompt": "Which insect almost shares its name with the Fab Four?",
+      "id": "q_wes",
+      "subject": "Movies",
+      "prompt": "What was Wes Anderson's third feature film?",
       "answer": {
-        "primary": "Beetle",
+        "primary": "The Royal Tenenbaums",
         "aliases": [
-          "a beetle",
-          "beetles",
-          "the beetle"
+          "royal tenenbaums",
+          "tenenbaums",
+          "the royal tenebaums",
+          "royal tennenbaums",
+          "the royal tennenbaums"
         ]
       },
       "letter": "",
       "factoid": "",
-      "connectionNote": "The band itself — one vowel away from the bug, on purpose."
+      "connectionNote": "The film opens on an instrumental 'Hey Jude' — Anderson built the whole introduction of the Tenenbaum children around it."
     }
   ],
   "hints": {
@@ -97,10 +99,10 @@
     "decade": ""
   },
   "reveal": {
-    "summary": "Hey Jude. Sha Na Na is the na-na-na coda, the divorce is the one Paul drove out to soften for little Julian Lennon, 'fore' is the first word of the line on the board, White is the album summer it was born in, and the Beatles are one vowel from the bug. The line itself is the song's quiet center: don't play it cool.",
+    "summary": "Hey Jude. Sha Na Na is the na-na-na coda, the divorce is the one Paul drove out to soften for little Julian Lennon, 'fore' is the first word of the line on the board, White is the album summer it was born in, and The Royal Tenenbaums opens on the song itself. The line is the song's quiet center: don't play it cool.",
     "ohMoment": "The golf shout was the giveaway all along — 'Fore' is the first word of the line you were staring at."
   },
   "editorial": {
-    "notes": "Q5 placeholder: author's original was 'A pet parrot might like to sit here' -> PERCH; intended link unconfirmed, swapped for the Beetle question pending the author's explanation. Phrase trimmed at the natural rhyme break ('...plays it cool', 40 letters) so the board stays playable while keeping the FORE hook. Single-line lyric usage noted as acceptable for testing."
+    "notes": "Q5 finalized per author: Wes Anderson's third feature (The Royal Tenenbaums, which opens on an instrumental Hey Jude). The author's alternate — a parrot sits 'on your shoulder,' echoing 'the movement you need is on your shoulder' — is a great fact for the reveal but awkward as a typed answer. Phrase trimmed at the rhyme break (40 letters)."
   }
 }

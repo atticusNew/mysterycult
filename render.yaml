@@ -1,0 +1,9 @@
+# Render Blueprint: deploys the ThruLines MVP as a static site.
+# In the Render dashboard: New → Blueprint → point at this repo/branch.
+services:
+  - type: web
+    name: thrulines
+    runtime: static
+    buildCommand: npm install && npm run build:mvp
+    staticPublishPath: dist
+    branch: cursor/cultural-mystery-framework-98ac
