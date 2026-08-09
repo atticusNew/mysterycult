@@ -835,7 +835,196 @@ h3 {
   color: #8a6a14;
 }
 
-/* questions — Wordle-simple numbered rows */
+/* ------------------------------------------------- the single-input stage */
+
+.pstage {
+  max-width: 520px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pstage-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pstage .phrase-board {
+  padding: 6px 0 2px;
+}
+
+.stage-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+.qchip {
+  appearance: none;
+  border: none;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  background: var(--tile);
+  color: var(--ink-2);
+  border-radius: 999px;
+  padding: 7px 13px;
+  cursor: pointer;
+  transition: transform 0.12s var(--bounce), background 0.15s ease, color 0.15s ease;
+}
+
+.qchip:active {
+  transform: scale(0.93);
+}
+
+.qchip--active {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+  color: var(--ink);
+}
+
+.qchip--ok {
+  background: var(--green);
+  color: #fff;
+  animation: tile-pop 0.4s var(--bounce);
+}
+
+.qchip--bad {
+  background: var(--red-soft);
+  color: var(--red);
+}
+
+.qchip--solve {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--red) !important;
+  color: var(--red);
+}
+
+.qchip--solve-active {
+  background: var(--red);
+  color: #fff;
+}
+
+.qchip--tempt {
+  animation: tempt-pulse 1.6s ease infinite;
+}
+
+@keyframes tempt-pulse {
+  0%, 100% { box-shadow: inset 0 0 0 1.5px var(--red), 0 0 0 0 rgba(208, 52, 44, 0); }
+  50% { box-shadow: inset 0 0 0 1.5px var(--red), 0 0 0 5px rgba(208, 52, 44, 0.14); }
+}
+
+.qchip--conn {
+  background: var(--gold-soft);
+  color: #8a6a14;
+  box-shadow: inset 0 0 0 1.5px var(--gold) !important;
+}
+
+.qchip--conn-ok {
+  background: var(--gold);
+  color: var(--ink);
+}
+
+.qchip--conn:disabled {
+  cursor: default;
+}
+
+/* fixed prompt slot */
+.prompt-slot {
+  min-height: 74px;
+  background: var(--card);
+  border-radius: 14px;
+  padding: 11px 14px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.prompt-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fff;
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+
+.prompt-tag--solve {
+  background: var(--red);
+}
+
+.prompt-tag--conn {
+  background: var(--gold);
+  color: var(--ink);
+}
+
+.prompt-text {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.prompt-result--ok {
+  color: var(--green);
+}
+
+.prompt-result--bad {
+  color: var(--red);
+}
+
+/* input bar */
+.input-bar {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.input-bar-field {
+  flex: 1;
+  font-size: 16px; /* prevents iOS zoom-on-focus */
+  padding: 12px 14px;
+}
+
+.input-bar .btn {
+  padding: 12px 20px;
+}
+
+.hint-label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  align-self: center;
+}
+
+/* victory wave */
+.ptile--wave {
+  animation: wave-pop 0.6s var(--bounce) backwards;
+}
+
+@keyframes wave-pop {
+  0% { transform: translateY(0); }
+  35% { transform: translateY(-9px) scale(1.08); }
+  70% { transform: translateY(2px); }
+  100% { transform: translateY(0); }
+}
+
+/* questions — end-screen rows */
 
 .pshell {
   max-width: 520px;

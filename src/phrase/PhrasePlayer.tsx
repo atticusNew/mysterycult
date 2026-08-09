@@ -1,12 +1,11 @@
 /**
- * Tagline player v3 — one screen, Wordle discipline.
+ * Tagline player v4 — the single-input stage.
  *
- * Tiles up top (tap to type the phrase directly into the board), earned
- * answers as chips, five inline questions, a connection slot you can fill
- * at any time, three purchasable hints, and a live score out of 100.
- *
- * Color is semantic: green = confirmed, gold = hints & the connection
- * layer, red = commitment & misses, gray = unknown.
+ * One text input, fixed at the bottom, that never loses focus: it answers
+ * questions, types the phrase into the tiles (Solve mode) and names the
+ * connection (Connection mode). Everything above it is fixed — no
+ * scrolling during play. Question chips are both navigation and the
+ * record of earned answers; categories color them, Trivial Pursuit style.
  */
 import { useEffect, useMemo, useRef, useState, useReducer } from "react";
 import type { PhrasePuzzle } from "./model";
@@ -23,11 +22,21 @@ import {
   type PuzzleAction,
 } from "./engine";
 
+type Mode = { kind: "question"; index: number } | { kind: "solve" } | { kind: "connection" };
+
+/** Trivial Pursuit homage: stable category colors by question position. */
+const CATEGORY_COLORS = ["#4e7fc4", "#c75d94", "#d97f35", "#8a63b3", "#3f8f7d"];
+
 interface Props {
   puzzle: PhrasePuzzle;
   onExit: () => void;
   exitLabel?: string;
   onRestart?: () => void;
+}
+
+/** Swallow focus steal so the shared input keeps the keyboard open. */
+function keepFocus(event: React.PointerEvent) {
+  event.preventDefault();
 }
 
 export default function PhrasePlayer({
@@ -42,14 +51,14 @@ export default function PhrasePlayer({
     puzzle,
     createPuzzleSession,
   );
-  const [inputs, setInputs] = useState<Record<string, string>>({});
-  const [typed, setTyped] = useState("");
-  const [connOpen, setConnOpen] = useState(false);
-  const [connText, setConnText] = useState("");
+  const [mode, setMode] = useState<Mode>({ kind: "question", index: 0 });
+  const [value, setValue] = useState("");
   const [showHelp, setShowHelp] = useState(false);
   const [copied, setCopied] = useState(false);
   const [shake, setShake] = useState(false);
-  const typeRef = useRef<HTMLInputElement>(null);
+  const [lastBatch, setLastBatch] = useState<number[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const prevRevealed = useRef<Set<number>>(new Set());
 
   const letters = useMemo(() => letterSequence(puzzle.phrase), [puzzle.phrase]);
   const words = useMemo(
@@ -68,10 +77,27 @@ export default function PhrasePlayer({
   const gameOver = session.phase === "COMPLETE" || session.phase === "COLD";
   const attemptsLeft = SOLVE_ATTEMPTS - session.wrongSolves.length;
   const score = liveScore(puzzle, session);
+  const revealRatio =
+    letters.length > 0 ? revealed.size / letters.length : 0;
 
-  // New reveals shift the typed→slot mapping; clear the draft.
+  const typed =
+    mode.kind === "solve"
+      ? value
+          .toUpperCase()
+          .replace(/[^A-Z]/g, "")
+          .slice(0, hiddenSlots.length)
+      : "";
+
+  // Track newly revealed positions for the cascade animation.
   useEffect(() => {
-    setTyped("");
+    const current = allRevealedPositions(session);
+    const fresh = [...current].filter((i) => !prevRevealed.current.has(i));
+    prevRevealed.current = current;
+    if (fresh.length > 0) {
+      setLastBatch(fresh.sort((a, b) => a - b));
+      if (mode.kind === "solve") setValue("");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session.revealedPositions.length, session.hintPositions.length]);
 
   // Shake on a wrong solve.
@@ -95,6 +121,27 @@ export default function PhrasePlayer({
     dispatch(action);
   }
 
+  function refocus() {
+    requestAnimationFrame(() => inputRef.current?.focus());
+  }
+
+  function switchMode(next: Mode) {
+    setMode(next);
+    setValue("");
+    refocus();
+  }
+
+  function nextOpenQuestion(after: number): number {
+    const count = puzzle.questions.length;
+    for (let step = 1; step <= count; step++) {
+      const index = (after + step) % count;
+      if (session.questionStatus[puzzle.questions[index].id] === "open") {
+        return index;
+      }
+    }
+    return -1;
+  }
+
   function assembleGuess(): string {
     let letterIndex = 0;
     let hiddenIndex = 0;
@@ -104,34 +151,50 @@ export default function PhrasePlayer({
         if (!/[a-z]/i.test(char)) return char;
         const index = letterIndex++;
         if (revealed.has(index)) return letters[index];
-        const typedChar = typed[hiddenIndex++] ?? "";
-        return typedChar || "_";
+        return typed[hiddenIndex++] ?? "_";
       })
       .join("");
   }
 
   const canSubmit =
-    !gameOver &&
-    session.phase === "PLAYING" &&
-    hiddenSlots.length > 0 &&
-    typed.length === hiddenSlots.length;
+    mode.kind === "solve"
+      ? typed.length === hiddenSlots.length && hiddenSlots.length > 0
+      : value.trim().length > 0;
 
-  function submitSolve() {
-    if (!canSubmit) return;
-    act({ type: "ATTEMPT_SOLVE", text: assembleGuess() });
+  function submit() {
+    if (!canSubmit || session.phase !== "PLAYING") return;
+    if (mode.kind === "question") {
+      const question = puzzle.questions[mode.index];
+      if (session.questionStatus[question.id] !== "open") return;
+      act({ type: "ANSWER_QUESTION", questionId: question.id, answer: value });
+      setValue("");
+      const next = nextOpenQuestion(mode.index);
+      if (next >= 0) setMode({ kind: "question", index: next });
+      else setMode({ kind: "solve" });
+      refocus();
+      return;
+    }
+    if (mode.kind === "solve") {
+      act({ type: "ATTEMPT_SOLVE", text: assembleGuess() });
+      setValue("");
+      refocus();
+      return;
+    }
+    act({ type: "ATTEMPT_CONNECTION", text: value });
+    setValue("");
+    const next = nextOpenQuestion(-1);
+    setMode(next >= 0 ? { kind: "question", index: next } : { kind: "solve" });
+    refocus();
   }
 
   // ------------------------------------------------------------- the board
-  const board = (revealAll: boolean, interactive: boolean) => {
+  const board = (revealAll: boolean, wave: boolean) => {
     let letterIndex = -1;
     let hiddenIndex = -1;
-    const cursorSlot = typed.length; // next hidden slot to fill
+    const cursorSlot = typed.length;
     return (
       <div
-        className={`phrase-board${shake ? " phrase-board--shake" : ""}${
-          interactive ? " phrase-board--tappable" : ""
-        }`}
-        onClick={interactive ? () => typeRef.current?.focus() : undefined}
+        className={`phrase-board${shake ? " phrase-board--shake" : ""}`}
         aria-label="Hidden phrase"
       >
         {words.map((word, wordIdx) => (
@@ -147,23 +210,37 @@ export default function PhrasePlayer({
               }
               letterIndex += 1;
               const idx = letterIndex;
-              if (revealAll) {
+              if (wave) {
                 return (
-                  <span className="ptile ptile--shown" key={charIdx}>
-                    {upper}
-                  </span>
-                );
-              }
-              if (session.hintPositions.includes(idx)) {
-                return (
-                  <span className="ptile ptile--hint" key={charIdx}>
+                  <span
+                    className="ptile ptile--shown ptile--wave"
+                    style={{ animationDelay: `${idx * 45}ms` }}
+                    key={charIdx}
+                  >
                     {letters[idx]}
                   </span>
                 );
               }
-              if (revealed.has(idx)) {
+              if (revealAll) {
                 return (
                   <span className="ptile ptile--shown" key={charIdx}>
+                    {letters[idx]}
+                  </span>
+                );
+              }
+              const isHint = session.hintPositions.includes(idx);
+              if (revealed.has(idx)) {
+                const batchOrder = lastBatch.indexOf(idx);
+                return (
+                  <span
+                    className={`ptile ${isHint ? "ptile--hint" : "ptile--shown"}`}
+                    style={
+                      batchOrder >= 0
+                        ? { animationDelay: `${batchOrder * 70}ms` }
+                        : { animation: "none" }
+                    }
+                    key={charIdx}
+                  >
                     {letters[idx]}
                   </span>
                 );
@@ -171,7 +248,8 @@ export default function PhrasePlayer({
               hiddenIndex += 1;
               const slot = hiddenIndex;
               const typedChar = typed[slot] ?? "";
-              const isCursor = interactive && slot === cursorSlot;
+              const isCursor =
+                mode.kind === "solve" && slot === cursorSlot && !gameOver;
               return (
                 <span
                   className={`ptile${typedChar ? " ptile--typed" : ""}${
@@ -217,7 +295,7 @@ export default function PhrasePlayer({
           {puzzleResultLine(puzzle, session).toUpperCase()}
         </p>
 
-        <div className="section">{board(true, false)}</div>
+        <div className="section">{board(true, session.solved)}</div>
 
         <div className="section">
           <span className="kicker kicker--gold">The connection</span>
@@ -246,6 +324,9 @@ export default function PhrasePlayer({
                           ? " pq-n--bad"
                           : ""
                     }`}
+                    style={{
+                      boxShadow: `inset 0 -3px 0 ${CATEGORY_COLORS[index % CATEGORY_COLORS.length]}`,
+                    }}
                   >
                     {index + 1}
                   </span>
@@ -300,16 +381,62 @@ export default function PhrasePlayer({
   }
 
   // -------------------------------------------------------------- PLAYING
-  const connChipLabel =
-    session.connectionResult === "correct"
-      ? `${puzzle.connection.primary} ✓`
-      : session.connectionResult === "wrong"
-        ? "✗"
-        : "?";
+  const activeQuestion =
+    mode.kind === "question" ? puzzle.questions[mode.index] : null;
+  const activeStatus = activeQuestion
+    ? session.questionStatus[activeQuestion.id]
+    : "open";
+
+  const promptSlot = () => {
+    if (mode.kind === "solve") {
+      return (
+        <>
+          <span className="prompt-tag prompt-tag--solve">Solve</span>
+          <p className="prompt-text">
+            Type the phrase into the tiles — {attemptsLeft} attempt
+            {attemptsLeft === 1 ? "" : "s"} left.
+            {session.wrongSolves.length > 0 ? " Not it — look again." : ""}
+          </p>
+        </>
+      );
+    }
+    if (mode.kind === "connection") {
+      return (
+        <>
+          <span className="prompt-tag prompt-tag--conn">Connection</span>
+          <p className="prompt-text">
+            One guess: what links all five answers — and the phrase? (+25)
+          </p>
+        </>
+      );
+    }
+    const index = mode.index;
+    const question = puzzle.questions[index];
+    const color = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
+    return (
+      <>
+        <span className="prompt-tag" style={{ background: color }}>
+          {question.subject.trim() || `Question ${index + 1}`}
+        </span>
+        <p className="prompt-text">
+          {question.prompt}
+          {activeStatus === "correct" ? (
+            <strong className="prompt-result prompt-result--ok">
+              {" "}
+              ✓ {question.answer.primary}
+            </strong>
+          ) : activeStatus === "wrong" ? (
+            <strong className="prompt-result prompt-result--bad"> ✗ locked</strong>
+          ) : null}
+        </p>
+      </>
+    );
+  };
 
   return (
-    <div className="shell shell--flush pshell">
-      <div className="case-topbar">
+    <div className="pstage">
+      {/* header */}
+      <div className="pstage-top">
         <span className="kicker">{puzzle.title || "Tagline"}</span>
         <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
           <span className="score-chip" key={score}>
@@ -318,12 +445,18 @@ export default function PhrasePlayer({
           <button
             className="icon-round"
             aria-label="How to play"
+            onPointerDown={keepFocus}
             onClick={() => setShowHelp(true)}
           >
             ?
           </button>
           {onRestart ? (
-            <button className="icon-round" title="Restart" onClick={onRestart}>
+            <button
+              className="icon-round"
+              title="Restart"
+              onPointerDown={keepFocus}
+              onClick={onRestart}
+            >
               ↺
             </button>
           ) : null}
@@ -333,151 +466,72 @@ export default function PhrasePlayer({
         </span>
       </div>
 
-      {board(false, true)}
+      {board(false, false)}
 
-      {/* offscreen input that powers tap-to-type */}
-      <input
-        ref={typeRef}
-        className="ghost-input"
-        value={typed}
-        inputMode="text"
-        autoCapitalize="characters"
-        autoComplete="off"
-        autoCorrect="off"
-        spellCheck={false}
-        onChange={(event) => {
-          const clean = event.target.value
-            .toUpperCase()
-            .replace(/[^A-Z]/g, "")
-            .slice(0, hiddenSlots.length);
-          setTyped(clean);
-        }}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") submitSolve();
-        }}
-        aria-label="Type the phrase"
-      />
-
-      <div className="psolve-bar">
-        {canSubmit ? (
-          <button className="btn btn--accuse-solid btn--small" onClick={submitSolve}>
-            Solve ↵
-          </button>
-        ) : (
-          <span className="psolve-note">
-            {session.wrongSolves.length > 0
-              ? `Not it — ${attemptsLeft} attempt${attemptsLeft === 1 ? "" : "s"} left`
-              : "Tap the board to type your solve"}
-          </span>
-        )}
-      </div>
-
-      {/* earned answers + the connection slot */}
-      <div className="achips">
+      {/* chips: questions + solve + connection */}
+      <div className="stage-chips">
         {puzzle.questions.map((question, index) => {
           const status = session.questionStatus[question.id];
+          const active = mode.kind === "question" && mode.index === index;
+          const color = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
           return (
-            <span
+            <button
               key={question.id}
-              className={`achip${
-                status === "correct"
-                  ? " achip--ok"
-                  : status === "wrong"
-                    ? " achip--bad"
-                    : ""
-              }`}
+              className={`qchip${status === "correct" ? " qchip--ok" : ""}${
+                status === "wrong" ? " qchip--bad" : ""
+              }${active ? " qchip--active" : ""}`}
+              style={{ boxShadow: `inset 0 -3px 0 ${color}` }}
+              onPointerDown={keepFocus}
+              onClick={() => switchMode({ kind: "question", index })}
             >
               {status === "correct"
                 ? question.answer.primary
                 : status === "wrong"
                   ? "✗"
-                  : `${index + 1}?`}
-            </span>
+                  : index + 1}
+            </button>
           );
         })}
         <button
-          className={`achip achip--conn${
-            session.connectionResult === "correct" ? " achip--conn-ok" : ""
-          }${session.connectionResult === "wrong" ? " achip--bad" : ""}`}
-          disabled={session.connectionResult !== null}
-          onClick={() => setConnOpen(true)}
-          title="Name the connection (+25)"
+          className={`qchip qchip--solve${
+            mode.kind === "solve" ? " qchip--solve-active" : ""
+          }${revealRatio >= 0.6 && mode.kind !== "solve" ? " qchip--tempt" : ""}`}
+          onPointerDown={keepFocus}
+          onClick={() => switchMode({ kind: "solve" })}
         >
-          ⚡ {connChipLabel}
+          Solve
+        </button>
+        <button
+          className={`qchip qchip--conn${
+            session.connectionResult === "correct" ? " qchip--conn-ok" : ""
+          }${session.connectionResult === "wrong" ? " qchip--bad" : ""}${
+            mode.kind === "connection" ? " qchip--active" : ""
+          }`}
+          disabled={session.connectionResult !== null}
+          onPointerDown={keepFocus}
+          onClick={() => switchMode({ kind: "connection" })}
+        >
+          {session.connectionResult === "correct"
+            ? `${puzzle.connection.primary} ✓`
+            : session.connectionResult === "wrong"
+              ? "Connection ✗"
+              : "Connection +25"}
         </button>
       </div>
 
-      {/* questions */}
-      <div className="pq-simple-list">
-        {puzzle.questions.map((question, index) => {
-          const status = session.questionStatus[question.id];
-          return (
-            <div className="pq-row" key={question.id}>
-              <span
-                className={`pq-n${
-                  status === "correct"
-                    ? " pq-n--ok"
-                    : status === "wrong"
-                      ? " pq-n--bad"
-                      : ""
-                }`}
-              >
-                {status === "correct" ? "✓" : status === "wrong" ? "✗" : index + 1}
-              </span>
-              <div className="pq-body">
-                <p className="pq-prompt">{question.prompt}</p>
-                {status === "open" ? (
-                  <form
-                    className="pq-input-row"
-                    onSubmit={(event) => {
-                      event.preventDefault();
-                      const value = inputs[question.id] ?? "";
-                      if (!value.trim()) return;
-                      act({
-                        type: "ANSWER_QUESTION",
-                        questionId: question.id,
-                        answer: value,
-                      });
-                    }}
-                  >
-                    <input
-                      className="input input--slim"
-                      placeholder="Answer"
-                      value={inputs[question.id] ?? ""}
-                      onChange={(event) =>
-                        setInputs({
-                          ...inputs,
-                          [question.id]: event.target.value,
-                        })
-                      }
-                    />
-                    <button
-                      className="btn btn--small"
-                      type="submit"
-                      disabled={!(inputs[question.id] ?? "").trim()}
-                    >
-                      Go
-                    </button>
-                  </form>
-                ) : status === "correct" ? (
-                  <p className="pq-answer">{question.answer.primary}</p>
-                ) : (
-                  <p className="pq-answer pq-answer--wrong">Locked</p>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      {/* fixed prompt slot */}
+      <div className="prompt-slot">{promptSlot()}</div>
 
       {/* hints */}
       <div className="hint-bar">
+        <span className="hint-label">Hints</span>
         {puzzle.hints.category.trim() ? (
           session.usedHints.includes("category") ? (
             <span className="hint-chip">{puzzle.hints.category}</span>
           ) : (
             <button
               className="hint-buy"
+              onPointerDown={keepFocus}
               onClick={() => act({ type: "USE_HINT", hint: "category" })}
             >
               Category −10
@@ -490,6 +544,7 @@ export default function PhrasePlayer({
           ) : (
             <button
               className="hint-buy"
+              onPointerDown={keepFocus}
               onClick={() => act({ type: "USE_HINT", hint: "decade" })}
             >
               Decade −10
@@ -499,6 +554,7 @@ export default function PhrasePlayer({
         {!session.usedHints.includes("letter") && hiddenSlots.length > 0 ? (
           <button
             className="hint-buy"
+            onPointerDown={keepFocus}
             onClick={() => act({ type: "USE_HINT", hint: "letter" })}
           >
             A letter −10
@@ -506,59 +562,87 @@ export default function PhrasePlayer({
         ) : null}
       </div>
 
-      {/* connection sheet (anytime, and forced at BONUS) */}
-      {connOpen || session.phase === "BONUS" ? (
-        <div
-          className="overlay"
-          onClick={
-            session.phase === "BONUS" ? undefined : () => setConnOpen(false)
+      {/* the single input bar */}
+      <form
+        className="input-bar"
+        onSubmit={(event) => {
+          event.preventDefault();
+          submit();
+        }}
+      >
+        <input
+          ref={inputRef}
+          className="input input-bar-field"
+          placeholder={
+            mode.kind === "solve"
+              ? "Type the phrase…"
+              : mode.kind === "connection"
+                ? "The connection is…"
+                : activeStatus === "open"
+                  ? "Your answer — one attempt"
+                  : "Pick an open question above"
           }
+          value={value}
+          disabled={mode.kind === "question" && activeStatus !== "open"}
+          onChange={(event) => setValue(event.target.value)}
+          autoCapitalize={mode.kind === "solve" ? "characters" : "words"}
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck={false}
+        />
+        <button
+          className={`btn ${
+            mode.kind === "solve" ? "btn--accuse-solid" : "btn--primary"
+          }`}
+          type="submit"
+          onPointerDown={keepFocus}
+          disabled={!canSubmit}
         >
-          <div className="sheet" onClick={(event) => event.stopPropagation()}>
-            {session.phase === "BONUS" ? (
-              <>
-                <span className="verdict verdict--solved">Solved</span>
-                <div style={{ margin: "16px 0" }}>{board(true, false)}</div>
-                <h2>One more thing.</h2>
-              </>
-            ) : (
-              <h2>Name the connection</h2>
-            )}
+          {mode.kind === "solve"
+            ? "Solve"
+            : mode.kind === "connection"
+              ? "+25"
+              : "Go"}
+        </button>
+      </form>
+
+      {/* bonus crescendo */}
+      {session.phase === "BONUS" ? (
+        <div className="overlay">
+          <div className="sheet">
+            <span className="verdict verdict--solved">Solved</span>
+            <div style={{ margin: "16px 0" }}>{board(true, true)}</div>
+            <h2>One more thing.</h2>
             <p className="prose">
-              What links all five answers — and the phrase itself? One attempt,
-              +25 points.
+              What connects the phrase and all five answers? (+25)
             </p>
             <form
               onSubmit={(event) => {
                 event.preventDefault();
-                if (!connText.trim()) return;
-                act({ type: "ATTEMPT_CONNECTION", text: connText });
-                setConnText("");
-                setConnOpen(false);
+                if (!value.trim()) return;
+                act({ type: "ATTEMPT_CONNECTION", text: value });
+                setValue("");
               }}
             >
               <input
                 className="input"
                 placeholder="The connection is…"
-                value={connText}
-                onChange={(event) => setConnText(event.target.value)}
+                value={value}
+                onChange={(event) => setValue(event.target.value)}
                 autoFocus
               />
               <div className="answer-row" style={{ marginTop: 12 }}>
                 <button
                   className="btn"
                   type="button"
-                  onClick={() => {
-                    setConnOpen(false);
-                    if (session.phase === "BONUS") act({ type: "SKIP_BONUS" });
-                  }}
+                  onClick={() => act({ type: "SKIP_BONUS" })}
                 >
-                  {session.phase === "BONUS" ? "Skip" : "Not yet"}
+                  Skip
                 </button>
                 <button
                   className="btn btn--primary"
                   type="submit"
-                  disabled={!connText.trim()}
+                  disabled={!value.trim()}
                 >
                   Name it (+25)
                 </button>
@@ -576,15 +660,15 @@ export default function PhrasePlayer({
             <ol className="howto" style={{ marginTop: 14 }}>
               <li>
                 <strong>Answer questions.</strong> One attempt each — correct
-                answers turn letters green.
+                answers light up letters in the phrase.
               </li>
               <li>
                 <strong>Spot the connection.</strong> All five answers — and
                 the phrase — share one secret. Name it any time for +25.
               </li>
               <li>
-                <strong>Solve the phrase.</strong> Tap the board and type.
-                {" "}{SOLVE_ATTEMPTS} attempts. A perfect game is 100 points.
+                <strong>Solve the phrase.</strong> Tap Solve and type into the
+                tiles. {SOLVE_ATTEMPTS} attempts. A perfect game is 100.
               </li>
             </ol>
             <button
