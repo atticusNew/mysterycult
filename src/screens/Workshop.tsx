@@ -187,7 +187,9 @@ export default function Workshop() {
                       buildTransferUrl("case", entry.caseData),
                     );
                     alert(
-                      "Link copied. Send it to your phone (AirDrop, Messages, Notes) and open it there.",
+                      window.location.hostname === "localhost"
+                        ? "Link copied — but you're browsing via localhost, so edit the link and replace 'localhost' with your Network IP (e.g. 192.168.x.x) before sending it to another device."
+                        : "Link copied. Send it to your phone (AirDrop, Messages, Notes) and open it there.",
                     );
                   }}
                 >
