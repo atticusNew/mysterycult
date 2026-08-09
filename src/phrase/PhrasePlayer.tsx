@@ -22,7 +22,6 @@ import {
   puzzleReducer,
   puzzleResultLine,
   SOLVE_ATTEMPTS,
-  THEME_ATTEMPTS,
   type PuzzleAction,
 } from "./engine";
 
@@ -836,20 +835,18 @@ export default function PhrasePlayer({
             <span className="kicker">How to play</span>
             <ol className="howto" style={{ marginTop: 14 }}>
               <li>
-                <strong>Pick a category, answer its question.</strong> One
-                attempt each — correct answers light up letters in the phrase.
+                <strong>Answer the questions.</strong> Correct answers reveal
+                their letters in the phrase.
               </li>
               <li>
-                <strong>Find the thruline — that's the win.</strong> All
-                five answers and the phrase share one secret.{" "}
-                {THEME_ATTEMPTS === 1 ? "One guess" : `${THEME_ATTEMPTS} guesses`},
-                +50.
+                <strong>Name the thruline.</strong> Every answer points to one
+                movie, show, or song. That's the win.
               </li>
               <li>
-                <strong>Bonus: complete the phrase</strong> (+25) — type it, or
-                reveal every letter. A perfect game is 100.
+                <strong>Bonus: solve the phrase.</strong>
               </li>
             </ol>
+            <p className="howto-note">One guess each · Perfect game is 100</p>
             <button
               className="btn btn--primary btn--block"
               style={{ marginTop: 14 }}
