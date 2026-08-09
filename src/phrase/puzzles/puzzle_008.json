@@ -2,7 +2,7 @@
   "id": "phrase_008",
   "version": 1,
   "title": "ThruLines #008",
-  "phrase": "Instead of something I want, can it be something I don't want?",
+  "phrase": "Can it be something I don't want?",
   "connection": {
     "primary": "The Sixth Sense",
     "aliases": [
@@ -101,6 +101,6 @@
     "ohMoment": "Every answer was circling one table in an Italian restaurant — where a wife has dinner alone on her anniversary."
   },
   "editorial": {
-    "notes": "Phrase switched to the author's shorter alternate (48 letters) to fit the mobile board budget. VERBATIM CHECK still needed against the script before wide release."
+    "notes": "Phrase trimmed to the back half of Cole's line (25 letters, in the 18\u201335 band). Verbatim confirmed against the script: \u201cInstead of something I want, can it be something I don't want?\u201d \u2014 the sentence ends exactly at \u201cwant?\u201d."
   }
 }
