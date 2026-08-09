@@ -15,13 +15,17 @@ import type { PhrasePuzzle } from "./model";
 
 /** Attempts allowed per question. Tunable. */
 export const QUESTION_ATTEMPTS = 1;
-/** Wrong phrase solves allowed before the puzzle goes cold. Tunable. */
+/** Theme guesses allowed before the puzzle goes cold. THE win condition. */
+export const THEME_ATTEMPTS = 2;
+/** Phrase-solve attempts (the bonus). Running out locks it, never colds. */
 export const SOLVE_ATTEMPTS = 2;
 
 export const PHRASE_SCORING = {
   perQuestion: 5,
-  phraseSolve: 50,
-  connectionBonus: 25,
+  /** Naming the theme — the win. */
+  themeWin: 50,
+  /** Solving the phrase — the bonus. */
+  phraseBonus: 25,
   hintCost: 10,
   min: 0,
 } as const;
@@ -39,10 +43,15 @@ export interface PuzzleSession {
   /** Letter positions revealed by the letter hint. */
   hintPositions: number[];
   usedHints: HintKind[];
-  /** One attempt, any time. null = not yet attempted. */
+  /** Theme state: null until first correct/failed-out guess resolves it. */
   connectionResult: "correct" | "wrong" | null;
+  /** Wrong theme guesses (the win condition — 2 misses = cold). */
+  wrongThemes: string[];
+  /** Wrong phrase attempts (the bonus — exhausting them only locks it). */
   wrongSolves: string[];
+  /** Questions attempted when the theme was named (for banking). */
   solvedAfterQuestions: number | null;
+  /** The phrase bonus. */
   solved: boolean;
   startedAt: number;
   completedAt: number | null;
@@ -146,6 +155,7 @@ export function createPuzzleSession(
     hintPositions: [],
     usedHints: [],
     connectionResult: null,
+    wrongThemes: [],
     wrongSolves: [],
     solvedAfterQuestions: null,
     solved: false,
@@ -203,28 +213,30 @@ export function puzzleReducer(
     }
 
     case "ATTEMPT_SOLVE": {
-      if (session.phase !== "PLAYING") return session;
+      // The phrase is the BONUS: solvable during play (a stepping stone
+      // toward the theme) or in the post-theme bonus phase.
+      if (session.phase !== "PLAYING" && session.phase !== "BONUS") {
+        return session;
+      }
+      if (session.solved) return session;
+      if (session.wrongSolves.length >= SOLVE_ATTEMPTS) return session;
       const trimmed = action.text.trim();
       if (!trimmed) return session;
 
       if (phraseMatches(trimmed, puzzle.phrase)) {
-        const solved = {
-          ...session,
-          solved: true,
-          solvedAfterQuestions: attemptedCount(session),
-        };
-        if (session.connectionResult === null) {
-          return { ...solved, phase: "BONUS" as const };
+        const next = { ...session, solved: true };
+        if (session.connectionResult === "correct") {
+          return { ...next, phase: "COMPLETE" as const, completedAt: Date.now() };
         }
-        return { ...solved, phase: "COMPLETE" as const, completedAt: Date.now() };
+        return next; // keep hunting the theme, board now fully open
       }
       const wrongSolves = [...session.wrongSolves, trimmed];
-      if (wrongSolves.length >= SOLVE_ATTEMPTS) {
+      if (session.phase === "BONUS" && wrongSolves.length >= SOLVE_ATTEMPTS) {
+        // Bonus spent — the game is over either way.
         return {
           ...session,
-          phase: "COLD",
           wrongSolves,
-          solvedAfterQuestions: attemptedCount(session),
+          phase: "COMPLETE",
           completedAt: Date.now(),
         };
       }
@@ -232,23 +244,34 @@ export function puzzleReducer(
     }
 
     case "ATTEMPT_CONNECTION": {
-      if (session.phase !== "PLAYING" && session.phase !== "BONUS") {
-        return session;
-      }
+      // Naming the theme is THE win condition: two guesses, then cold.
+      if (session.phase !== "PLAYING") return session;
       if (session.connectionResult !== null) return session;
       if (!action.text.trim()) return session;
-      const result = looseAnswerMatches(action.text, puzzle.connection)
-        ? ("correct" as const)
-        : ("wrong" as const);
-      if (session.phase === "BONUS") {
+
+      if (looseAnswerMatches(action.text, puzzle.connection)) {
+        const won = {
+          ...session,
+          connectionResult: "correct" as const,
+          solvedAfterQuestions: attemptedCount(session),
+        };
+        if (session.solved) {
+          return { ...won, phase: "COMPLETE" as const, completedAt: Date.now() };
+        }
+        return { ...won, phase: "BONUS" as const };
+      }
+      const wrongThemes = [...session.wrongThemes, action.text.trim()];
+      if (wrongThemes.length >= THEME_ATTEMPTS) {
         return {
           ...session,
-          connectionResult: result,
-          phase: "COMPLETE",
+          wrongThemes,
+          connectionResult: "wrong",
+          phase: "COLD",
+          solvedAfterQuestions: attemptedCount(session),
           completedAt: Date.now(),
         };
       }
-      return { ...session, connectionResult: result };
+      return { ...session, wrongThemes };
     }
 
     case "SKIP_BONUS": {
@@ -316,7 +339,7 @@ export function computePuzzleScore(
       amount: correct * PHRASE_SCORING.perQuestion,
     });
   }
-  if (session.solved) {
+  if (session.connectionResult === "correct") {
     const banked = puzzle.questions.length - (session.solvedAfterQuestions ?? 0);
     if (banked > 0) {
       lines.push({
@@ -324,12 +347,12 @@ export function computePuzzleScore(
         amount: banked * PHRASE_SCORING.perQuestion,
       });
     }
-    lines.push({ label: "Phrase solved", amount: PHRASE_SCORING.phraseSolve });
+    lines.push({ label: "Named the theme", amount: PHRASE_SCORING.themeWin });
   }
-  if (session.connectionResult === "correct") {
+  if (session.solved) {
     lines.push({
-      label: "Named the connection",
-      amount: PHRASE_SCORING.connectionBonus,
+      label: "Solved the phrase",
+      amount: PHRASE_SCORING.phraseBonus,
     });
   }
   if (session.usedHints.length > 0) {
@@ -355,9 +378,11 @@ export function puzzleResultLine(
   session: PuzzleSession,
 ): string {
   const total = computePuzzleScore(puzzle, session).total;
-  if (!session.solved) return `The puzzle went cold · ${total}/100`;
+  if (session.connectionResult !== "correct") {
+    return `The puzzle went cold · ${total}/100`;
+  }
   const used = session.solvedAfterQuestions ?? 0;
-  return `${total}/100 · solved after ${used} question${used === 1 ? "" : "s"}`;
+  return `${total}/100 · theme after ${used} question${used === 1 ? "" : "s"}`;
 }
 
 /** Spoiler-free share text. */
@@ -374,9 +399,9 @@ export function buildPuzzleShareText(
       return "⬜";
     })
     .join("");
-  const misses = "❌".repeat(session.wrongSolves.length);
-  const outcome = session.solved ? "✔" : "🧊";
-  const star = session.connectionResult === "correct" ? "⭐" : "";
+  const misses = "❌".repeat(session.wrongThemes.length);
+  const outcome = session.connectionResult === "correct" ? "✔" : "🧊";
+  const star = session.solved ? "⭐" : "";
   const title = puzzle.title || "Tagline";
   return `${title} — ${total}/100\n${tiles} ${misses}${outcome}${star}`.trim();
 }

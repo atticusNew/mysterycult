@@ -21,6 +21,7 @@ import {
   puzzleReducer,
   puzzleResultLine,
   SOLVE_ATTEMPTS,
+  THEME_ATTEMPTS,
   type PuzzleAction,
 } from "./engine";
 
@@ -89,11 +90,14 @@ export default function PhrasePlayer({
   const gameOver = session.phase === "COMPLETE" || session.phase === "COLD";
   const bonus = session.phase === "BONUS";
   const attemptsLeft = SOLVE_ATTEMPTS - session.wrongSolves.length;
+  const themeAttemptsLeft = THEME_ATTEMPTS - session.wrongThemes.length;
+  const correctAnswers = Object.values(session.questionStatus).filter(
+    (status) => status === "correct",
+  ).length;
   const score = liveScore(puzzle, session);
-  const revealRatio = letters.length > 0 ? revealed.size / letters.length : 0;
   const dense = letters.length > 30;
 
-  const effectiveMode: Mode = bonus ? { kind: "theme" } : mode;
+  const effectiveMode: Mode = bonus ? { kind: "solve" } : mode;
 
   const typed =
     effectiveMode.kind === "solve"
@@ -380,15 +384,19 @@ export default function PhrasePlayer({
         </div>
 
         <span
-          className={`verdict ${session.solved ? "verdict--solved" : "verdict--cold"}`}
+          className={`verdict ${
+            session.connectionResult === "correct"
+              ? "verdict--solved"
+              : "verdict--cold"
+          }`}
         >
-          {session.solved ? "Solved" : "It went cold"}
+          {session.connectionResult === "correct" ? "Theme named" : "It went cold"}
         </span>
         <p className="badge" style={{ display: "block", marginTop: 6 }}>
           {puzzleResultLine(puzzle, session).toUpperCase()}
         </p>
 
-        <div className="section">{board(true, session.solved)}</div>
+        <div className="section">{board(true, session.connectionResult === "correct")}</div>
 
         <div className="section">
           <span className="kicker kicker--gold">The theme</span>
@@ -475,13 +483,15 @@ export default function PhrasePlayer({
 
   // -------------------------------------------------------------- PLAYING
   const entryPlaceholder = bonus
-    ? "Name the theme (+25) — or skip"
+    ? "Finish the line (+25) — or skip"
     : effectiveMode.kind === "idle"
       ? "Pick a category above"
       : effectiveMode.kind === "solve"
-        ? "Type the phrase into the tiles"
+        ? "Type the phrase into the tiles (+25)"
         : effectiveMode.kind === "theme"
-          ? "The theme is…"
+          ? `The theme is… (${themeAttemptsLeft} guess${
+              themeAttemptsLeft === 1 ? "" : "es"
+            })`
           : activeStatus === "open"
             ? "Type your answer — one attempt"
             : "Pick another category";
@@ -522,12 +532,17 @@ export default function PhrasePlayer({
           </span>
         </div>
 
-        {board(bonus, bonus)}
+        {board(session.solved, false)}
 
         {bonus ? (
           <div className="solved-strip">
-            <span className="verdict verdict--solved">Solved</span>
-            <span>One more thing — name the theme for +25.</span>
+            <span className="verdict verdict--solved">
+              {puzzle.connection.primary}
+            </span>
+            <span>
+              You got it! Finish the line for +25 — {attemptsLeft} attempt
+              {attemptsLeft === 1 ? "" : "s"}.
+            </span>
             <button
               className="btn btn--small"
               onClick={() => act({ type: "SKIP_BONUS" })}
@@ -596,32 +611,46 @@ export default function PhrasePlayer({
               })}
             </div>
 
-            {/* modes */}
+            {/* modes: the THEME is the goal, the phrase is the bonus */}
             <div className="mode-row">
               <button
-                className={`qchip qchip--solve${
-                  mode.kind === "solve" ? " qchip--solve-active" : ""
+                className={`qchip qchip--theme${
+                  mode.kind === "theme" ? " qchip--theme-active" : ""
                 }${
-                  revealRatio >= 0.6 && mode.kind !== "solve"
-                    ? " qchip--tempt"
+                  correctAnswers >= 2 &&
+                  mode.kind !== "theme" &&
+                  session.connectionResult === null
+                    ? " qchip--tempt-gold"
                     : ""
                 }`}
-                onClick={() => switchMode({ kind: "solve" })}
-              >
-                Solve{mode.kind === "solve" ? ` · ${attemptsLeft} left` : ""}
-              </button>
-              <button
-                className={`qchip qchip--conn${
-                  session.connectionResult === "correct" ? " qchip--conn-ok" : ""
-                }${session.connectionResult === "wrong" ? " qchip--bad" : ""}`}
                 disabled={session.connectionResult !== null}
                 onClick={() => switchMode({ kind: "theme" })}
               >
                 {session.connectionResult === "correct"
                   ? `${puzzle.connection.primary} ✓`
-                  : session.connectionResult === "wrong"
-                    ? "Theme ✗"
-                    : "Theme +25"}
+                  : `Name the theme${
+                      mode.kind === "theme"
+                        ? ` · ${themeAttemptsLeft} left`
+                        : ""
+                    }`}
+              </button>
+              <button
+                className={`qchip qchip--solve${
+                  mode.kind === "solve" ? " qchip--solve-active" : ""
+                }`}
+                disabled={
+                  session.solved ||
+                  session.wrongSolves.length >= SOLVE_ATTEMPTS
+                }
+                onClick={() => switchMode({ kind: "solve" })}
+              >
+                {session.solved
+                  ? "Phrase ✓"
+                  : session.wrongSolves.length >= SOLVE_ATTEMPTS
+                    ? "Phrase ✗"
+                    : `Solve the phrase +25${
+                        mode.kind === "solve" ? ` · ${attemptsLeft} left` : ""
+                      }`}
               </button>
             </div>
           </>
@@ -705,15 +734,16 @@ export default function PhrasePlayer({
             <ol className="howto" style={{ marginTop: 14 }}>
               <li>
                 <strong>Pick a category, answer its question.</strong> One
-                attempt each — correct answers light up letters.
+                attempt each — correct answers light up letters in the phrase.
               </li>
               <li>
-                <strong>Spot the theme.</strong> All five answers — and the
-                phrase — share one secret. Name it any time for +25.
+                <strong>Name the theme — that's the win.</strong> All five
+                answers and the phrase share one secret. {THEME_ATTEMPTS}{" "}
+                guesses.
               </li>
               <li>
-                <strong>Solve the phrase.</strong> Tap Solve and type into the
-                tiles. {SOLVE_ATTEMPTS} attempts. A perfect game is 100.
+                <strong>Bonus: solve the phrase</strong> (+25), before or
+                after. A perfect game is 100.
               </li>
             </ol>
             <button

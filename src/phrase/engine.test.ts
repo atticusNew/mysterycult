@@ -18,6 +18,7 @@ import {
   puzzleReducer,
   SOLVE_ATTEMPTS,
   stridePositions,
+  THEME_ATTEMPTS,
   type PuzzleAction,
   type PuzzleSession,
 } from "./engine";
@@ -105,51 +106,54 @@ describe("puzzle engine v2", () => {
     expect(session.usedHints).toContain("decade");
   });
 
-  it("the connection can be named at any time, once", () => {
+  it("naming the theme is the win and opens the phrase bonus", () => {
     let session = run(createPuzzleSession(data), {
       type: "ATTEMPT_CONNECTION",
       text: data.connection.primary,
     });
     expect(session.connectionResult).toBe("correct");
-    expect(session.phase).toBe("PLAYING");
-    const before = session;
-    session = run(session, { type: "ATTEMPT_CONNECTION", text: "again" });
-    expect(session).toBe(before);
-  });
-
-  it("solving after naming the connection completes immediately", () => {
-    const session = run(
-      createPuzzleSession(data),
-      { type: "ATTEMPT_CONNECTION", text: data.connection.primary },
-      { type: "ATTEMPT_SOLVE", text: data.phrase },
-    );
+    expect(session.phase).toBe("BONUS");
+    session = run(session, { type: "ATTEMPT_SOLVE", text: data.phrase });
     expect(session.phase).toBe("COMPLETE");
     expect(session.solved).toBe(true);
   });
 
-  it("solving without a connection attempt opens the bonus", () => {
+  it("the phrase can be solved mid-game as a stepping stone", () => {
     let session = run(createPuzzleSession(data), {
       type: "ATTEMPT_SOLVE",
       text: data.phrase,
     });
-    expect(session.phase).toBe("BONUS");
+    expect(session.solved).toBe(true);
+    expect(session.phase).toBe("PLAYING"); // theme still to name
     session = run(session, {
       type: "ATTEMPT_CONNECTION",
       text: data.connection.primary,
     });
     expect(session.phase).toBe("COMPLETE");
-    expect(session.connectionResult).toBe("correct");
   });
 
-  it("running out of solve attempts sends the puzzle cold", () => {
-    expect(SOLVE_ATTEMPTS).toBe(2);
+  it("two wrong theme guesses send the puzzle cold", () => {
+    expect(THEME_ATTEMPTS).toBe(2);
     const session = run(
+      createPuzzleSession(data),
+      { type: "ATTEMPT_CONNECTION", text: "wrong theme one" },
+      { type: "ATTEMPT_CONNECTION", text: "wrong theme two" },
+    );
+    expect(session.phase).toBe("COLD");
+    expect(session.connectionResult).toBe("wrong");
+  });
+
+  it("failed phrase attempts lock the bonus but never end the game", () => {
+    expect(SOLVE_ATTEMPTS).toBe(2);
+    let session = run(
       createPuzzleSession(data),
       { type: "ATTEMPT_SOLVE", text: "wrong guess one" },
       { type: "ATTEMPT_SOLVE", text: "wrong guess two" },
     );
-    expect(session.phase).toBe("COLD");
-    expect(session.solved).toBe(false);
+    expect(session.phase).toBe("PLAYING");
+    const before = session;
+    session = run(session, { type: "ATTEMPT_SOLVE", text: data.phrase });
+    expect(session).toBe(before); // locked
   });
 
   it("a perfect game is always 100 points, however it is reached", () => {
@@ -169,11 +173,11 @@ describe("puzzle engine v2", () => {
     );
     expect(computePuzzleScore(data, all).total).toBe(100);
 
-    // Route two: solve cold-open with zero questions, then the connection.
+    // Route two: theme cold-open with zero questions, then the phrase bonus.
     const zero = run(
       createPuzzleSession(data),
-      { type: "ATTEMPT_SOLVE", text: data.phrase },
       { type: "ATTEMPT_CONNECTION", text: data.connection.primary },
+      { type: "ATTEMPT_SOLVE", text: data.phrase },
     );
     expect(computePuzzleScore(data, zero).total).toBe(100);
   });
@@ -187,13 +191,13 @@ describe("puzzle engine v2", () => {
         answer: "wrong",
       },
       { type: "USE_HINT", hint: "letter" },
-      { type: "ATTEMPT_SOLVE", text: data.phrase },
+      { type: "ATTEMPT_CONNECTION", text: data.connection.primary },
       { type: "SKIP_BONUS" },
     );
-    // 4 banked (5th was forfeited) + 50 solve - 10 hint = 60.
+    // 4 banked (5th was forfeited) + 50 theme - 10 hint = 60.
     expect(computePuzzleScore(data, session).total).toBe(
       4 * PHRASE_SCORING.perQuestion +
-        PHRASE_SCORING.phraseSolve -
+        PHRASE_SCORING.themeWin -
         PHRASE_SCORING.hintCost,
     );
   });
@@ -201,8 +205,8 @@ describe("puzzle engine v2", () => {
   it("share text is spoiler-free and shows the score", () => {
     const session = run(
       createPuzzleSession(data),
-      { type: "ATTEMPT_SOLVE", text: data.phrase },
       { type: "ATTEMPT_CONNECTION", text: data.connection.primary },
+      { type: "ATTEMPT_SOLVE", text: data.phrase },
     );
     const share = buildPuzzleShareText(data, session);
     expect(share).toContain("100/100");
