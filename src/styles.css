@@ -841,10 +841,22 @@ h3 {
   max-width: 520px;
   margin: 0 auto;
   min-height: 100dvh;
-  padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+  padding: 0 14px calc(16px + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
-  gap: 10px;
+}
+
+/* everything needed while typing, pinned at the top */
+.pin {
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  background: var(--bg);
+  padding: 10px 0 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  box-shadow: 0 8px 12px -10px rgba(29, 26, 19, 0.25);
 }
 
 .pstage-top {
@@ -854,15 +866,85 @@ h3 {
   gap: 8px;
 }
 
-.pstage .phrase-board {
-  padding: 6px 0 2px;
+.pin .phrase-board {
+  padding: 4px 0 0;
 }
 
-.stage-chips {
+/* category list below the pinned block */
+.qlist {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-direction: column;
+  gap: 7px;
+  padding-top: 12px;
+}
+
+.qrow {
+  appearance: none;
+  border: none;
+  background: var(--card);
+  border-radius: 12px;
+  padding: 11px 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.12s var(--bounce), box-shadow 0.15s ease;
+  text-align: left;
+}
+
+.qrow:active {
+  transform: scale(0.985);
+}
+
+.qrow--active {
+  box-shadow: var(--shadow-sm), inset 0 0 0 2px var(--ink);
+}
+
+.qrow--ok {
+  box-shadow: var(--shadow-sm), inset 0 0 0 2px var(--green);
+}
+
+.qrow--bad {
+  opacity: 0.7;
+}
+
+.qrow-cat {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fff;
+  border-radius: 999px;
+  padding: 4px 10px;
+  flex-shrink: 0;
+}
+
+.qrow-state {
+  font-size: 14px;
+  color: var(--ink-3);
+}
+
+.qrow--ok .qrow-state {
+  color: var(--green);
+}
+
+.qrow--bad .qrow-state {
+  color: var(--red);
+}
+
+.qlist-modes {
+  display: flex;
+  gap: 8px;
   justify-content: center;
+  padding-top: 8px;
+}
+
+.qlist-modes .qchip {
+  padding: 10px 18px;
+  font-size: 13px;
 }
 
 .qchip {
