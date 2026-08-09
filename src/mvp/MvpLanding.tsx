@@ -22,6 +22,7 @@ export default function MvpLanding() {
       </div>
       <h1>{PHRASE_GAME_TITLE}</h1>
       <p className="date">{date}</p>
+      <p className="credit">Created by Natalie Walshe</p>
       <p className="tagline">
         Five answers. One hidden line. Find the thruline that connects them
         all.
