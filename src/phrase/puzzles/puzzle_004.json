@@ -5,7 +5,12 @@
   "phrase": "Stay gold, Ponyboy",
   "connection": {
     "primary": "The Outsiders",
-    "aliases": ["the outsiders", "outsiders", "the outsiders movie", "the outsiders 1983"]
+    "aliases": [
+      "the outsiders",
+      "outsiders",
+      "the outsiders movie",
+      "the outsiders 1983"
+    ]
   },
   "questions": [
     {
@@ -14,7 +19,10 @@
       "prompt": "The Tomahawk is this type of missile.",
       "answer": {
         "primary": "Cruise",
-        "aliases": ["cruise missile", "a cruise missile"]
+        "aliases": [
+          "cruise missile",
+          "a cruise missile"
+        ]
       },
       "letter": "S",
       "factoid": "Tomahawks fly below radar, hugging the terrain at the height of a ten-story building.",
@@ -26,7 +34,10 @@
       "prompt": "Gunsmoke's long-serving marshal: Matt ___.",
       "answer": {
         "primary": "Dillon",
-        "aliases": ["matt dillon", "marshal dillon"]
+        "aliases": [
+          "matt dillon",
+          "marshal dillon"
+        ]
       },
       "letter": "T",
       "factoid": "Gunsmoke ran 635 episodes over 20 seasons — the longest-running scripted primetime drama until The Simpsons passed it.",
@@ -38,7 +49,9 @@
       "prompt": "The Beatles sang about Penny ___.",
       "answer": {
         "primary": "Lane",
-        "aliases": ["penny lane"]
+        "aliases": [
+          "penny lane"
+        ]
       },
       "letter": "A",
       "factoid": "Penny Lane is a real Liverpool street — its signs were stolen so often the city started painting the name on buildings.",
@@ -50,7 +63,10 @@
       "prompt": "Gilligan's Island's stranded millionaire: Thurston ___ III.",
       "answer": {
         "primary": "Howell",
-        "aliases": ["thurston howell", "mr howell"]
+        "aliases": [
+          "thurston howell",
+          "mr howell"
+        ]
       },
       "letter": "Y",
       "factoid": "Jim Backus, who played the millionaire, was also the voice of Mr. Magoo.",
@@ -62,13 +78,20 @@
       "prompt": "Depending on where you grew up, a fizzy soft drink is 'pop' — or this.",
       "answer": {
         "primary": "Soda",
-        "aliases": ["a soda", "soda pop"]
+        "aliases": [
+          "a soda",
+          "soda pop"
+        ]
       },
       "letter": "O",
       "factoid": "The soda-versus-pop line splits America almost evenly — while most of the South just says 'coke,' whatever's in the can.",
       "connectionNote": "Sodapop Curtis — Ponyboy's brother, the puzzle's one answer from inside the story."
     }
   ],
+  "hints": {
+    "category": "A movie",
+    "decade": "The 1980s"
+  },
   "reveal": {
     "summary": "The Outsiders. A missile, a marshal, a Beatles street, a stranded millionaire and a soft drink — every answer is a cast list in disguise: Tom Cruise, Matt Dillon, Diane Lane, C. Thomas Howell, and Sodapop Curtis. Francis Ford Coppola's 1983 adaptation was a nursery for future stars — and its four words came from a Robert Frost poem: nothing gold can stay.",
     "ohMoment": "The subjects were feints — History's missile and TV's marshal were actors all along. And if you typed 'stay golden': that's the famous misquote. The line was always 'Stay gold.'"

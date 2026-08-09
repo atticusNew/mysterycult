@@ -1,16 +1,22 @@
 /**
- * Tagline player — Wordle-simple, one screen.
+ * Tagline player v3 — one screen, Wordle discipline.
  *
- * Phrase tiles up top, five numbered questions with inline inputs beneath,
- * and the phrase solve input at the bottom. One attempt per question;
- * correct answers turn tiles green. Solve any time.
+ * Tiles up top (tap to type the phrase directly into the board), earned
+ * answers as chips, five inline questions, a connection slot you can fill
+ * at any time, three purchasable hints, and a live score out of 100.
+ *
+ * Color is semantic: green = confirmed, gold = hints & the connection
+ * layer, red = commitment & misses, gray = unknown.
  */
-import { useMemo, useState, useReducer } from "react";
+import { useEffect, useMemo, useRef, useState, useReducer } from "react";
 import type { PhrasePuzzle } from "./model";
 import {
+  allRevealedPositions,
   buildPuzzleShareText,
   computePuzzleScore,
   createPuzzleSession,
+  letterSequence,
+  liveScore,
   puzzleReducer,
   puzzleResultLine,
   SOLVE_ATTEMPTS,
@@ -37,54 +43,155 @@ export default function PhrasePlayer({
     createPuzzleSession,
   );
   const [inputs, setInputs] = useState<Record<string, string>>({});
-  const [solveText, setSolveText] = useState("");
-  const [bonusText, setBonusText] = useState("");
+  const [typed, setTyped] = useState("");
+  const [connOpen, setConnOpen] = useState(false);
+  const [connText, setConnText] = useState("");
   const [showHelp, setShowHelp] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [shake, setShake] = useState(false);
+  const typeRef = useRef<HTMLInputElement>(null);
 
+  const letters = useMemo(() => letterSequence(puzzle.phrase), [puzzle.phrase]);
   const words = useMemo(
     () => puzzle.phrase.trim().split(/\s+/).filter(Boolean),
     [puzzle.phrase],
   );
-  const earned = new Set(session.earnedLetters);
-  const attemptsLeft = SOLVE_ATTEMPTS - session.wrongSolves.length;
+  const revealed = allRevealedPositions(session);
+  const hiddenSlots = useMemo(
+    () =>
+      Array.from({ length: letters.length }, (_, i) => i).filter(
+        (i) => !revealed.has(i),
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [letters.length, session.revealedPositions, session.hintPositions],
+  );
   const gameOver = session.phase === "COMPLETE" || session.phase === "COLD";
+  const attemptsLeft = SOLVE_ATTEMPTS - session.wrongSolves.length;
+  const score = liveScore(puzzle, session);
+
+  // New reveals shift the typed→slot mapping; clear the draft.
+  useEffect(() => {
+    setTyped("");
+  }, [session.revealedPositions.length, session.hintPositions.length]);
+
+  // Shake on a wrong solve.
+  useEffect(() => {
+    if (session.wrongSolves.length > 0) {
+      setShake(true);
+      const timer = setTimeout(() => setShake(false), 450);
+      return () => clearTimeout(timer);
+    }
+  }, [session.wrongSolves.length]);
+
+  // First play: show the rules once.
+  useEffect(() => {
+    if (!localStorage.getItem("cm.tagline.help")) {
+      setShowHelp(true);
+      localStorage.setItem("cm.tagline.help", "1");
+    }
+  }, []);
 
   function act(action: PuzzleAction) {
     dispatch(action);
   }
 
-  const board = (revealAll: boolean) => (
-    <div className="phrase-board" aria-label="Hidden phrase">
-      {words.map((word, wordIndex) => (
-        <span className="pword" key={`${word}_${wordIndex}`}>
-          {word.split("").map((char, charIndex) => {
-            const upper = char.toUpperCase();
-            if (!/[A-Z]/.test(upper)) {
+  function assembleGuess(): string {
+    let letterIndex = 0;
+    let hiddenIndex = 0;
+    return puzzle.phrase
+      .split("")
+      .map((char) => {
+        if (!/[a-z]/i.test(char)) return char;
+        const index = letterIndex++;
+        if (revealed.has(index)) return letters[index];
+        const typedChar = typed[hiddenIndex++] ?? "";
+        return typedChar || "_";
+      })
+      .join("");
+  }
+
+  const canSubmit =
+    !gameOver &&
+    session.phase === "PLAYING" &&
+    hiddenSlots.length > 0 &&
+    typed.length === hiddenSlots.length;
+
+  function submitSolve() {
+    if (!canSubmit) return;
+    act({ type: "ATTEMPT_SOLVE", text: assembleGuess() });
+  }
+
+  // ------------------------------------------------------------- the board
+  const board = (revealAll: boolean, interactive: boolean) => {
+    let letterIndex = -1;
+    let hiddenIndex = -1;
+    const cursorSlot = typed.length; // next hidden slot to fill
+    return (
+      <div
+        className={`phrase-board${shake ? " phrase-board--shake" : ""}${
+          interactive ? " phrase-board--tappable" : ""
+        }`}
+        onClick={interactive ? () => typeRef.current?.focus() : undefined}
+        aria-label="Hidden phrase"
+      >
+        {words.map((word, wordIdx) => (
+          <span className="pword" key={`${word}_${wordIdx}`}>
+            {word.split("").map((char, charIdx) => {
+              const upper = char.toUpperCase();
+              if (!/[A-Z]/.test(upper)) {
+                return (
+                  <span className="ppunct" key={charIdx}>
+                    {char}
+                  </span>
+                );
+              }
+              letterIndex += 1;
+              const idx = letterIndex;
+              if (revealAll) {
+                return (
+                  <span className="ptile ptile--shown" key={charIdx}>
+                    {upper}
+                  </span>
+                );
+              }
+              if (session.hintPositions.includes(idx)) {
+                return (
+                  <span className="ptile ptile--hint" key={charIdx}>
+                    {letters[idx]}
+                  </span>
+                );
+              }
+              if (revealed.has(idx)) {
+                return (
+                  <span className="ptile ptile--shown" key={charIdx}>
+                    {letters[idx]}
+                  </span>
+                );
+              }
+              hiddenIndex += 1;
+              const slot = hiddenIndex;
+              const typedChar = typed[slot] ?? "";
+              const isCursor = interactive && slot === cursorSlot;
               return (
-                <span className="ppunct" key={charIndex}>
-                  {char}
+                <span
+                  className={`ptile${typedChar ? " ptile--typed" : ""}${
+                    isCursor ? " ptile--cursor" : ""
+                  }`}
+                  key={charIdx}
+                >
+                  {typedChar}
                 </span>
               );
-            }
-            const shown = revealAll || earned.has(upper);
-            return (
-              <span
-                className={`ptile${shown ? " ptile--shown" : ""}`}
-                key={charIndex}
-              >
-                {shown ? upper : ""}
-              </span>
-            );
-          })}
-        </span>
-      ))}
-    </div>
-  );
+            })}
+          </span>
+        ))}
+      </div>
+    );
+  };
 
   // ---------------------------------------------------- COMPLETE / COLD
   if (gameOver) {
-    const score = computePuzzleScore(session);
+    const finalScore = computePuzzleScore(puzzle, session);
     return (
       <div className="shell shell--flush pshell">
         <div className="case-topbar">
@@ -106,19 +213,20 @@ export default function PhrasePlayer({
         >
           {session.solved ? "Solved" : "It went cold"}
         </span>
-        <p className="badge" style={{ display: "block", marginTop: 8 }}>
-          {puzzleResultLine(session).toUpperCase()}
+        <p className="badge" style={{ display: "block", marginTop: 6 }}>
+          {puzzleResultLine(puzzle, session).toUpperCase()}
         </p>
 
-        <div className="section">{board(true)}</div>
+        <div className="section">{board(true, false)}</div>
 
         <div className="section">
-          <span className="kicker kicker--dim">The connection</span>
-          <h1 className="display" style={{ marginTop: 8 }}>
+          <span className="kicker kicker--gold">The connection</span>
+          <h1 className="display" style={{ marginTop: 6 }}>
             {puzzle.connection.primary || "—"}
+            {session.connectionResult === "correct" ? " ✓" : ""}
           </h1>
           {puzzle.reveal.summary ? (
-            <p className="prose" style={{ marginTop: 10 }}>
+            <p className="prose" style={{ marginTop: 8 }}>
               {puzzle.reveal.summary}
             </p>
           ) : null}
@@ -129,7 +237,7 @@ export default function PhrasePlayer({
             {puzzle.questions.map((question, index) => {
               const status = session.questionStatus[question.id];
               return (
-                <div className="pq-row pq-row--reveal" key={question.id}>
+                <div className="pq-row" key={question.id}>
                   <span
                     className={`pq-n${
                       status === "correct"
@@ -156,7 +264,7 @@ export default function PhrasePlayer({
 
         <div className="section">
           <ul className="score-lines">
-            {score.lines.map((line) => (
+            {finalScore.lines.map((line) => (
               <li key={line.label}>
                 <span>{line.label}</span>
                 <span className="amt">{line.amount}</span>
@@ -165,7 +273,7 @@ export default function PhrasePlayer({
           </ul>
           <div className="score-total">
             <span>Final score</span>
-            <span className="amt">{score.total}</span>
+            <span className="amt">{finalScore.total}/100</span>
           </div>
         </div>
 
@@ -192,11 +300,21 @@ export default function PhrasePlayer({
   }
 
   // -------------------------------------------------------------- PLAYING
+  const connChipLabel =
+    session.connectionResult === "correct"
+      ? `${puzzle.connection.primary} ✓`
+      : session.connectionResult === "wrong"
+        ? "✗"
+        : "?";
+
   return (
     <div className="shell shell--flush pshell">
-      <div className="case-topbar pshell-topbar">
+      <div className="case-topbar">
         <span className="kicker">{puzzle.title || "Tagline"}</span>
-        <span style={{ display: "flex", gap: 6 }}>
+        <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <span className="score-chip" key={score}>
+            {score} pts
+          </span>
           <button
             className="icon-round"
             aria-label="How to play"
@@ -215,8 +333,81 @@ export default function PhrasePlayer({
         </span>
       </div>
 
-      {board(false)}
+      {board(false, true)}
 
+      {/* offscreen input that powers tap-to-type */}
+      <input
+        ref={typeRef}
+        className="ghost-input"
+        value={typed}
+        inputMode="text"
+        autoCapitalize="characters"
+        autoComplete="off"
+        autoCorrect="off"
+        spellCheck={false}
+        onChange={(event) => {
+          const clean = event.target.value
+            .toUpperCase()
+            .replace(/[^A-Z]/g, "")
+            .slice(0, hiddenSlots.length);
+          setTyped(clean);
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") submitSolve();
+        }}
+        aria-label="Type the phrase"
+      />
+
+      <div className="psolve-bar">
+        {canSubmit ? (
+          <button className="btn btn--accuse-solid btn--small" onClick={submitSolve}>
+            Solve ↵
+          </button>
+        ) : (
+          <span className="psolve-note">
+            {session.wrongSolves.length > 0
+              ? `Not it — ${attemptsLeft} attempt${attemptsLeft === 1 ? "" : "s"} left`
+              : "Tap the board to type your solve"}
+          </span>
+        )}
+      </div>
+
+      {/* earned answers + the connection slot */}
+      <div className="achips">
+        {puzzle.questions.map((question, index) => {
+          const status = session.questionStatus[question.id];
+          return (
+            <span
+              key={question.id}
+              className={`achip${
+                status === "correct"
+                  ? " achip--ok"
+                  : status === "wrong"
+                    ? " achip--bad"
+                    : ""
+              }`}
+            >
+              {status === "correct"
+                ? question.answer.primary
+                : status === "wrong"
+                  ? "✗"
+                  : `${index + 1}?`}
+            </span>
+          );
+        })}
+        <button
+          className={`achip achip--conn${
+            session.connectionResult === "correct" ? " achip--conn-ok" : ""
+          }${session.connectionResult === "wrong" ? " achip--bad" : ""}`}
+          disabled={session.connectionResult !== null}
+          onClick={() => setConnOpen(true)}
+          title="Name the connection (+25)"
+        >
+          ⚡ {connChipLabel}
+        </button>
+      </div>
+
+      {/* questions */}
       <div className="pq-simple-list">
         {puzzle.questions.map((question, index) => {
           const status = session.questionStatus[question.id];
@@ -279,76 +470,97 @@ export default function PhrasePlayer({
         })}
       </div>
 
-      {/* inline phrase solve */}
-      <form
-        className="psolve"
-        onSubmit={(event) => {
-          event.preventDefault();
-          if (!solveText.trim()) return;
-          act({ type: "ATTEMPT_SOLVE", text: solveText });
-          setSolveText("");
-        }}
-      >
-        <input
-          className="input"
-          placeholder="Type the phrase…"
-          value={solveText}
-          onChange={(event) => setSolveText(event.target.value)}
-        />
-        <button
-          className="btn btn--accuse-solid"
-          type="submit"
-          disabled={!solveText.trim()}
-        >
-          Solve
-        </button>
-      </form>
-      <p
-        className={`psolve-note${session.wrongSolves.length > 0 ? " psolve-note--miss" : ""}`}
-      >
-        {session.wrongSolves.length > 0
-          ? `Not it — ${attemptsLeft} attempt${attemptsLeft === 1 ? "" : "s"} left`
-          : `${attemptsLeft} attempts · fewer questions = higher score`}
-      </p>
+      {/* hints */}
+      <div className="hint-bar">
+        {puzzle.hints.category.trim() ? (
+          session.usedHints.includes("category") ? (
+            <span className="hint-chip">{puzzle.hints.category}</span>
+          ) : (
+            <button
+              className="hint-buy"
+              onClick={() => act({ type: "USE_HINT", hint: "category" })}
+            >
+              Category −10
+            </button>
+          )
+        ) : null}
+        {puzzle.hints.decade.trim() ? (
+          session.usedHints.includes("decade") ? (
+            <span className="hint-chip">{puzzle.hints.decade}</span>
+          ) : (
+            <button
+              className="hint-buy"
+              onClick={() => act({ type: "USE_HINT", hint: "decade" })}
+            >
+              Decade −10
+            </button>
+          )
+        ) : null}
+        {!session.usedHints.includes("letter") && hiddenSlots.length > 0 ? (
+          <button
+            className="hint-buy"
+            onClick={() => act({ type: "USE_HINT", hint: "letter" })}
+          >
+            A letter −10
+          </button>
+        ) : null}
+      </div>
 
-      {/* bonus crescendo */}
-      {session.phase === "BONUS" ? (
-        <div className="overlay">
-          <div className="sheet">
-            <span className="verdict verdict--solved">Solved</span>
-            <div style={{ margin: "16px 0" }}>{board(true)}</div>
-            <h2>One more thing.</h2>
+      {/* connection sheet (anytime, and forced at BONUS) */}
+      {connOpen || session.phase === "BONUS" ? (
+        <div
+          className="overlay"
+          onClick={
+            session.phase === "BONUS" ? undefined : () => setConnOpen(false)
+          }
+        >
+          <div className="sheet" onClick={(event) => event.stopPropagation()}>
+            {session.phase === "BONUS" ? (
+              <>
+                <span className="verdict verdict--solved">Solved</span>
+                <div style={{ margin: "16px 0" }}>{board(true, false)}</div>
+                <h2>One more thing.</h2>
+              </>
+            ) : (
+              <h2>Name the connection</h2>
+            )}
             <p className="prose">
-              What connects the phrase and all five answers?
+              What links all five answers — and the phrase itself? One attempt,
+              +25 points.
             </p>
             <form
               onSubmit={(event) => {
                 event.preventDefault();
-                if (!bonusText.trim()) return;
-                act({ type: "ANSWER_BONUS", text: bonusText });
+                if (!connText.trim()) return;
+                act({ type: "ATTEMPT_CONNECTION", text: connText });
+                setConnText("");
+                setConnOpen(false);
               }}
             >
               <input
                 className="input"
-                placeholder="Name the connection"
-                value={bonusText}
-                onChange={(event) => setBonusText(event.target.value)}
+                placeholder="The connection is…"
+                value={connText}
+                onChange={(event) => setConnText(event.target.value)}
                 autoFocus
               />
               <div className="answer-row" style={{ marginTop: 12 }}>
                 <button
                   className="btn"
                   type="button"
-                  onClick={() => act({ type: "SKIP_BONUS" })}
+                  onClick={() => {
+                    setConnOpen(false);
+                    if (session.phase === "BONUS") act({ type: "SKIP_BONUS" });
+                  }}
                 >
-                  Skip
+                  {session.phase === "BONUS" ? "Skip" : "Not yet"}
                 </button>
                 <button
                   className="btn btn--primary"
                   type="submit"
-                  disabled={!bonusText.trim()}
+                  disabled={!connText.trim()}
                 >
-                  Name it (+250)
+                  Name it (+25)
                 </button>
               </div>
             </form>
@@ -368,11 +580,11 @@ export default function PhrasePlayer({
               </li>
               <li>
                 <strong>Spot the connection.</strong> All five answers — and
-                the phrase — share one secret.
+                the phrase — share one secret. Name it any time for +25.
               </li>
               <li>
-                <strong>Solve the phrase.</strong> Any time, {SOLVE_ATTEMPTS}{" "}
-                attempts. Fewer questions used, higher score.
+                <strong>Solve the phrase.</strong> Tap the board and type.
+                {" "}{SOLVE_ATTEMPTS} attempts. A perfect game is 100 points.
               </li>
             </ol>
             <button

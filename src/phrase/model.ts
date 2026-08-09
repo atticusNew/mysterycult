@@ -50,7 +50,10 @@ export interface PhrasePuzzle {
   phrase: string;
   /** The entity connecting the questions and the phrase. Bonus target. */
   connection: AnswerSpec;
+  /** Question ORDER matters: question k reveals letter positions k, k+5, … */
   questions: PhraseQuestion[];
+  /** Purchasable hints (10 points each). Empty string = hint not offered. */
+  hints: { category: string; decade: string };
   reveal: PhraseReveal;
   editorial: { notes: string };
 }
@@ -125,6 +128,7 @@ export function parsePuzzle(raw: unknown): PuzzleParseResult {
 
   const revealRecord = isRecord(raw.reveal) ? raw.reveal : {};
   const editorialRecord = isRecord(raw.editorial) ? raw.editorial : {};
+  const hintsRecord = isRecord(raw.hints) ? raw.hints : {};
 
   const puzzle: PhrasePuzzle = {
     id: id || "puzzle_untitled",
@@ -136,6 +140,10 @@ export function parsePuzzle(raw: unknown): PuzzleParseResult {
     phrase: asString(raw.phrase),
     connection: parseAnswerSpec(raw.connection),
     questions,
+    hints: {
+      category: asString(hintsRecord.category),
+      decade: asString(hintsRecord.decade),
+    },
     reveal: {
       summary: asString(revealRecord.summary),
       ohMoment: asString(revealRecord.ohMoment),
@@ -199,6 +207,7 @@ export function blankPuzzle(): PhrasePuzzle {
     phrase: "",
     connection: { primary: "", aliases: [] },
     questions: [blankQuestion(), blankQuestion(), blankQuestion(), blankQuestion(), blankQuestion()],
+    hints: { category: "", decade: "" },
     reveal: { summary: "", ohMoment: "" },
     editorial: { notes: "" },
   };

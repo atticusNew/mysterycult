@@ -4,16 +4,19 @@ import demoPuzzleTwo from "./puzzles/puzzle_002.json";
 import demoPuzzleThree from "./puzzles/puzzle_003.json";
 import demoPuzzleFour from "./puzzles/puzzle_004.json";
 import template from "./puzzles/puzzle_template.json";
-import { parsePuzzle, phraseLetters, letterCount } from "./model";
+import { parsePuzzle } from "./model";
 import {
-  attemptedCount,
+  allRevealedPositions,
   buildPuzzleShareText,
   computePuzzleScore,
   createPuzzleSession,
+  letterSequence,
+  looseAnswerMatches,
   PHRASE_SCORING,
   phraseMatches,
   puzzleReducer,
   SOLVE_ATTEMPTS,
+  stridePositions,
   type PuzzleAction,
   type PuzzleSession,
 } from "./engine";
@@ -34,75 +37,107 @@ function run(session: PuzzleSession, ...actions: PuzzleAction[]): PuzzleSession 
 }
 
 describe("phrase helpers", () => {
-  it("extracts letters and counts", () => {
-    expect(phraseLetters("There can be only one")).toContain("E");
-    expect(letterCount("There can be only one", "e")).toBe(4);
-    expect(letterCount("There can be only one", "N")).toBe(3);
+  it("sequences letters and computes stride positions", () => {
+    // "There can be only one" = 17 letters.
+    expect(letterSequence("There can be only one")).toHaveLength(17);
+    // Question 1 of 5 reveals positions 0, 5, 10, 15.
+    expect(stridePositions("There can be only one", 5, 0)).toEqual([0, 5, 10, 15]);
+    // Question 5 of 5 reveals positions 4, 9, 14.
+    expect(stridePositions("There can be only one", 5, 4)).toEqual([4, 9, 14]);
   });
 
   it("matches phrases forgivingly", () => {
     expect(phraseMatches("there can be only one!", "There can be only one")).toBe(true);
     expect(phraseMatches("there can only be one", "There can be only one")).toBe(false);
   });
+
+  it("tolerates one typo on longer answers", () => {
+    const spec = { primary: "Sean Connery", aliases: ["connery"] };
+    expect(looseAnswerMatches("Sean Conery", spec)).toBe(true);
+    expect(looseAnswerMatches("Conolly", spec)).toBe(false);
+    // Short answers stay strict.
+    expect(looseAnswerMatches("MTB", { primary: "MTV", aliases: [] })).toBe(false);
+  });
 });
 
-describe("puzzle engine", () => {
+describe("puzzle engine v2", () => {
   const data = puzzle();
 
-  it("a correct answer earns the question's letter — one attempt only", () => {
-    let session = run(createPuzzleSession(data), {
+  it("a correct answer reveals that question's stride positions", () => {
+    const session = run(createPuzzleSession(data), {
       type: "ANSWER_QUESTION",
-      questionId: "q_band",
-      answer: "queen",
+      questionId: data.questions[0].id,
+      answer: data.questions[0].answer.primary,
     });
-    expect(session.questionStatus.q_band).toBe("correct");
-    expect(session.earnedLetters).toEqual(["Y"]);
+    expect(session.questionStatus[data.questions[0].id]).toBe("correct");
+    expect(session.revealedPositions).toEqual([0, 5, 10, 15]);
+  });
 
-    // Second attempt on the same question is a no-op.
-    const before = session;
-    session = run(session, {
+  it("a wrong answer locks the question and reveals nothing", () => {
+    const session = run(createPuzzleSession(data), {
       type: "ANSWER_QUESTION",
-      questionId: "q_band",
-      answer: "abba",
+      questionId: data.questions[0].id,
+      answer: "definitely wrong",
     });
+    expect(session.questionStatus[data.questions[0].id]).toBe("wrong");
+    expect(session.revealedPositions).toEqual([]);
+  });
+
+  it("the letter hint reveals the first hidden position and costs once", () => {
+    let session = run(createPuzzleSession(data), {
+      type: "USE_HINT",
+      hint: "letter",
+    });
+    expect(session.hintPositions).toEqual([0]);
+    const before = session;
+    session = run(session, { type: "USE_HINT", hint: "letter" });
     expect(session).toBe(before);
   });
 
-  it("a wrong answer locks the question without revealing its letter", () => {
-    const session = run(createPuzzleSession(data), {
-      type: "ANSWER_QUESTION",
-      questionId: "q_bond",
-      answer: "Roger Moore",
+  it("category and decade hints require authored text and mark as used", () => {
+    let session = run(createPuzzleSession(data), {
+      type: "USE_HINT",
+      hint: "category",
     });
-    expect(session.questionStatus.q_bond).toBe("wrong");
-    expect(session.earnedLetters).toEqual([]);
-    expect(attemptedCount(session)).toBe(1);
+    expect(session.usedHints).toContain("category");
+    session = run(session, { type: "USE_HINT", hint: "decade" });
+    expect(session.usedHints).toContain("decade");
   });
 
-  it("solving the phrase opens the bonus; naming the connection completes", () => {
-    let session = run(
+  it("the connection can be named at any time, once", () => {
+    let session = run(createPuzzleSession(data), {
+      type: "ATTEMPT_CONNECTION",
+      text: data.connection.primary,
+    });
+    expect(session.connectionResult).toBe("correct");
+    expect(session.phase).toBe("PLAYING");
+    const before = session;
+    session = run(session, { type: "ATTEMPT_CONNECTION", text: "again" });
+    expect(session).toBe(before);
+  });
+
+  it("solving after naming the connection completes immediately", () => {
+    const session = run(
       createPuzzleSession(data),
-      { type: "ANSWER_QUESTION", questionId: "q_band", answer: "Queen" },
-      { type: "ATTEMPT_SOLVE", text: "There can be only one" },
+      { type: "ATTEMPT_CONNECTION", text: data.connection.primary },
+      { type: "ATTEMPT_SOLVE", text: data.phrase },
     );
-    expect(session.phase).toBe("BONUS");
+    expect(session.phase).toBe("COMPLETE");
     expect(session.solved).toBe(true);
-    expect(session.solvedAfterQuestions).toBe(1);
-
-    session = run(session, { type: "ANSWER_BONUS", text: "highlander" });
-    expect(session.phase).toBe("COMPLETE");
-    expect(session.bonusResult).toBe("correct");
   });
 
-  it("the bonus can be skipped", () => {
-    let session = run(
-      createPuzzleSession(data),
-      { type: "ATTEMPT_SOLVE", text: "there can be only one" },
-      { type: "SKIP_BONUS" },
-    );
+  it("solving without a connection attempt opens the bonus", () => {
+    let session = run(createPuzzleSession(data), {
+      type: "ATTEMPT_SOLVE",
+      text: data.phrase,
+    });
+    expect(session.phase).toBe("BONUS");
+    session = run(session, {
+      type: "ATTEMPT_CONNECTION",
+      text: data.connection.primary,
+    });
     expect(session.phase).toBe("COMPLETE");
-    expect(session.bonusResult).toBe("skipped");
-    expect(session.solvedAfterQuestions).toBe(0);
+    expect(session.connectionResult).toBe("correct");
   });
 
   it("running out of solve attempts sends the puzzle cold", () => {
@@ -116,44 +151,78 @@ describe("puzzle engine", () => {
     expect(session.solved).toBe(false);
   });
 
-  it("scoring rewards early solves and the connection bonus", () => {
-    const clean = run(
-      createPuzzleSession(data),
-      { type: "ATTEMPT_SOLVE", text: "There can be only one" },
-      { type: "ANSWER_BONUS", text: "Highlander" },
+  it("a perfect game is always 100 points, however it is reached", () => {
+    // Route one: answer everything, then solve, then name the connection.
+    let all = createPuzzleSession(data);
+    data.questions.forEach((question) => {
+      all = run(all, {
+        type: "ANSWER_QUESTION",
+        questionId: question.id,
+        answer: question.answer.primary,
+      });
+    });
+    all = run(
+      all,
+      { type: "ATTEMPT_SOLVE", text: data.phrase },
+      { type: "ATTEMPT_CONNECTION", text: data.connection.primary },
     );
-    expect(computePuzzleScore(clean).total).toBe(
-      PHRASE_SCORING.base + PHRASE_SCORING.connectionBonus,
-    );
+    expect(computePuzzleScore(data, all).total).toBe(100);
 
-    const slower = run(
+    // Route two: solve cold-open with zero questions, then the connection.
+    const zero = run(
       createPuzzleSession(data),
-      { type: "ANSWER_QUESTION", questionId: "q_band", answer: "Queen" },
-      { type: "ANSWER_QUESTION", questionId: "q_country", answer: "Scotland" },
-      { type: "ATTEMPT_SOLVE", text: "not it at all" },
-      { type: "ATTEMPT_SOLVE", text: "There can be only one" },
+      { type: "ATTEMPT_SOLVE", text: data.phrase },
+      { type: "ATTEMPT_CONNECTION", text: data.connection.primary },
+    );
+    expect(computePuzzleScore(data, zero).total).toBe(100);
+  });
+
+  it("wrong answers forfeit their 5 points and hints cost 10", () => {
+    let session = run(
+      createPuzzleSession(data),
+      {
+        type: "ANSWER_QUESTION",
+        questionId: data.questions[0].id,
+        answer: "wrong",
+      },
+      { type: "USE_HINT", hint: "letter" },
+      { type: "ATTEMPT_SOLVE", text: data.phrase },
       { type: "SKIP_BONUS" },
     );
-    expect(computePuzzleScore(slower).total).toBe(
-      PHRASE_SCORING.base -
-        2 * PHRASE_SCORING.perQuestion -
-        PHRASE_SCORING.perWrongSolve,
+    // 4 banked (5th was forfeited) + 50 solve - 10 hint = 60.
+    expect(computePuzzleScore(data, session).total).toBe(
+      4 * PHRASE_SCORING.perQuestion +
+        PHRASE_SCORING.phraseSolve -
+        PHRASE_SCORING.hintCost,
     );
   });
 
-  it("share text is spoiler-free", () => {
+  it("share text is spoiler-free and shows the score", () => {
     const session = run(
       createPuzzleSession(data),
-      { type: "ANSWER_QUESTION", questionId: "q_band", answer: "Queen" },
-      { type: "ATTEMPT_SOLVE", text: "There can be only one" },
-      { type: "ANSWER_BONUS", text: "Highlander" },
+      { type: "ATTEMPT_SOLVE", text: data.phrase },
+      { type: "ATTEMPT_CONNECTION", text: data.connection.primary },
     );
     const share = buildPuzzleShareText(data, session);
-    expect(share).toContain("Tagline #001");
+    expect(share).toContain("100/100");
     expect(share.toLowerCase()).not.toContain("highlander");
     expect(share.toLowerCase()).not.toContain("only one");
-    expect(share).toContain("🟩");
     expect(share).toContain("⭐");
+  });
+
+  it("revealed positions merge answers and hints", () => {
+    const session = run(
+      createPuzzleSession(data),
+      { type: "USE_HINT", hint: "letter" },
+      {
+        type: "ANSWER_QUESTION",
+        questionId: data.questions[1].id,
+        answer: data.questions[1].answer.primary,
+      },
+    );
+    const revealed = allRevealedPositions(session);
+    expect(revealed.has(0)).toBe(true); // hint
+    expect(revealed.has(1)).toBe(true); // question 2 stride
   });
 });
 
@@ -172,11 +241,7 @@ describe("shipped puzzles", () => {
       const report = validatePuzzle(parsed!);
       expect(report.errors.map((item) => item.message)).toEqual([]);
       expect(report.warnings.map((item) => item.message)).toEqual([]);
-      // The puzzle id must not leak the connection.
-      const keyword = parsed!.connection.primary
-        .split(" ")
-        .pop()!
-        .toLowerCase();
+      const keyword = parsed!.connection.primary.split(" ").pop()!.toLowerCase();
       expect(parsed!.id.toLowerCase()).not.toContain(keyword);
     });
   });

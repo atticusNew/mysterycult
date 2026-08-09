@@ -1,11 +1,14 @@
 /**
- * Tagline engine — pure reducer over one puzzle session.
+ * Tagline engine v2 — pure reducer over one puzzle session.
  *
- * Loop: answer questions (ONE attempt each; a correct answer reveals every
- * occurrence of that question's letter) and attempt to solve the phrase at
- * any time — the earlier, the better. Solving the phrase opens the bonus:
- * name the connection. Wrong phrase attempts are limited; running out sends
- * the puzzle cold.
+ * Reveal model: POSITIONAL STRIDE. Letters are numbered in reading order;
+ * question k (by board order) reveals positions k, k+5, k+10… (stride =
+ * question count). Question order is therefore part of the design.
+ *
+ * Scoring: every question is worth 5 — earned by answering correctly, or
+ * banked if still untouched when the phrase is solved (wrong answers
+ * forfeit it). +50 for the phrase, +25 for naming the connection (one
+ * attempt, any time). Hints cost 10 each. A perfect game is always 100.
  */
 import { answerMatches, normalizeAnswer } from "../game/AnswerEngine";
 import type { PhrasePuzzle } from "./model";
@@ -16,32 +19,31 @@ export const QUESTION_ATTEMPTS = 1;
 export const SOLVE_ATTEMPTS = 2;
 
 export const PHRASE_SCORING = {
-  base: 1000,
-  /** Deducted per question attempted (right or wrong) before solving. */
-  perQuestion: 150,
-  /** Deducted per wrong phrase attempt. */
-  perWrongSolve: 100,
-  /** Awarded for naming the connection in the bonus. */
-  connectionBonus: 250,
+  perQuestion: 5,
+  phraseSolve: 50,
+  connectionBonus: 25,
+  hintCost: 10,
   min: 0,
 } as const;
 
 export type QuestionStatus = "open" | "correct" | "wrong";
-
 export type PuzzlePhase = "PLAYING" | "BONUS" | "COMPLETE" | "COLD";
+export type HintKind = "category" | "decade" | "letter";
 
 export interface PuzzleSession {
   puzzleId: string;
   phase: PuzzlePhase;
   questionStatus: Record<string, QuestionStatus>;
-  /** Letters earned via correct answers (uppercase). */
-  earnedLetters: string[];
-  /** Wrong phrase attempts, in order. */
+  /** Letter positions revealed by correct answers (0-based, letters only). */
+  revealedPositions: number[];
+  /** Letter positions revealed by the letter hint. */
+  hintPositions: number[];
+  usedHints: HintKind[];
+  /** One attempt, any time. null = not yet attempted. */
+  connectionResult: "correct" | "wrong" | null;
   wrongSolves: string[];
-  /** Questions attempted at the moment of solving (for scoring/share). */
   solvedAfterQuestions: number | null;
   solved: boolean;
-  bonusResult: "correct" | "wrong" | "skipped" | null;
   startedAt: number;
   completedAt: number | null;
 }
@@ -49,8 +51,84 @@ export interface PuzzleSession {
 export type PuzzleAction =
   | { type: "ANSWER_QUESTION"; questionId: string; answer: string }
   | { type: "ATTEMPT_SOLVE"; text: string }
-  | { type: "ANSWER_BONUS"; text: string }
-  | { type: "SKIP_BONUS" };
+  | { type: "ATTEMPT_CONNECTION"; text: string }
+  | { type: "SKIP_BONUS" }
+  | { type: "USE_HINT"; hint: HintKind };
+
+// ---------------------------------------------------------------------------
+// Phrase positions
+// ---------------------------------------------------------------------------
+
+/** The phrase's letters (A–Z, uppercased) in reading order. */
+export function letterSequence(phrase: string): string[] {
+  return phrase
+    .toUpperCase()
+    .split("")
+    .filter((char) => /[A-Z]/.test(char));
+}
+
+/** Positions revealed by the question at `questionIndex` (stride model). */
+export function stridePositions(
+  phrase: string,
+  questionCount: number,
+  questionIndex: number,
+): number[] {
+  if (questionCount <= 0) return [];
+  const total = letterSequence(phrase).length;
+  const positions: number[] = [];
+  for (let i = questionIndex; i < total; i += questionCount) {
+    positions.push(i);
+  }
+  return positions;
+}
+
+/** Case-insensitive whole-phrase comparison, punctuation-tolerant. */
+export function phraseMatches(guess: string, phrase: string): boolean {
+  const normalized = normalizeAnswer(guess);
+  return normalized.length > 0 && normalized === normalizeAnswer(phrase);
+}
+
+// ---------------------------------------------------------------------------
+// Forgiving answer matching (typo tolerance)
+// ---------------------------------------------------------------------------
+
+function editDistance(a: string, b: string): number {
+  const rows = a.length + 1;
+  const cols = b.length + 1;
+  const dist: number[] = Array.from({ length: cols }, (_, j) => j);
+  for (let i = 1; i < rows; i++) {
+    let prev = dist[0];
+    dist[0] = i;
+    for (let j = 1; j < cols; j++) {
+      const temp = dist[j];
+      dist[j] = Math.min(
+        dist[j] + 1,
+        dist[j - 1] + 1,
+        prev + (a[i - 1] === b[j - 1] ? 0 : 1),
+      );
+      prev = temp;
+    }
+  }
+  return dist[cols - 1];
+}
+
+/** Exact alias match, or one typo of slack on answers of 5+ characters. */
+export function looseAnswerMatches(
+  input: string,
+  spec: { primary: string; aliases: string[] },
+): boolean {
+  if (answerMatches(input, spec)) return true;
+  const guess = normalizeAnswer(input);
+  if (!guess) return false;
+  return [spec.primary, ...spec.aliases]
+    .map(normalizeAnswer)
+    .filter((candidate) => candidate.length >= 5)
+    .some((candidate) => editDistance(guess, candidate) <= 1);
+}
+
+// ---------------------------------------------------------------------------
+// Session
+// ---------------------------------------------------------------------------
 
 export function createPuzzleSession(
   puzzle: PhrasePuzzle,
@@ -64,11 +142,13 @@ export function createPuzzleSession(
     puzzleId: puzzle.id,
     phase: "PLAYING",
     questionStatus,
-    earnedLetters: [],
+    revealedPositions: [],
+    hintPositions: [],
+    usedHints: [],
+    connectionResult: null,
     wrongSolves: [],
     solvedAfterQuestions: null,
     solved: false,
-    bonusResult: null,
     startedAt: now,
     completedAt: null,
   };
@@ -80,10 +160,14 @@ export function attemptedCount(session: PuzzleSession): number {
   ).length;
 }
 
-/** Case-insensitive whole-phrase comparison, punctuation-tolerant. */
-export function phraseMatches(guess: string, phrase: string): boolean {
-  const normalized = normalizeAnswer(guess);
-  return normalized.length > 0 && normalized === normalizeAnswer(phrase);
+export function correctCount(session: PuzzleSession): number {
+  return Object.values(session.questionStatus).filter(
+    (status) => status === "correct",
+  ).length;
+}
+
+export function allRevealedPositions(session: PuzzleSession): Set<number> {
+  return new Set([...session.revealedPositions, ...session.hintPositions]);
 }
 
 export function puzzleReducer(
@@ -94,25 +178,27 @@ export function puzzleReducer(
   switch (action.type) {
     case "ANSWER_QUESTION": {
       if (session.phase !== "PLAYING") return session;
-      const question = puzzle.questions.find(
+      const index = puzzle.questions.findIndex(
         (item) => item.id === action.questionId,
       );
-      if (!question) return session;
+      if (index < 0) return session;
+      const question = puzzle.questions[index];
       if (session.questionStatus[question.id] !== "open") return session;
       if (!action.answer.trim()) return session;
 
-      const correct = answerMatches(action.answer, question.answer);
-      const letter = question.letter.toUpperCase();
+      const correct = looseAnswerMatches(action.answer, question.answer);
       return {
         ...session,
         questionStatus: {
           ...session.questionStatus,
           [question.id]: correct ? "correct" : "wrong",
         },
-        earnedLetters:
-          correct && letter && !session.earnedLetters.includes(letter)
-            ? [...session.earnedLetters, letter]
-            : session.earnedLetters,
+        revealedPositions: correct
+          ? [
+              ...session.revealedPositions,
+              ...stridePositions(puzzle.phrase, puzzle.questions.length, index),
+            ]
+          : session.revealedPositions,
       };
     }
 
@@ -122,12 +208,15 @@ export function puzzleReducer(
       if (!trimmed) return session;
 
       if (phraseMatches(trimmed, puzzle.phrase)) {
-        return {
+        const solved = {
           ...session,
-          phase: "BONUS",
           solved: true,
           solvedAfterQuestions: attemptedCount(session),
         };
+        if (session.connectionResult === null) {
+          return { ...solved, phase: "BONUS" as const };
+        }
+        return { ...solved, phase: "COMPLETE" as const, completedAt: Date.now() };
       }
       const wrongSolves = [...session.wrongSolves, trimmed];
       if (wrongSolves.length >= SOLVE_ATTEMPTS) {
@@ -142,27 +231,58 @@ export function puzzleReducer(
       return { ...session, wrongSolves };
     }
 
-    case "ANSWER_BONUS": {
-      if (session.phase !== "BONUS") return session;
+    case "ATTEMPT_CONNECTION": {
+      if (session.phase !== "PLAYING" && session.phase !== "BONUS") {
+        return session;
+      }
+      if (session.connectionResult !== null) return session;
       if (!action.text.trim()) return session;
-      return {
-        ...session,
-        phase: "COMPLETE",
-        bonusResult: answerMatches(action.text, puzzle.connection)
-          ? "correct"
-          : "wrong",
-        completedAt: Date.now(),
-      };
+      const result = looseAnswerMatches(action.text, puzzle.connection)
+        ? ("correct" as const)
+        : ("wrong" as const);
+      if (session.phase === "BONUS") {
+        return {
+          ...session,
+          connectionResult: result,
+          phase: "COMPLETE",
+          completedAt: Date.now(),
+        };
+      }
+      return { ...session, connectionResult: result };
     }
 
     case "SKIP_BONUS": {
       if (session.phase !== "BONUS") return session;
-      return {
-        ...session,
-        phase: "COMPLETE",
-        bonusResult: "skipped",
-        completedAt: Date.now(),
-      };
+      return { ...session, phase: "COMPLETE", completedAt: Date.now() };
+    }
+
+    case "USE_HINT": {
+      if (session.phase !== "PLAYING") return session;
+      if (session.usedHints.includes(action.hint)) return session;
+      if (action.hint === "category" && !puzzle.hints.category.trim()) {
+        return session;
+      }
+      if (action.hint === "decade" && !puzzle.hints.decade.trim()) {
+        return session;
+      }
+      if (action.hint === "letter") {
+        const revealed = allRevealedPositions(session);
+        const total = letterSequence(puzzle.phrase).length;
+        let target = -1;
+        for (let i = 0; i < total; i++) {
+          if (!revealed.has(i)) {
+            target = i;
+            break;
+          }
+        }
+        if (target < 0) return session;
+        return {
+          ...session,
+          usedHints: [...session.usedHints, action.hint],
+          hintPositions: [...session.hintPositions, target],
+        };
+      }
+      return { ...session, usedHints: [...session.usedHints, action.hint] };
     }
 
     default:
@@ -184,30 +304,38 @@ export interface PuzzleScore {
   lines: ScoreLine[];
 }
 
-export function computePuzzleScore(session: PuzzleSession): PuzzleScore {
-  const lines: ScoreLine[] = [
-    { label: "Base score", amount: PHRASE_SCORING.base },
-  ];
-  const attempted = session.solvedAfterQuestions ?? attemptedCount(session);
-  if (attempted > 0) {
+export function computePuzzleScore(
+  puzzle: PhrasePuzzle,
+  session: PuzzleSession,
+): PuzzleScore {
+  const lines: ScoreLine[] = [];
+  const correct = correctCount(session);
+  if (correct > 0) {
     lines.push({
-      label: `Questions used × ${attempted}`,
-      amount: -attempted * PHRASE_SCORING.perQuestion,
+      label: `Questions answered × ${correct}`,
+      amount: correct * PHRASE_SCORING.perQuestion,
     });
   }
-  if (session.wrongSolves.length > 0) {
-    lines.push({
-      label: `Wrong solves × ${session.wrongSolves.length}`,
-      amount: -session.wrongSolves.length * PHRASE_SCORING.perWrongSolve,
-    });
+  if (session.solved) {
+    const banked = puzzle.questions.length - (session.solvedAfterQuestions ?? 0);
+    if (banked > 0) {
+      lines.push({
+        label: `Questions never needed × ${banked}`,
+        amount: banked * PHRASE_SCORING.perQuestion,
+      });
+    }
+    lines.push({ label: "Phrase solved", amount: PHRASE_SCORING.phraseSolve });
   }
-  if (!session.solved) {
-    lines.push({ label: "Puzzle went cold", amount: -PHRASE_SCORING.base });
-  }
-  if (session.bonusResult === "correct") {
+  if (session.connectionResult === "correct") {
     lines.push({
       label: "Named the connection",
       amount: PHRASE_SCORING.connectionBonus,
+    });
+  }
+  if (session.usedHints.length > 0) {
+    lines.push({
+      label: `Hints × ${session.usedHints.length}`,
+      amount: -session.usedHints.length * PHRASE_SCORING.hintCost,
     });
   }
   const total = Math.max(
@@ -217,18 +345,27 @@ export function computePuzzleScore(session: PuzzleSession): PuzzleScore {
   return { total, lines };
 }
 
-export function puzzleResultLine(session: PuzzleSession): string {
-  if (!session.solved) return "The puzzle went cold";
-  const used = session.solvedAfterQuestions ?? 0;
-  const bonus = session.bonusResult === "correct" ? " · connection named" : "";
-  return `Solved after ${used} question${used === 1 ? "" : "s"}${bonus}`;
+/** The score as it stands mid-game (for the live score chip). */
+export function liveScore(puzzle: PhrasePuzzle, session: PuzzleSession): number {
+  return computePuzzleScore(puzzle, session).total;
 }
 
-/** Spoiler-free share text: per-question tiles in board order. */
+export function puzzleResultLine(
+  puzzle: PhrasePuzzle,
+  session: PuzzleSession,
+): string {
+  const total = computePuzzleScore(puzzle, session).total;
+  if (!session.solved) return `The puzzle went cold · ${total}/100`;
+  const used = session.solvedAfterQuestions ?? 0;
+  return `${total}/100 · solved after ${used} question${used === 1 ? "" : "s"}`;
+}
+
+/** Spoiler-free share text. */
 export function buildPuzzleShareText(
   puzzle: PhrasePuzzle,
   session: PuzzleSession,
 ): string {
+  const total = computePuzzleScore(puzzle, session).total;
   const tiles = puzzle.questions
     .map((question) => {
       const status = session.questionStatus[question.id];
@@ -239,7 +376,7 @@ export function buildPuzzleShareText(
     .join("");
   const misses = "❌".repeat(session.wrongSolves.length);
   const outcome = session.solved ? "✔" : "🧊";
-  const star = session.bonusResult === "correct" ? "⭐" : "";
+  const star = session.connectionResult === "correct" ? "⭐" : "";
   const title = puzzle.title || "Tagline";
-  return `${title} — ${puzzleResultLine(session)}\n${tiles} ${misses}${outcome}${star}`.trim();
+  return `${title} — ${total}/100\n${tiles} ${misses}${outcome}${star}`.trim();
 }

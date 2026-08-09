@@ -8,10 +8,8 @@ import type { PhrasePuzzle } from "./model";
 import {
   blankQuestion,
   exportPuzzleToJson,
-  letterCount,
   loadPuzzleFromJson,
   PHRASE_GAME_TITLE,
-  phraseLetters,
 } from "./model";
 import { getPuzzleDraft, publishPuzzle, savePuzzleDraft } from "./store";
 import { validatePuzzle, type PuzzleReport } from "./validator";
@@ -160,8 +158,6 @@ export default function PhraseEditor() {
     alert("Published. The puzzle is now playable from Home.");
   }
 
-  const availableLetters = phraseLetters(puzzle.phrase);
-
   return (
     <div className="shell shell--wide shell--flush">
       <div className="ws-toolbar">
@@ -259,6 +255,26 @@ export default function PhraseEditor() {
             />
           </Field>
         </div>
+        <div className="form-row">
+          <Field label="Hint — category" hint="Purchasable for 10 pts, e.g. 'A movie'.">
+            <input
+              className="input"
+              value={puzzle.hints.category}
+              onChange={(event) =>
+                update({ hints: { ...puzzle.hints, category: event.target.value } })
+              }
+            />
+          </Field>
+          <Field label="Hint — decade" hint="Optional, e.g. 'The 1980s'.">
+            <input
+              className="input"
+              value={puzzle.hints.decade}
+              onChange={(event) =>
+                update({ hints: { ...puzzle.hints, decade: event.target.value } })
+              }
+            />
+          </Field>
+        </div>
       </section>
 
       {/* QUESTIONS */}
@@ -266,17 +282,47 @@ export default function PhraseEditor() {
         <h2>Questions</h2>
         <p className="section-note">
           Self-contained trivia; never name the connection. AT MOST ONE answer
-          may come from inside the work's own story (setting, subject) — the
-          rest must connect laterally (people, production, sideways history),
-          or the theme announces itself by question two. Each question unlocks
-          one letter: rare letters on easy questions, vowels and workhorses on
-          hard ones. One attempt each in play.
+          may come from inside the work's own story — the rest must connect
+          laterally, or the theme announces itself by question two. ORDER
+          MATTERS: question 1 reveals letter positions 1, 6, 11…; question 2
+          reveals 2, 7, 12…; and so on. Put the easiest questions first. One
+          attempt each in play.
         </p>
         {puzzle.questions.map((question, index) => (
           <div className="item-card" key={question.id}>
             <div className="item-card-head">
               <span className="kicker">Question {index + 1}</span>
               <div className="item-card-actions">
+                <button
+                  className="icon-btn"
+                  title="Move up"
+                  onClick={() => {
+                    if (index === 0) return;
+                    const questions = [...puzzle.questions];
+                    [questions[index - 1], questions[index]] = [
+                      questions[index],
+                      questions[index - 1],
+                    ];
+                    update({ questions });
+                  }}
+                >
+                  ↑
+                </button>
+                <button
+                  className="icon-btn"
+                  title="Move down"
+                  onClick={() => {
+                    if (index === puzzle.questions.length - 1) return;
+                    const questions = [...puzzle.questions];
+                    [questions[index], questions[index + 1]] = [
+                      questions[index + 1],
+                      questions[index],
+                    ];
+                    update({ questions });
+                  }}
+                >
+                  ↓
+                </button>
                 <button
                   className="icon-btn icon-btn--danger"
                   title="Remove"
@@ -326,31 +372,6 @@ export default function PhraseEditor() {
                 />
               </Field>
             </div>
-            <Field
-              label="Unlocks letter"
-              hint={
-                puzzle.phrase.trim()
-                  ? "Letters in the phrase, with occurrence counts."
-                  : "Write the phrase first."
-              }
-            >
-              <div className="checkbox-chips">
-                {availableLetters.map((letter) => (
-                  <label
-                    key={letter}
-                    className={question.letter === letter ? "checked" : ""}
-                  >
-                    <input
-                      type="radio"
-                      name={`letter_${question.id}`}
-                      checked={question.letter === letter}
-                      onChange={() => updateQuestion(index, { letter })}
-                    />
-                    {letter}×{letterCount(puzzle.phrase, letter)}
-                  </label>
-                ))}
-              </div>
-            </Field>
             <Field label="Connection note" hint="How the answer ties to the connection. Reveal-only.">
               <textarea
                 className="textarea"
