@@ -254,11 +254,25 @@ export default function PhrasePlayer({
       act({ type: "ANSWER_QUESTION", questionId: question.id, answer: value });
       setValue("");
       setFlash(correct ? "ok" : "bad");
+      // Compute what's still open AFTER this answer — the session in this
+      // closure is stale and still shows the just-answered question as open.
+      const statusAfter: Record<string, string> = {
+        ...session.questionStatus,
+        [question.id]: correct ? "correct" : "wrong",
+      };
+      const count = puzzle.questions.length;
+      let next = -1;
+      for (let step = 1; step <= count; step++) {
+        const candidate = (index + step) % count;
+        if (statusAfter[puzzle.questions[candidate].id] === "open") {
+          next = candidate;
+          break;
+        }
+      }
       advanceTimer.current = window.setTimeout(
         () => {
           setFlash(null);
-          const next = nextOpenQuestion(index);
-          // No questions left → straight to the thruline guess.
+          // No questions left → the ThruLine takes over automatically.
           setMode(
             next >= 0
               ? { kind: "question", index: next }
@@ -413,20 +427,29 @@ export default function PhrasePlayer({
           </span>
         </div>
 
-        <span
-          className={`verdict ${
-            session.connectionResult === "correct"
-              ? "verdict--solved"
-              : "verdict--cold"
-          }`}
-        >
-          {session.connectionResult === "correct"
-            ? "ThruLine found"
-            : "It went cold"}
-        </span>
-        <p className="badge" style={{ display: "block", marginTop: 6 }}>
-          {puzzleResultLine(puzzle, session).toUpperCase()}
-        </p>
+        {/* result hero */}
+        <div className="result-hero">
+          <span className="kicker kicker--gold">
+            {puzzle.title}
+            {puzzle.genre ? ` · ${puzzle.genre}` : ""}
+          </span>
+          <span
+            className={`verdict ${
+              session.connectionResult === "correct"
+                ? "verdict--solved"
+                : "verdict--missed"
+            }`}
+          >
+            {session.connectionResult === "correct"
+              ? "ThruLine found"
+              : "ThruLine missed"}
+          </span>
+          <div className="result-score">
+            <span className="result-score-n">{finalScore.total}</span>
+            <span className="result-score-d">/100</span>
+          </div>
+          <p className="badge">{puzzleResultLine(puzzle, session).toUpperCase()}</p>
+        </div>
 
         <div className="section">
           {board(true, session.connectionResult === "correct")}
@@ -591,24 +614,36 @@ export default function PhrasePlayer({
         ) : null}
 
         {bonus ? (
-          <div className="solved-strip">
-            <span className="verdict verdict--solved">
-              {puzzle.connection.primary}
-            </span>
-            <span>You found it! Finish the line for +25.</span>
-            <button
-              className="btn btn--small"
-              onClick={() => act({ type: "SKIP_BONUS" })}
-            >
-              Skip
-            </button>
+          /* the phrase bonus, post-win — same takeover treatment in green */
+          <div className="final-panel final-panel--won">
+            <div className="final-head">
+              <span className="final-tag final-tag--won">
+                {puzzle.connection.primary} ✓
+              </span>
+              <span className="final-title">You got it!</span>
+              <button
+                className="icon-round icon-round--sm final-x"
+                title="Skip"
+                onClick={() => act({ type: "SKIP_BONUS" })}
+              >
+                ✕
+              </button>
+            </div>
+            <p className="final-question">One more: finish the line for +25.</p>
           </div>
         ) : mode.kind === "theme" ? (
-          /* the final round — weight, answers front and center */
+          /* the final round — a takeover with an ✕ to step back */
           <div className="final-panel">
             <div className="final-head">
               <span className="final-tag">Final</span>
               <span className="final-title">The ThruLine</span>
+              <button
+                className="icon-round icon-round--sm final-x"
+                title="Back"
+                onClick={() => switchMode({ kind: "idle" })}
+              >
+                ✕
+              </button>
             </div>
             <p className="final-question">
               What connects everything{puzzle.genre ? ` — which ${puzzle.genre.toLowerCase()}` : ""}?
@@ -624,6 +659,9 @@ export default function PhrasePlayer({
             ) : (
               <p className="final-none">No answers earned — going on instinct.</p>
             )}
+            {session.solved ? (
+              <p className="final-note">Phrase complete ⭐ — it's on the board.</p>
+            ) : null}
           </div>
         ) : mode.kind === "question" ? (
           /* focused question card — other categories step aside */

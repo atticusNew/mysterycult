@@ -1107,7 +1107,8 @@ h3 {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  overflow: hidden;
+  /* long questions scroll inside the card; text is never clipped */
+  overflow-y: auto;
 }
 
 .focus-question {
@@ -1231,8 +1232,11 @@ h3 {
   color: var(--green);
 }
 
+/* the takeover's escape hatch — must be unmissable */
 .final-x {
   margin-left: auto;
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
 }
 
 /* post-win phrase bonus panel */
@@ -1252,8 +1256,11 @@ h3 {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 8px;
-  padding: 10px 0 4px;
+  gap: 9px;
+  padding: 20px 16px 16px;
+  background: var(--card);
+  border-radius: 18px;
+  box-shadow: var(--shadow-sm);
 }
 
 .result-score {
@@ -1337,6 +1344,79 @@ h3 {
 
   .focus-question {
     font-size: 14.5px;
+  }
+}
+
+/* the smallest phones (iPhone SE with browser chrome ≈ 500–550px) */
+@media (max-height: 570px) {
+  .fstage-inner {
+    gap: 4px;
+    padding-top: 4px;
+  }
+
+  .ptile {
+    width: 19px;
+    height: 25px;
+    font-size: 13px;
+  }
+
+  .phrase-board--dense .ptile {
+    width: 16px;
+    height: 21px;
+    font-size: 11px;
+  }
+
+  .phrase-board--ultra .ptile {
+    width: 13px;
+    height: 18px;
+    font-size: 10px;
+  }
+
+  .phrase-board {
+    gap: 5px 12px;
+  }
+
+  .cat-cell {
+    min-height: 34px;
+    padding: 7px 10px;
+    font-size: 10px;
+  }
+
+  .cat-grid {
+    gap: 5px;
+  }
+
+  .mode-row .qchip {
+    padding: 7px 6px;
+    font-size: 10.5px;
+  }
+
+  .entry {
+    min-height: 36px;
+  }
+
+  .kb-key {
+    height: 30px;
+    font-size: 12px;
+    border-radius: 5px;
+  }
+
+  .kb {
+    gap: 4px;
+  }
+
+  .kb-row {
+    gap: 3px;
+  }
+
+  .focus-question,
+  .final-question {
+    font-size: 13px;
+  }
+
+  .final-answer {
+    padding: 5px 10px;
+    font-size: 10.5px;
   }
 }
 
