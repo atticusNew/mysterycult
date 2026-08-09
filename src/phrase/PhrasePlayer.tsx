@@ -201,17 +201,6 @@ export default function PhrasePlayer({
     setFlash(null);
   }
 
-  function nextOpenQuestion(after: number): number {
-    const count = puzzle.questions.length;
-    for (let step = 1; step <= count; step++) {
-      const index = (after + step) % count;
-      if (session.questionStatus[puzzle.questions[index].id] === "open") {
-        return index;
-      }
-    }
-    return -1;
-  }
-
   function assembleGuess(): string {
     let letterIndex = 0;
     let hiddenIndex = 0;
