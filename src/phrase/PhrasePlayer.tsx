@@ -653,6 +653,12 @@ export default function PhrasePlayer({
             {session.solved ? (
               <p className="final-note">Phrase complete ⭐ — it's on the board.</p>
             ) : null}
+            <button
+              className="btn btn--small final-giveup"
+              onClick={() => act({ type: "GIVE_UP" })}
+            >
+              Give up — take my {score} points
+            </button>
           </div>
         ) : mode.kind === "question" ? (
           /* focused question card — other categories step aside */

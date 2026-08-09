@@ -146,6 +146,24 @@ describe("puzzle engine v2", () => {
     expect(session.connectionResult).toBe("wrong");
   });
 
+  it("giving up ends the game but keeps every earned point", () => {
+    const first = data.questions[0];
+    let session = run(createPuzzleSession(data), {
+      type: "ANSWER_QUESTION",
+      questionId: first.id,
+      answer: first.answer.primary,
+    });
+    session = run(session, { type: "GIVE_UP" });
+    expect(session.phase).toBe("COLD");
+    expect(session.connectionResult).toBe("wrong");
+    expect(session.wrongThemes).toHaveLength(0);
+    expect(computePuzzleScore(data, session).total).toBe(
+      PHRASE_SCORING.perQuestion,
+    );
+    // Once resolved, further give-ups (or one after a win) are no-ops.
+    expect(run(session, { type: "GIVE_UP" })).toBe(session);
+  });
+
   it("a fully revealed phrase completes itself", () => {
     let session = createPuzzleSession(data);
     data.questions.forEach((question) => {

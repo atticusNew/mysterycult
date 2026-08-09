@@ -1248,6 +1248,13 @@ h3 {
   color: var(--green);
 }
 
+/* give up — present but never competing with the guess itself */
+.final-giveup {
+  align-self: flex-start;
+  margin-top: auto;
+  opacity: 0.8;
+}
+
 /* the takeover's escape hatch — must be unmissable */
 .final-x {
   margin-left: auto;

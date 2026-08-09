@@ -61,6 +61,7 @@ export type PuzzleAction =
   | { type: "ANSWER_QUESTION"; questionId: string; answer: string }
   | { type: "ATTEMPT_SOLVE"; text: string }
   | { type: "ATTEMPT_CONNECTION"; text: string }
+  | { type: "GIVE_UP" }
   | { type: "SKIP_BONUS" }
   | { type: "USE_HINT"; hint: HintKind };
 
@@ -282,6 +283,20 @@ export function puzzleReducer(
       return { ...session, wrongThemes };
     }
 
+    case "GIVE_UP": {
+      // Collect what's earned and stop hunting — a missed ThruLine without
+      // the empty ritual of typing a junk guess.
+      if (session.phase !== "PLAYING") return session;
+      if (session.connectionResult !== null) return session;
+      return {
+        ...session,
+        connectionResult: "wrong",
+        phase: "COLD",
+        solvedAfterQuestions: attemptedCount(session),
+        completedAt: Date.now(),
+      };
+    }
+
     case "SKIP_BONUS": {
       if (session.phase !== "BONUS") return session;
       return { ...session, phase: "COMPLETE", completedAt: Date.now() };
@@ -387,7 +402,9 @@ export function puzzleResultLine(
 ): string {
   const total = computePuzzleScore(puzzle, session).total;
   if (session.connectionResult !== "correct") {
-    return `ThruLine missed · ${total}/100`;
+    return session.wrongThemes.length === 0
+      ? `Gave up · ${total}/100`
+      : `ThruLine missed · ${total}/100`;
   }
   const used = session.solvedAfterQuestions ?? 0;
   return `${total}/100 · theme after ${used} question${used === 1 ? "" : "s"}`;
