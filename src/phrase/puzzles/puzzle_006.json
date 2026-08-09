@@ -2,10 +2,15 @@
   "id": "phrase_006",
   "version": 1,
   "title": "ThruLines #006",
-  "phrase": "I may be the voice of my generation. Or at least a voice. Of a generation.",
+  "phrase": "The voice of my generation. Or at least a voice.",
   "connection": {
     "primary": "Girls",
-    "aliases": ["girls", "girls hbo", "girls tv show", "hbo girls"]
+    "aliases": [
+      "girls",
+      "girls hbo",
+      "girls tv show",
+      "hbo girls"
+    ]
   },
   "genre": "TV Show",
   "questions": [
@@ -15,7 +20,10 @@
       "prompt": "Who was the drummer for Bad Company?",
       "answer": {
         "primary": "Simon Kirke",
-        "aliases": ["kirke", "simon kirk"]
+        "aliases": [
+          "kirke",
+          "simon kirk"
+        ]
       },
       "letter": "",
       "factoid": "",
@@ -27,7 +35,10 @@
       "prompt": "Which news anchor was suspended for falsely claiming his helicopter was hit in Iraq?",
       "answer": {
         "primary": "Brian Williams",
-        "aliases": ["williams", "brian william"]
+        "aliases": [
+          "williams",
+          "brian william"
+        ]
       },
       "letter": "",
       "factoid": "",
@@ -39,7 +50,9 @@
       "prompt": "Which Pulitzer-winning playwright wrote Glengarry Glen Ross?",
       "answer": {
         "primary": "David Mamet",
-        "aliases": ["mamet"]
+        "aliases": [
+          "mamet"
+        ]
       },
       "letter": "",
       "factoid": "",
@@ -51,7 +64,9 @@
       "prompt": "What is the first name of David and Victoria Beckham's eldest son?",
       "answer": {
         "primary": "Brooklyn",
-        "aliases": ["brooklyn beckham"]
+        "aliases": [
+          "brooklyn beckham"
+        ]
       },
       "letter": "",
       "factoid": "",
@@ -63,7 +78,9 @@
       "prompt": "What's the last name of the Blue Collar Comedy Tour's famous ventriloquist?",
       "answer": {
         "primary": "Dunham",
-        "aliases": ["jeff dunham"]
+        "aliases": [
+          "jeff dunham"
+        ]
       },
       "letter": "",
       "factoid": "",
@@ -79,6 +96,6 @@
     "ohMoment": "The answers were the parents all along — the most famous surnames in the credits, hiding in plain sight."
   },
   "editorial": {
-    "notes": "Signature construction: every answer is a cast member's famous relative (plus the borough). Phrase trimmed from the full pilot line ('I don't want to freak you out, but…') to the famous kernel so the board stays playable — 56 letters is already the dense tier."
+    "notes": "Signature construction: every answer is a cast member's famous relative (plus the borough). Phrase trimmed to the hedge's spine (37 letters) per the shorter-phrase doctrine: aim 18-35 letters, ceiling ~40."
   }
 }

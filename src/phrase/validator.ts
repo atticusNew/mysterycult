@@ -98,12 +98,21 @@ export function validatePuzzle(puzzle: PhrasePuzzle): PuzzleReport {
   }
 
   const totalLetters = letterSequence(puzzle.phrase).length;
-  if (totalLetters > 58) {
+  if (totalLetters > 48) {
     issues.push(
       issue(
         "warning",
         "phrase_long",
-        `The phrase is ${totalLetters} letters — boards over ~58 letters crowd small phones. Pick a shorter line.`,
+        `The phrase is ${totalLetters} letters — aim for 18–35 (4–8 words); the board crowds past ~48.`,
+      ),
+    );
+  }
+  if (puzzle.phrase.trim() && totalLetters < 15) {
+    issues.push(
+      issue(
+        "warning",
+        "phrase_short",
+        `Only ${totalLetters} letters — the phrase will read itself after two answers. Aim for 18–35.`,
       ),
     );
   }

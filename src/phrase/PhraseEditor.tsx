@@ -223,7 +223,7 @@ export default function PhraseEditor() {
         </div>
         <Field
           label="The phrase"
-          hint="The solve target. Famous once you know the connection."
+          hint="The solve target. Famous once you know the connection. Aim for 18–35 letters (4–8 words)."
         >
           <input
             className="input"
