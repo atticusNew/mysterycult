@@ -603,22 +603,25 @@ export default function PhrasePlayer({
         ) : null}
 
         {bonus ? (
-          /* the phrase bonus, post-win — same takeover treatment in green */
+          /* post-win: you're already IN solve mode — type away, or skip */
           <div className="final-panel final-panel--won">
             <div className="final-head">
               <span className="final-tag final-tag--won">
-                {puzzle.connection.primary} ✓
+                {puzzle.connection.primary} ✓ +50
               </span>
               <span className="final-title">You got it!</span>
-              <button
-                className="icon-round icon-round--sm final-x"
-                title="Skip"
-                onClick={() => act({ type: "SKIP_BONUS" })}
-              >
-                ✕
-              </button>
             </div>
-            <p className="final-question">One more: finish the line for +25.</p>
+            <p className="final-question">
+              Bonus: finish the line for +25 — type the missing letters into
+              the tiles above, then press ENTER.
+            </p>
+            <button
+              className="btn btn--small"
+              style={{ alignSelf: "flex-start" }}
+              onClick={() => act({ type: "SKIP_BONUS" })}
+            >
+              Skip — take my {computePuzzleScore(puzzle, session).total} points
+            </button>
           </div>
         ) : mode.kind === "theme" ? (
           /* the final round — a takeover with an ✕ to step back */
