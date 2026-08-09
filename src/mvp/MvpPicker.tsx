@@ -14,7 +14,7 @@ export default function MvpPicker() {
 
       <h1 className="display">Pick a puzzle</h1>
       <p className="prose" style={{ marginTop: 6 }}>
-        Each one is five questions, one hidden line, one thruline.
+        Each one is five answers, one hidden line, one thruline.
       </p>
 
       <div style={{ marginTop: 18, display: "flex", flexDirection: "column", gap: 10 }}>

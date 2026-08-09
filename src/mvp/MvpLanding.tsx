@@ -23,7 +23,7 @@ export default function MvpLanding() {
       <h1>{PHRASE_GAME_TITLE}</h1>
       <p className="date">{date}</p>
       <p className="tagline">
-        Five questions. One hidden line. Find the thruline that connects it
+        Five answers. One hidden line. Find the thruline that connects them
         all.
       </p>
 
