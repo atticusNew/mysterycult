@@ -18,11 +18,12 @@
       "subject": "Music",
       "prompt": "According to Elton John, these types of songs \u201csay so much\u201d.",
       "answer": {
-        "primary": "Sad songs",
+        "primary": "Sad song",
         "aliases": [
-          "sad song",
-          "sad songs say so much",
-          "a sad song"
+          "sad",
+          "sad songs",
+          "a sad song",
+          "sad songs say so much"
         ]
       },
       "letter": "",
