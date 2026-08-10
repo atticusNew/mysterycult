@@ -14,20 +14,20 @@
   "genre": "Song",
   "questions": [
     {
-      "id": "q_bowser",
+      "id": "q_elton",
       "subject": "Music",
-      "prompt": "Bowser was the greaser frontman of which doo-wop revival group?",
+      "prompt": "According to Elton John, these types of songs \u201csay so much\u201d.",
       "answer": {
-        "primary": "Sha Na Na",
+        "primary": "Sad songs",
         "aliases": [
-          "shanana",
-          "sha-na-na",
-          "sha na na na"
+          "sad song",
+          "sad songs say so much",
+          "a sad song"
         ]
       },
       "letter": "",
       "factoid": "",
-      "connectionNote": "Na, na, na, na-na-na-na — the most famous coda in music runs four minutes on those syllables."
+      "connectionNote": "Take a sad song and make it better — the whole mission statement of the song."
     },
     {
       "id": "q_split",
@@ -46,19 +46,22 @@
       "connectionNote": "Paul wrote it driving out to comfort five-year-old Julian Lennon during John and Cynthia's divorce."
     },
     {
-      "id": "q_golf",
-      "subject": "Sports",
-      "prompt": "What do you yell when a golf ball might hit someone?",
+      "id": "q_vw",
+      "subject": "Cars",
+      "prompt": "Which popular Volkswagen model shares its name with an insect?",
       "answer": {
-        "primary": "Fore",
+        "primary": "Beetle",
         "aliases": [
-          "fore!",
-          "four"
+          "the beetle",
+          "vw beetle",
+          "volkswagen beetle",
+          "bug",
+          "the bug"
         ]
       },
       "letter": "",
       "factoid": "",
-      "connectionNote": "'For well you know…' — the first word of the line on the board is hiding in a golf shout."
+      "connectionNote": "The Beetle — one letter off the band that made this the biggest single of 1968."
     },
     {
       "id": "q_cranston",
@@ -99,10 +102,10 @@
     "decade": ""
   },
   "reveal": {
-    "summary": "Hey Jude. Sha Na Na is the na-na-na coda, the divorce is the one Paul drove out to soften for little Julian Lennon, 'fore' is the first word of the line on the board, White is the album summer it was born in, and The Royal Tenenbaums opens on the song itself. The line is the song's quiet center: don't play it cool.",
-    "ohMoment": "The golf shout was the giveaway all along — 'Fore' is the first word of the line you were staring at."
+    "summary": "Hey Jude. Sad songs say so much — and this one exists to take a sad song and make it better. The divorce is the one Paul drove out to soften for little Julian Lennon, the Beetle is one letter off the band, White is the album summer it was born in, and The Royal Tenenbaums opens on the song itself. The line is the song's quiet center: don't play it cool.",
+    "ohMoment": "Elton was pointing at the mission statement all along — take a sad song and make it better."
   },
   "editorial": {
-    "notes": "Q5 finalized per author: Wes Anderson's third feature (The Royal Tenenbaums, which opens on an instrumental Hey Jude). The author's alternate — a parrot sits 'on your shoulder,' echoing 'the movement you need is on your shoulder' — is a great fact for the reveal but awkward as a typed answer. Phrase trimmed at the rhyme break (40 letters)."
+    "notes": "Playtest revision: swapped out the Sha Na Na question (too obscure) and the golf 'Fore' question (misread as a trick) for Elton John's sad songs (points at 'take a sad song and make it better') and the VW Beetle (one letter off the band). Phrase trimmed at the rhyme break (40 letters)."
   }
 }
