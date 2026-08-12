@@ -30,10 +30,21 @@ export function getMvpPuzzle(id: string): PhrasePuzzle | null {
 }
 
 /**
- * The featured puzzle testers land on. Pinned to the list's first entry
- * (Girls — the strongest) for the beta; switch back to daily rotation
- * when there's a real content calendar.
+ * Daily rotation anchor (local time). On this date the cycle starts at
+ * index 0 (Girls); every local midnight advances one puzzle, wrapping
+ * around until there's a real content calendar.
  */
-export function getTodaysMvpPuzzle(): PhrasePuzzle {
-  return MVP_PUZZLES[0];
+const ROTATION_EPOCH = { year: 2026, month: 7, day: 11 }; // Aug 11, 2026
+
+export function getTodaysMvpPuzzle(now: Date = new Date()): PhrasePuzzle {
+  const start = new Date(
+    ROTATION_EPOCH.year,
+    ROTATION_EPOCH.month,
+    ROTATION_EPOCH.day,
+  );
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const days = Math.round((today.getTime() - start.getTime()) / 86_400_000);
+  const count = MVP_PUZZLES.length;
+  // Double modulo keeps the index positive for dates before the epoch.
+  return MVP_PUZZLES[((days % count) + count) % count];
 }

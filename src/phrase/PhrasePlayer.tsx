@@ -10,6 +10,7 @@
  * fully revealed phrase completes itself.
  */
 import { useEffect, useMemo, useRef, useState, useReducer } from "react";
+import type { ReactNode } from "react";
 import type { PhrasePuzzle } from "./model";
 import {
   allRevealedPositions,
@@ -45,6 +46,10 @@ interface Props {
   onExit: () => void;
   exitLabel?: string;
   onRestart?: () => void;
+  /** Called once when the session reaches COMPLETE or COLD. */
+  onComplete?: (result: { total: number; won: boolean }) => void;
+  /** Extra content for the results screen (e.g. an "Up next" card). */
+  endSlot?: ReactNode;
 }
 
 export default function PhrasePlayer({
@@ -52,6 +57,8 @@ export default function PhrasePlayer({
   onExit,
   exitLabel,
   onRestart,
+  onComplete,
+  endSlot,
 }: Props) {
   const [session, dispatch] = useReducer(
     (state: ReturnType<typeof createPuzzleSession>, action: PuzzleAction) =>
@@ -68,6 +75,10 @@ export default function PhrasePlayer({
   const [lastBatch, setLastBatch] = useState<number[]>([]);
   const [toast, setToast] = useState<string | null>(null);
   const [midWave, setMidWave] = useState(false);
+  const [listening, setListening] = useState(false);
+  const recognizerRef = useRef<{ stop?: () => void; abort?: () => void } | null>(
+    null,
+  );
   const prevRevealed = useRef<Set<number>>(new Set());
   const prevSolved = useRef(false);
   const advanceTimer = useRef<number | null>(null);
@@ -185,12 +196,67 @@ export default function PhrasePlayer({
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
+  // Report the finished game exactly once (the phase only flips once).
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
+  useEffect(() => {
+    if (!gameOver) return;
+    onCompleteRef.current?.({
+      total: computePuzzleScore(puzzle, session).total,
+      won: session.connectionResult === "correct",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameOver]);
+
+  // ---------------------------------------------------------------- voice
+  // Web Speech API — a progressive enhancement. The mic fills the entry
+  // line; ENTER still submits, so a bad transcription never burns a guess.
+  const SpeechRecognitionImpl =
+    typeof window !== "undefined"
+      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ((window as any).SpeechRecognition ??
+        (window as any).webkitSpeechRecognition)
+      : undefined;
+  const voiceSupported = Boolean(SpeechRecognitionImpl);
+
+  useEffect(() => {
+    return () => recognizerRef.current?.abort?.();
+  }, []);
+
+  function toggleVoice() {
+    if (!SpeechRecognitionImpl) return;
+    if (listening) {
+      recognizerRef.current?.stop?.();
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const recognizer = new (SpeechRecognitionImpl as any)();
+    recognizer.lang = navigator.language || "en-US";
+    recognizer.interimResults = false;
+    recognizer.maxAlternatives = 1;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    recognizer.onresult = (event: any) => {
+      const transcript: string = event.results?.[0]?.[0]?.transcript ?? "";
+      if (transcript) setValue(transcript.trim().slice(0, MAX_ENTRY));
+    };
+    recognizer.onend = () => setListening(false);
+    recognizer.onerror = () => setListening(false);
+    recognizerRef.current = recognizer;
+    setListening(true);
+    try {
+      recognizer.start();
+    } catch {
+      setListening(false);
+    }
+  }
+
   function act(action: PuzzleAction) {
     dispatch(action);
   }
 
   function switchMode(next: Mode) {
     if (bonus) return;
+    recognizerRef.current?.abort?.();
     if (advanceTimer.current) {
       window.clearTimeout(advanceTimer.current);
       advanceTimer.current = null;
@@ -218,6 +284,14 @@ export default function PhrasePlayer({
     effectiveMode.kind === "question"
       ? session.questionStatus[puzzle.questions[effectiveMode.index].id]
       : "open";
+
+  const canDictate =
+    voiceSupported &&
+    (effectiveMode.kind === "question"
+      ? session.phase === "PLAYING" && activeStatus === "open"
+      : effectiveMode.kind === "theme"
+        ? session.connectionResult === null
+        : false);
 
   const canSubmit =
     effectiveMode.kind === "solve"
@@ -504,6 +578,8 @@ export default function PhrasePlayer({
           </div>
         </div>
 
+        {endSlot}
+
         <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
           <button
             className="btn"
@@ -788,6 +864,31 @@ export default function PhrasePlayer({
           >
             {showRawValue && value ? value : entryGhost}
           </span>
+          {canDictate ? (
+            <button
+              className={`icon-round icon-round--sm mic-btn${
+                listening ? " mic-btn--live" : ""
+              }`}
+              title={listening ? "Stop listening" : "Answer by voice"}
+              aria-label={listening ? "Stop listening" : "Answer by voice"}
+              onClick={toggleVoice}
+            >
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                aria-hidden
+              >
+                <rect x="9" y="2.5" width="6" height="11" rx="3" fill="currentColor" stroke="none" />
+                <path d="M5.5 11a6.5 6.5 0 0 0 13 0" />
+                <path d="M12 17.5V21" />
+              </svg>
+            </button>
+          ) : null}
           {!bonus && effectiveMode.kind === "solve" ? (
             <button
               className="icon-round icon-round--sm"

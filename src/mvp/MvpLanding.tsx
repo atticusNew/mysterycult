@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { PHRASE_GAME_TITLE } from "../phrase/model";
-import { getTodaysMvpPuzzle } from "./puzzles";
+import { getTodaysMvpPuzzle, MVP_PUZZLES } from "./puzzles";
 
 export default function MvpLanding() {
   const navigate = useNavigate();
@@ -35,13 +35,14 @@ export default function MvpLanding() {
         Play
       </button>
       <span className="case-label">
-        {today.title}
+        Today: {today.title}
         {today.genre ? ` · ${today.genre}` : ""}
       </span>
+      <span className="daily-note">New puzzle every day</span>
 
       <div className="title-links">
-        <Link to="/puzzles" className="btn btn--ghost btn--small">
-          All puzzles
+        <Link to="/puzzles" className="btn btn--small">
+          Past puzzles · {MVP_PUZZLES.length - 1}
         </Link>
       </div>
 

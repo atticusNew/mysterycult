@@ -344,6 +344,16 @@ h3 {
   margin-top: 10px;
 }
 
+.title-screen .daily-note {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  opacity: 0.7;
+  margin-top: -6px;
+}
+
 .title-links {
   margin-top: 26px;
   display: flex;
@@ -654,6 +664,21 @@ h3 {
   margin: 3px 0 0;
   font-size: 13.5px;
   color: var(--ink-3);
+}
+
+.row-pill {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px 3px;
+  border-radius: 999px;
+  background: var(--gold);
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: 3px;
 }
 
 /* --------------------------------------------------- phrase board (game 2) */
@@ -1273,6 +1298,40 @@ h3 {
   color: #fff;
 }
 
+/* up next — the end screen's handoff to the next puzzle */
+.upnext {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 13px 14px;
+  background: var(--card);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm), inset 0 0 0 1.5px var(--line);
+}
+
+.upnext-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.upnext-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.upnext-title {
+  font-weight: 700;
+  font-size: 15px;
+}
+
 /* end screen */
 .result-hero {
   display: flex;
@@ -1471,6 +1530,28 @@ h3 {
   to {
     opacity: 1;
     transform: translateX(-50%) scale(1);
+  }
+}
+
+/* mic — voice entry, shown only where the browser supports dictation */
+.mic-btn {
+  flex-shrink: 0;
+  color: var(--ink-2);
+}
+
+.mic-btn--live {
+  background: var(--red);
+  color: #fff;
+  animation: mic-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes mic-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
   }
 }
 
